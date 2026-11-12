@@ -10,20 +10,19 @@ import {
   BoardPreset, 
   identifyEsp32FromUsbVidPid 
 } from '../utils/usbEsp32Detector';
+import {
+  getSerialAdapter,
+  isSerialRequestCancelled,
+  type OpenSerialPort,
+  type SerialBackendKind,
+} from '../platform';
 import { 
   Usb, 
   Cpu, 
-  CheckCircle2, 
   AlertCircle, 
   Terminal, 
   Send, 
   Trash2, 
-  Sparkles, 
-  Sliders, 
-  RefreshCw, 
-  HardDrive, 
-  Layers, 
-  Radio, 
   Check, 
   ArrowRight 
 } from 'lucide-react';
@@ -37,6 +36,23 @@ interface UsbDetectorViewProps {
   setSystem: React.Dispatch<React.SetStateAction<SystemConfig>>;
 }
 
+function formatClockTimestamp(date = new Date()): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+}
+
+function backendLabel(kind: SerialBackendKind): string {
+  switch (kind) {
+    case 'web':
+      return 'Web Serial';
+    case 'mock':
+      return 'Mock';
+    case 'native':
+      return 'Native COM';
+    default:
+      return 'Niedostępny';
+  }
+}
+
 export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   detectedChip,
   setDetectedChip,
@@ -45,79 +61,130 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   system,
   setSystem,
 }) => {
+  const serialAdapter = getSerialAdapter();
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
   const [appliedPresetId, setAppliedPresetId] = useState<string | null>(null);
+  const [serialBackend] = useState<SerialBackendKind>(() => serialAdapter.kind);
+  const [portConnected, setPortConnected] = useState(false);
   const [serialLogs, setSerialLogs] = useState<SerialLogMessage[]>([
     {
       id: 'log-1',
       timestamp: '00:00:01',
-      text: '--- ESP32 Display Studio Serial Monitor gotowy ---',
+      text: `--- ESP32 Display Studio Serial Monitor gotowy (${backendLabel(serialAdapter.kind)}) ---`,
       direction: 'system',
     },
   ]);
   const [commandInput, setCommandInput] = useState('');
   const logEndRef = useRef<HTMLDivElement | null>(null);
+  const openPortRef = useRef<OpenSerialPort | null>(null);
+  const rxBufferRef = useRef('');
 
   // Auto-scroll logs
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [serialLogs]);
 
-  // Handle native Web Serial API detection
-  const handleDetectViaWebSerial = async () => {
+  // Close open port when leaving the view
+  useEffect(() => {
+    return () => {
+      void openPortRef.current?.close();
+      openPortRef.current = null;
+    };
+  }, []);
+
+  const appendLogs = (entries: Omit<SerialLogMessage, 'id'>[]) => {
+    const stamp = Date.now();
+    setSerialLogs(prev => [
+      ...prev,
+      ...entries.map((entry, index) => ({
+        ...entry,
+        id: `log-${stamp}-${index}`,
+      })),
+    ]);
+  };
+
+  const attachOpenPort = (port: OpenSerialPort) => {
+    void openPortRef.current?.close();
+    openPortRef.current = port;
+    setPortConnected(true);
+    rxBufferRef.current = '';
+
+    port.onData(chunk => {
+      rxBufferRef.current += chunk;
+      const parts = rxBufferRef.current.split(/\r?\n/);
+      rxBufferRef.current = parts.pop() ?? '';
+      const lines = parts.map(line => line.trimEnd()).filter(Boolean);
+      if (lines.length === 0) return;
+      const timestamp = formatClockTimestamp();
+      appendLogs(lines.map(text => ({ timestamp, text, direction: 'rx' as const })));
+    });
+
+    port.onDisconnect(() => {
+      if (openPortRef.current === port) {
+        openPortRef.current = null;
+        setPortConnected(false);
+        appendLogs([
+          {
+            timestamp: formatClockTimestamp(),
+            text: '[SYSTEM] Port szeregowy rozłączony',
+            direction: 'system',
+          },
+        ]);
+      }
+    });
+  };
+
+  // Detect ESP32 through the platform serial adapter (Web Serial today; native later)
+  const handleDetectViaSerial = async () => {
     setIsDetecting(true);
     setDetectError(null);
 
-    // Check Web Serial support
-    if (!('serial' in navigator)) {
+    if (!serialAdapter.isAvailable()) {
       setDetectError(
-        'Twoja przeglądarka nie obsługuje Web Serial API (dostępne w Google Chrome, Edge, Brave i Chromium na Windows/macOS/Linux). Możesz wybrać model ESP32 z poniższej bazy sprzętowej.'
+        serialAdapter.unavailableReason() ||
+          'Port szeregowy jest niedostępny. Wybierz model ESP32 z poniższej bazy sprzętowej.'
       );
       setIsDetecting(false);
       return;
     }
 
     try {
-      // Request serial port from user
-      const navSerial = (navigator as any).serial;
-      const port = await navSerial.requestPort();
-      const info = port.getInfo();
-      const vid = info.usbVendorId || 0x303A;
-      const pid = info.usbProductId || 0x1001;
+      const port = await serialAdapter.requestPort({ baudRate: 115200 });
+      const vid = port.info.usbVendorId || 0x303a;
+      const pid = port.info.usbProductId || 0x1001;
 
-      // Identify ESP32 family and characteristics
       const identified = identifyEsp32FromUsbVidPid(vid, pid);
+      identified.portName = port.info.label;
+      identified.baudRate = 115200;
       setDetectedChip(identified);
+      attachOpenPort(port);
 
-      // Append serial logs
-      const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-      
-      setSerialLogs(prev => [
-        ...prev,
+      const timeStr = formatClockTimestamp();
+      appendLogs([
         {
-          id: `log-${Date.now()}-1`,
           timestamp: timeStr,
-          text: `[SYSTEM] Wykryto urządzenie USB: VID 0x${vid.toString(16).toUpperCase()} / PID 0x${pid.toString(16).toUpperCase()}`,
+          text: `[SYSTEM] Wykryto urządzenie USB (${backendLabel(serialAdapter.kind)}): VID 0x${vid
+            .toString(16)
+            .toUpperCase()
+            .padStart(4, '0')} / PID 0x${pid.toString(16).toUpperCase().padStart(4, '0')} · ${port.info.label}`,
           direction: 'system',
         },
         {
-          id: `log-${Date.now()}-2`,
           timestamp: timeStr,
           text: `[IDENTYFIKACJA] Rodzina: ${identified.chipFamily} · Model: ${identified.chipModel}`,
           direction: 'system',
         },
         {
-          id: `log-${Date.now()}-3`,
           timestamp: timeStr,
           text: identified.rawBootLog || 'Połączono z ESP32 przy 115200 baud',
           direction: 'rx',
         },
       ]);
-    } catch (err: any) {
-      if (err.name !== 'NotFoundError') {
-        setDetectError(`Błąd odczytu portu szeregowego: ${err.message || 'Nieznany błąd'}`);
+    } catch (err: unknown) {
+      if (!isSerialRequestCancelled(err)) {
+        const message = err instanceof Error ? err.message : 'Nieznany błąd';
+        setDetectError(`Błąd odczytu portu szeregowego: ${message}`);
       }
     } finally {
       setIsDetecting(false);
@@ -187,17 +254,37 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     ]);
   };
 
-  // Send command to serial monitor
-  const handleSendCommand = (e: React.FormEvent) => {
+  // Send command to serial monitor (live port when open; otherwise local simulation)
+  const handleSendCommand = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commandInput.trim()) return;
 
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
+    const timeStr = formatClockTimestamp();
     const cmd = commandInput.trim();
-    let reply = `> Nieznana komenda: "${cmd}". Dostępne: ping, info, touch, restart`;
+    setCommandInput('');
 
+    appendLogs([{ timestamp: timeStr, text: `> ${cmd}`, direction: 'tx' }]);
+
+    const openPort = openPortRef.current;
+    if (openPort) {
+      try {
+        await openPort.write(`${cmd}\n`);
+        // Live / mock RX arrives via onData subscribers.
+        return;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Nieznany błąd zapisu';
+        appendLogs([
+          {
+            timestamp: formatClockTimestamp(),
+            text: `[SYSTEM] Błąd zapisu na port: ${message}`,
+            direction: 'system',
+          },
+        ]);
+        return;
+      }
+    }
+
+    let reply = `> Nieznana komenda: "${cmd}". Dostępne: ping, info, touch, restart`;
     if (cmd.toLowerCase() === 'ping') {
       reply = `ESP32 PONG (RTT = 1.2ms, Heap free: 284120 B)`;
     } else if (cmd.toLowerCase() === 'info') {
@@ -208,13 +295,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       reply = `ESP-ROM: Restartowanie układu... Reboot OK`;
     }
 
-    setSerialLogs(prev => [
-      ...prev,
-      { id: `log-${Date.now()}-tx`, timestamp: timeStr, text: `> ${cmd}`, direction: 'tx' },
-      { id: `log-${Date.now()}-rx`, timestamp: timeStr, text: reply, direction: 'rx' },
-    ]);
-
-    setCommandInput('');
+    appendLogs([{ timestamp: timeStr, text: reply, direction: 'rx' }]);
   };
 
   return (
@@ -227,12 +308,16 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             Wykrywanie ESP32 przez Port USB & Konsola Szeregowa
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Podłącz ESP32 kablem USB do komputera. Aplikacja automatycznie odczyta Vendor ID (VID) i Product ID (PID), zidentyfikuje rodzinę procesora oraz kontroler dotyku.
+            Podłącz ESP32 kablem USB do komputera. Aplikacja odczyta Vendor ID (VID) i Product ID (PID) przez warstwę platform Serial, zidentyfikuje rodzinę procesora oraz kontroler dotyku.
+          </p>
+          <p className="text-[11px] text-slate-500 mt-1 font-mono">
+            Backend: {backendLabel(serialBackend)}
+            {portConnected ? ' · port otwarty @ 115200' : ' · brak otwartego portu'}
           </p>
         </div>
 
         <button
-          onClick={handleDetectViaWebSerial}
+          onClick={() => void handleDetectViaSerial()}
           disabled={isDetecting}
           className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
         >
