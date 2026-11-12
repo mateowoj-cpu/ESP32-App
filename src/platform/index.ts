@@ -11,6 +11,9 @@ export {
   setSerialAdapter,
 } from './serial';
 
+// nativeSerial is loaded only from main.tsx via dynamic import when running inside Tauri,
+// so the browser build does not eagerly pull @tauri-apps/api.
+
 export type {
   OpenSerialPort,
   RequestPortOptions,

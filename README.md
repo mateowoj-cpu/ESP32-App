@@ -10,19 +10,22 @@ Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App
 |-----------|--------|--------|
 | Node.js | 22 LTS (lub nowszy) | [nodejs.org](https://nodejs.org/) |
 | npm | 10+ | dostarczany z Node |
-| Przeglądarka | Chrome, Edge, Brave lub inny Chromium | wymagana do **Web Serial** (wykrywanie ESP32 przez USB) |
+| Przeglądarka | Chrome, Edge, Brave lub inny Chromium | wymagana do **Web Serial** w trybie przeglądarkowym |
+| Rust + VS Build Tools | do desktopa Tauri | tylko gdy budujesz `npm run tauri:dev` / `tauri:build` |
+| WebView2 Runtime | Windows 10/11 | zwykle preinstalowany; installer Tauri potrafi dociągnąć bootstrapper |
 
 ### Windows
 
 1. Zainstaluj [Node.js 22 LTS](https://nodejs.org/) (zaznacz opcję „Add to PATH”).
-2. Używaj **PowerShell** lub **Windows Terminal** (nie starszego `cmd`, jeśli możesz).
-3. Do wykrywania ESP32 przez USB użyj **Microsoft Edge** lub **Google Chrome**.
-4. Podłącz płytkę i upewnij się, że w **Menedżerze urządzeń** pojawia się port `COMx`.
+2. Używaj **PowerShell** lub **Windows Terminal**.
+3. **Tryb przeglądarki:** Edge/Chrome + Web Serial.
+4. **Tryb desktop (Tauri):** natywne porty `COMx` bez Web Serial — zobacz sekcję [Aplikacja desktop (Tauri)](#aplikacja-desktop-tauri).
+5. Podłącz płytkę i upewnij się, że w **Menedżerze urządzeń** pojawia się port `COMx`.
    - **CH340 / CH9102** (VID `0x1A86`) — sterownik WCH
    - **CP210x** (VID `0x10C4`) — Silicon Labs VCP
    - **Espressif native USB** (VID `0x303A`, m.in. ESP32-S3/C3) — zwykle CDC przez Windows Update
 
-Bez sterownika USB-UART przeglądarka nie zobaczy urządzenia w Web Serial.
+Bez sterownika USB-UART ani przeglądarka, ani shell Tauri nie zobaczą urządzenia.
 
 ## Szybki start
 
@@ -42,6 +45,8 @@ Aplikacja startuje na [http://localhost:3000](http://localhost:3000).
 | `npm run preview` | Podgląd builda |
 | `npm run lint` | Sprawdzenie TypeScript (`tsc --noEmit`) |
 | `npm run clean` | Usuwa `dist` i artefakty (działa na Windows, macOS i Linux) |
+| `npm run tauri:dev` | Desktop Tauri + Vite (natywny COM) |
+| `npm run tauri:build` | Instalator desktop (na Windows: NSIS/MSI) |
 
 ## Funkcje
 
@@ -57,10 +62,42 @@ Aplikacja startuje na [http://localhost:3000](http://localhost:3000).
 Dostęp do USB/Serial jest odizolowany w `src/platform/`:
 
 - `webSerial` — natywne Web Serial API w Chromium
+- `nativeSerial` — Tauri + Rust (`serialport`), porty `COMx` / `/dev/tty*`
 - `mockSerial` — tryb bez sprzętu (presety / testy)
-- miejsce na przyszły adapter desktopowy (np. Tauri)
 
-UI (`UsbDetectorView`) korzysta wyłącznie z tej abstrakcji — nie wywołuje `navigator.serial` bezpośrednio.
+UI (`UsbDetectorView`) korzysta wyłącznie z tej abstrakcji — nie wywołuje `navigator.serial` bezpośrednio. W shellu Tauri `main.tsx` rejestruje adapter native przed renderem.
+
+## Aplikacja desktop (Tauri)
+
+Scaffold leży w `src-tauri/` (Tauri 2). Komendy Rust:
+
+- `list_serial_ports`
+- `open_serial_port` (domyślnie 115200 baud)
+- `write_serial_port` / `close_serial_port`
+- eventy: `serial-data`, `serial-disconnected`
+
+### Dev (Windows)
+
+1. Zainstaluj [Rust](https://rustup.rs/) oraz **Visual Studio Build Tools** (workload C++).
+2. Upewnij się, że WebView2 jest dostępny.
+3. W katalogu projektu:
+
+```powershell
+npm install
+npm run tauri:dev
+```
+
+W zakładce **Wykryj ESP32 (USB)** zobaczysz backend `Native COM` i listę portów.
+
+### Build instalatora Windows
+
+Na maszynie Windows (MSVC):
+
+```powershell
+npm run tauri:build
+```
+
+Artefakty NSIS/MSI pojawią się w `src-tauri/target/release/bundle/`.
 
 ## Agent PC (monitor zasobów)
 
@@ -92,8 +129,9 @@ APP_URL=http://localhost:3000
 
 ## Roadmapa Windows (skrót)
 
-- **Faza 0–1 (obecna):** README Windows, skrypty cross-platform, abstrakcja Serial
-- **Kolejne:** host desktop (Tauri/Electron), natywny COM, instalator MSI/NSIS, agent PC jako `.exe`
+- **Faza 0–1:** README Windows, skrypty cross-platform, abstrakcja Serial
+- **Faza 2 (obecna):** scaffold Tauri 2 + natywny COM (`src-tauri`, adapter `native`)
+- **Kolejne:** packaging/signing MSI·NSIS, agent PC jako `.exe`, CI `windows-latest`
 
 ## Licencja
 

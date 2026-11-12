@@ -13,8 +13,10 @@ import {
 import {
   getSerialAdapter,
   isSerialRequestCancelled,
+  SerialRequestCancelledError,
   type OpenSerialPort,
   type SerialBackendKind,
+  type SerialPortInfo,
 } from '../platform';
 import { 
   Usb, 
@@ -24,7 +26,8 @@ import {
   Send, 
   Trash2, 
   Check, 
-  ArrowRight 
+  ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
 
 interface UsbDetectorViewProps {
@@ -76,6 +79,8 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     },
   ]);
   const [commandInput, setCommandInput] = useState('');
+  const [availablePorts, setAvailablePorts] = useState<SerialPortInfo[]>([]);
+  const [showPortPicker, setShowPortPicker] = useState(false);
   const logEndRef = useRef<HTMLDivElement | null>(null);
   const openPortRef = useRef<OpenSerialPort | null>(null);
   const rxBufferRef = useRef('');
@@ -135,7 +140,49 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     });
   };
 
-  // Detect ESP32 through the platform serial adapter (Web Serial today; native later)
+  const connectOpenedPort = (port: OpenSerialPort) => {
+    const vid = port.info.usbVendorId || 0x303a;
+    const pid = port.info.usbProductId || 0x1001;
+
+    const identified = identifyEsp32FromUsbVidPid(vid, pid);
+    identified.portName = port.info.label;
+    identified.baudRate = 115200;
+    setDetectedChip(identified);
+    attachOpenPort(port);
+    setShowPortPicker(false);
+
+    const timeStr = formatClockTimestamp();
+    appendLogs([
+      {
+        timestamp: timeStr,
+        text: `[SYSTEM] Wykryto urządzenie USB (${backendLabel(serialAdapter.kind)}): VID 0x${vid
+          .toString(16)
+          .toUpperCase()
+          .padStart(4, '0')} / PID 0x${pid.toString(16).toUpperCase().padStart(4, '0')} · ${port.info.label}`,
+        direction: 'system',
+      },
+      {
+        timestamp: timeStr,
+        text: `[IDENTYFIKACJA] Rodzina: ${identified.chipFamily} · Model: ${identified.chipModel}`,
+        direction: 'system',
+      },
+      {
+        timestamp: timeStr,
+        text: identified.rawBootLog || 'Połączono z ESP32 przy 115200 baud',
+        direction: 'rx',
+      },
+    ]);
+  };
+
+  const openPortById = async (portId?: string) => {
+    const port = await serialAdapter.requestPort({
+      baudRate: 115200,
+      portId,
+    });
+    connectOpenedPort(port);
+  };
+
+  // Detect ESP32 through the platform serial adapter (Web Serial / Native COM)
   const handleDetectViaSerial = async () => {
     setIsDetecting(true);
     setDetectError(null);
@@ -150,44 +197,84 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     }
 
     try {
-      const port = await serialAdapter.requestPort({ baudRate: 115200 });
-      const vid = port.info.usbVendorId || 0x303a;
-      const pid = port.info.usbProductId || 0x1001;
+      if (serialAdapter.kind === 'native') {
+        const ports = await serialAdapter.listPorts();
+        setAvailablePorts(ports);
+        if (ports.length === 0) {
+          setDetectError(
+            'Nie znaleziono portów COM/tty. Sprawdź kabel USB i sterownik (CH340 / CP210x / Espressif).'
+          );
+          setShowPortPicker(false);
+          return;
+        }
+        if (ports.length > 1) {
+          setShowPortPicker(true);
+          setDetectError('Wykryto wiele portów — wybierz właściwy COM poniżej.');
+          appendLogs([
+            {
+              timestamp: formatClockTimestamp(),
+              text: `[SYSTEM] Dostępne porty: ${ports.map(p => p.label).join(' | ')}`,
+              direction: 'system',
+            },
+          ]);
+          return;
+        }
+        await openPortById(ports[0].id);
+        return;
+      }
 
-      const identified = identifyEsp32FromUsbVidPid(vid, pid);
-      identified.portName = port.info.label;
-      identified.baudRate = 115200;
-      setDetectedChip(identified);
-      attachOpenPort(port);
-
-      const timeStr = formatClockTimestamp();
-      appendLogs([
-        {
-          timestamp: timeStr,
-          text: `[SYSTEM] Wykryto urządzenie USB (${backendLabel(serialAdapter.kind)}): VID 0x${vid
-            .toString(16)
-            .toUpperCase()
-            .padStart(4, '0')} / PID 0x${pid.toString(16).toUpperCase().padStart(4, '0')} · ${port.info.label}`,
-          direction: 'system',
-        },
-        {
-          timestamp: timeStr,
-          text: `[IDENTYFIKACJA] Rodzina: ${identified.chipFamily} · Model: ${identified.chipModel}`,
-          direction: 'system',
-        },
-        {
-          timestamp: timeStr,
-          text: identified.rawBootLog || 'Połączono z ESP32 przy 115200 baud',
-          direction: 'rx',
-        },
-      ]);
+      await openPortById();
     } catch (err: unknown) {
-      if (!isSerialRequestCancelled(err)) {
+      if (err instanceof SerialRequestCancelledError || isSerialRequestCancelled(err)) {
+        const message = err instanceof Error ? err.message : 'Wybór portu anulowany';
+        if (message.includes('Wybierz port') || message.includes('wiele')) {
+          try {
+            const ports = await serialAdapter.listPorts();
+            setAvailablePorts(ports);
+            setShowPortPicker(ports.length > 0);
+          } catch {
+            // ignore refresh errors
+          }
+          setDetectError(message);
+        }
+        // User dismissed browser picker — silent.
+      } else {
         const message = err instanceof Error ? err.message : 'Nieznany błąd';
         setDetectError(`Błąd odczytu portu szeregowego: ${message}`);
       }
     } finally {
       setIsDetecting(false);
+    }
+  };
+
+  const handlePickNativePort = async (portId: string) => {
+    setIsDetecting(true);
+    setDetectError(null);
+    try {
+      await openPortById(portId);
+    } catch (err: unknown) {
+      if (!isSerialRequestCancelled(err)) {
+        const message = err instanceof Error ? err.message : 'Nieznany błąd';
+        setDetectError(`Błąd otwarcia portu: ${message}`);
+      }
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
+  const handleRefreshNativePorts = async () => {
+    try {
+      const ports = await serialAdapter.listPorts();
+      setAvailablePorts(ports);
+      setShowPortPicker(true);
+      setDetectError(
+        ports.length === 0
+          ? 'Brak portów COM — podłącz ESP32 i odśwież listę.'
+          : null
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Nieznany błąd';
+      setDetectError(`Nie udało się odświeżyć listy portów: ${message}`);
     }
   };
 
@@ -316,14 +403,28 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => void handleDetectViaSerial()}
-          disabled={isDetecting}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
-        >
-          <Usb className={`w-4 h-4 ${isDetecting ? 'animate-bounce' : ''}`} />
-          <span>{isDetecting ? 'Skanowanie portów USB...' : 'Wykryj ESP32 przez USB'}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {serialBackend === 'native' && (
+            <button
+              type="button"
+              onClick={() => void handleRefreshNativePorts()}
+              disabled={isDetecting}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-xs transition-colors border border-slate-700"
+              title="Odśwież listę portów COM"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Porty COM</span>
+            </button>
+          )}
+          <button
+            onClick={() => void handleDetectViaSerial()}
+            disabled={isDetecting}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
+          >
+            <Usb className={`w-4 h-4 ${isDetecting ? 'animate-bounce' : ''}`} />
+            <span>{isDetecting ? 'Skanowanie portów USB...' : 'Wykryj ESP32 przez USB'}</span>
+          </button>
+        </div>
       </div>
 
       {detectError && (
@@ -331,6 +432,39 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <div className="leading-relaxed">
             <strong>Informacja:</strong> {detectError}
+          </div>
+        </div>
+      )}
+
+      {showPortPicker && availablePorts.length > 0 && (
+        <div className="p-4 bg-slate-900 border border-cyan-500/30 rounded-2xl flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+              Wybierz port COM / tty
+            </h3>
+            <span className="text-[10px] text-slate-500 font-mono">{availablePorts.length} dostępnych</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {availablePorts.map(port => (
+              <button
+                key={port.id}
+                type="button"
+                disabled={isDetecting}
+                onClick={() => void handlePickNativePort(port.id)}
+                className="p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 rounded-xl text-left transition-all"
+              >
+                <div className="text-xs font-semibold text-slate-100 font-mono">{port.label}</div>
+                <div className="text-[10px] text-slate-500 mt-1 font-mono">
+                  {port.usbVendorId != null
+                    ? `VID 0x${port.usbVendorId.toString(16).toUpperCase().padStart(4, '0')}`
+                    : 'VID ?'}
+                  {' / '}
+                  {port.usbProductId != null
+                    ? `PID 0x${port.usbProductId.toString(16).toUpperCase().padStart(4, '0')}`
+                    : 'PID ?'}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       )}

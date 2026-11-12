@@ -27,9 +27,14 @@ export interface OpenSerialPort {
 }
 
 export interface RequestPortOptions {
-  /** Optional USB filters (Web Serial). Ignored by mock / future native adapters if unsupported. */
+  /** Optional USB filters (Web Serial / native). */
   filters?: Array<{ usbVendorId?: number; usbProductId?: number }>;
   baudRate?: number;
+  /**
+   * Explicit port id/path for native COM (e.g. `COM3`, `/dev/ttyUSB0`).
+   * When set, adapters skip auto-pick / browser chooser heuristics.
+   */
+  portId?: string;
 }
 
 export type SerialBackendKind = 'web' | 'mock' | 'native' | 'unavailable';
