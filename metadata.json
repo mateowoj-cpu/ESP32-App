@@ -1,0 +1,6 @@
+{
+  "name": "ESP32 Display Studio",
+  "description": "Wizualne środowisko do projektowania interfejsów OLED/LCD dla ESP32, symulator sprzętowy w czasie rzeczywistym, automatyzacje, cyber-zwierzak i generator gotowego kodu C++.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
