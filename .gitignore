@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local Authenticode overlay (contains certificate thumbprint)
+src-tauri/tauri.windows-signing.local.json
+*.pfx
+*.p12

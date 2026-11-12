@@ -29,6 +29,12 @@
   "bundle": {
     "active": true,
     "targets": ["nsis", "msi"],
+    "publisher": "ESP32 Display Studio",
+    "homepage": "https://github.com/mateowoj-cpu/ESP32-App",
+    "category": "DeveloperTool",
+    "copyright": "Copyright © 2026 ESP32 Display Studio",
+    "shortDescription": "Studio UI OLED/LCD i generator C++ dla ESP32",
+    "longDescription": "Wizualne środowisko do projektowania interfejsów OLED/LCD dla ESP32: symulator sprzętowy, edytor UI, automatyzacje, wykrywanie USB (COM) oraz generator szkiców Arduino/PlatformIO.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -36,9 +42,31 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "resources": [
+      "resources/windows/DRIVERS.txt",
+      "resources/windows/SIGNING.txt"
+    ],
     "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com",
+      "tsp": false,
+      "allowDowngrades": false,
       "webviewInstallMode": {
-        "type": "downloadBootstrapper"
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["Polish", "English"],
+        "displayLanguageSelector": true,
+        "compression": "lzma",
+        "startMenuFolder": "ESP32 Display Studio",
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "windows/installer-hooks.nsh"
+      },
+      "wix": {
+        "language": ["pl-PL", "en-US"],
+        "upgradeCode": "a7c3e9f1-5b2d-4e8a-9c1f-6d4b8a2e0f35"
       }
     }
   }

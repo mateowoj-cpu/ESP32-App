@@ -47,6 +47,7 @@ Aplikacja startuje na [http://localhost:3000](http://localhost:3000).
 | `npm run clean` | Usuwa `dist` i artefakty (działa na Windows, macOS i Linux) |
 | `npm run tauri:dev` | Desktop Tauri + Vite (natywny COM) |
 | `npm run tauri:build` | Instalator desktop (na Windows: NSIS/MSI) |
+| `npm run tauri:build:signed` | Build z nakładką Authenticode (`tauri.windows-signing.local.json`) |
 
 ## Funkcje
 
@@ -94,10 +95,34 @@ W zakładce **Wykryj ESP32 (USB)** zobaczysz backend `Native COM` i listę port�
 Na maszynie Windows (MSVC):
 
 ```powershell
+npm install
 npm run tauri:build
 ```
 
 Artefakty NSIS/MSI pojawią się w `src-tauri/target/release/bundle/`.
+
+Instalator:
+
+- **NSIS** (`.exe`) — język PL/EN, instalacja dla bieżącego użytkownika, hook ze wskazówką o sterownikach COM
+- **MSI** — stały `upgradeCode` do aktualizacji in-place
+- **WebView2** — bootstrapper dociągany przy braku Runtime
+- Zasoby: `DRIVERS.txt`, `SIGNING.txt` w katalogu aplikacji
+
+Dokumentacja:
+
+- [docs/windows-installer.md](./docs/windows-installer.md) — bundlowanie NSIS/MSI
+- [docs/windows-drivers.md](./docs/windows-drivers.md) — CH340 / CP210x / Espressif
+- [docs/windows-signing.md](./docs/windows-signing.md) — Authenticode + sekrety CI
+
+Podpis (opcjonalnie):
+
+```powershell
+Copy-Item src-tauri\tauri.windows-signing.example.json src-tauri\tauri.windows-signing.local.json
+# wstaw thumbprint certyfikatu
+npm run tauri:build:signed
+```
+
+CI: `.github/workflows/windows-release.yml` (tag `v*` lub ręczne uruchomienie).
 
 ## Agent PC (monitor zasobów)
 
@@ -130,8 +155,9 @@ APP_URL=http://localhost:3000
 ## Roadmapa Windows (skrót)
 
 - **Faza 0–1:** README Windows, skrypty cross-platform, abstrakcja Serial
-- **Faza 2 (obecna):** scaffold Tauri 2 + natywny COM (`src-tauri`, adapter `native`)
-- **Kolejne:** packaging/signing MSI·NSIS, agent PC jako `.exe`, CI `windows-latest`
+- **Faza 2:** scaffold Tauri 2 + natywny COM (`src-tauri`, adapter `native`)
+- **Faza 3 (obecna):** NSIS/MSI, docs sterowników, Authenticode + workflow `windows-release`
+- **Kolejne:** agent PC jako `.exe`, auto-update
 
 ## Licencja
 

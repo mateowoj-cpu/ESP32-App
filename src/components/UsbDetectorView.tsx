@@ -18,6 +18,13 @@ import {
   type SerialBackendKind,
   type SerialPortInfo,
 } from '../platform';
+import {
+  WINDOWS_DRIVERS_DOC_URL,
+  WINDOWS_USB_DRIVER_HINTS,
+  dismissWindowsDriverTip,
+  isWindowsDriverTipDismissed,
+  looksLikeWindowsHost,
+} from '../platform/windowsDrivers';
 import { 
   Usb, 
   Cpu, 
@@ -28,6 +35,9 @@ import {
   Check, 
   ArrowRight,
   RefreshCw,
+  ExternalLink,
+  BookOpen,
+  X,
 } from 'lucide-react';
 
 interface UsbDetectorViewProps {
@@ -81,6 +91,11 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   const [commandInput, setCommandInput] = useState('');
   const [availablePorts, setAvailablePorts] = useState<SerialPortInfo[]>([]);
   const [showPortPicker, setShowPortPicker] = useState(false);
+  const [showDriverHelp, setShowDriverHelp] = useState(() => {
+    if (isWindowsDriverTipDismissed()) return false;
+    return serialAdapter.kind === 'native' || looksLikeWindowsHost();
+  });
+  const [noPortsFound, setNoPortsFound] = useState(false);
   const logEndRef = useRef<HTMLDivElement | null>(null);
   const openPortRef = useRef<OpenSerialPort | null>(null);
   const rxBufferRef = useRef('');
@@ -205,8 +220,11 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             'Nie znaleziono portów COM/tty. Sprawdź kabel USB i sterownik (CH340 / CP210x / Espressif).'
           );
           setShowPortPicker(false);
+          setNoPortsFound(true);
+          setShowDriverHelp(true);
           return;
         }
+        setNoPortsFound(false);
         if (ports.length > 1) {
           setShowPortPicker(true);
           setDetectError('Wykryto wiele portów — wybierz właściwy COM poniżej.');
@@ -267,15 +285,22 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       const ports = await serialAdapter.listPorts();
       setAvailablePorts(ports);
       setShowPortPicker(true);
-      setDetectError(
-        ports.length === 0
-          ? 'Brak portów COM — podłącz ESP32 i odśwież listę.'
-          : null
-      );
+      setNoPortsFound(ports.length === 0);
+      if (ports.length === 0) {
+        setShowDriverHelp(true);
+        setDetectError('Brak portów COM — podłącz ESP32, zainstaluj sterownik i odśwież listę.');
+      } else {
+        setDetectError(null);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Nieznany błąd';
       setDetectError(`Nie udało się odświeżyć listy portów: ${message}`);
     }
+  };
+
+  const handleDismissDriverHelp = () => {
+    dismissWindowsDriverTip();
+    setShowDriverHelp(false);
   };
 
   // Select board preset manually
@@ -465,6 +490,71 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                 </div>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {(showDriverHelp || noPortsFound) && (
+        <div className="p-5 bg-slate-900 border border-amber-500/30 rounded-2xl flex flex-col gap-4 relative">
+          <button
+            type="button"
+            onClick={handleDismissDriverHelp}
+            className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            title="Ukryj wskazówki sterowników"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <div className="flex items-start gap-3 pr-8">
+            <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h3 className="text-sm font-semibold text-slate-100">
+                Sterowniki USB-UART na Windows
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {noPortsFound
+                  ? 'System nie widzi żadnego COMx. Zainstaluj sterownik mostka USB odpowiadający Twojej płytce, potem kliknij „Porty COM”.'
+                  : 'Aby ESP32 pojawił się jako port COM, Windows potrzebuje sterownika mostka USB-UART (albo CDC Espressif).'}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {WINDOWS_USB_DRIVER_HINTS.map(driver => (
+              <a
+                key={driver.id}
+                href={driver.installUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="p-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-500/40 rounded-xl transition-colors group"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-100 group-hover:text-amber-200">
+                    {driver.name}
+                  </span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 shrink-0" />
+                </div>
+                <div className="text-[10px] font-mono text-cyan-400/90 mt-1">VID {driver.vidHex}</div>
+                <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                  {driver.typicalBoards}. {driver.notes}
+                </div>
+              </a>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-3 text-[11px]">
+            <a
+              href={WINDOWS_DRIVERS_DOC_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-medium"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              Pełna dokumentacja sterowników
+            </a>
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-500 font-mono">
+              Po instalacji sprawdź Menedżer urządzeń → Porty (COM i LPT)
+            </span>
           </div>
         </div>
       )}
