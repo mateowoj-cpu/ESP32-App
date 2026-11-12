@@ -1,0 +1,26 @@
+ESP32 Display Studio — sterowniki USB-UART (Windows)
+====================================================
+
+Bez sterownika płytka NIE pojawi się jako COMx (ani w aplikacji desktop,
+ani w Web Serial w Chrome/Edge).
+
+1) Silicon Labs CP210x  (VID 0x10C4) — DevKit V1, wiele płytek WROOM
+   https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers
+
+2) WCH CH340 / CH9102   (VID 0x1A86) — NodeMCU, D1 Mini, tanie klony
+   https://www.wch-ic.com/downloads/CH341SER_EXE.html
+
+3) Espressif native USB (VID 0x303A) — ESP32-S2 / S3 / C3 / C6 (CDC)
+   Zwykle instaluje się przez Windows Update.
+   Pakiet IDF (opcjonalnie):
+   https://dl.espressif.com/dl/idf-driver/
+
+Weryfikacja
+-----------
+1. Podłącz ESP32 kablem USB-C / micro-USB (preferuj kabel z danymi).
+2. Otwórz Menedżer urządzeń → Porty (COM i LPT).
+3. Szukaj "COMx" / "USB Serial" / "CP210x" / "CH340" / "USB JTAG".
+4. Uruchom ESP32 Display Studio → Wykryj ESP32 przez USB.
+
+Pełna dokumentacja w repo:
+https://github.com/mateowoj-cpu/ESP32-App/blob/main/docs/windows-drivers.md

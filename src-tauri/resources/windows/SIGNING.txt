@@ -1,0 +1,19 @@
+ESP32 Display Studio — podpis Authenticode (Windows)
+====================================================
+
+Instalatory NSIS (.exe) i MSI powinny być podpisane certyfikatem OV/EV
+Code Signing, aby uniknąć ostrzeżenia SmartScreen.
+
+Konfiguracja lokalna / CI
+-------------------------
+1. Uzyskaj certyfikat (.pfx / magazyn Windows).
+2. Ustaw sekrety (patrz docs/windows-signing.md):
+   - WINDOWS_CERTIFICATE          (base64 pliku .pfx)
+   - WINDOWS_CERTIFICATE_PASSWORD
+   - WINDOWS_CERTIFICATE_THUMBPRINT (SHA1)
+3. Thumbprint trafia do bundle.windows.certificateThumbprint
+   (tauri.windows-signing.local.json lub workflow CI).
+4. Timestamp: http://timestamp.digicert.com (SHA-256)
+
+Bez certyfikatu build nadal działa — Windows może jednak pokazać
+ostrzeżenie „Nieznany wydawca” przy pierwszym uruchomieniu.
