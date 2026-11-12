@@ -6,6 +6,9 @@
   "permissions": [
     "core:default",
     "core:event:default",
-    "allow-serial"
+    "allow-serial",
+    "allow-pc-agent",
+    "updater:default",
+    "process:default"
   ]
 }

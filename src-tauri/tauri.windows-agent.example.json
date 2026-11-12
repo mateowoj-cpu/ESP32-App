@@ -1,0 +1,11 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "bundle": {
+    "externalBin": ["binaries/esp32-pc-agent"],
+    "resources": [
+      "resources/windows/DRIVERS.txt",
+      "resources/windows/SIGNING.txt",
+      "resources/windows/esp32-pc-agent.exe"
+    ]
+  }
+}

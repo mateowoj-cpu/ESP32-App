@@ -776,43 +776,73 @@ lib_deps =
 }
 
 export function generatePythonPcAgentScript(ipAddress = '192.168.1.150', port = 8080): string {
-  return `"""
-SKRYPT AGENTA PC DO WYSYŁANIA DANYCH CPU, RAM, GPU I DYSKU DO ESP32
-Wymagania: pip install psutil requests
-Uruchomienie: python esp32_pc_agent.py
+  return `#!/usr/bin/env python3
 """
-import time
+ESP32 Display Studio — PC Agent (wygenerowany skrypt)
+Pełna wersja narzędziowa: tools/pc-agent/esp32_pc_agent.py
+Windows .exe: Releases → esp32-pc-agent.exe
+
+Wymagania: pip install psutil requests
+Uruchomienie:
+  python esp32_pc_agent.py --host ${ipAddress} --port ${port}
+"""
+import argparse
 import os
+import shutil
+import subprocess
+import time
 import psutil
 import requests
 
-ESP32_URL = "http://${ipAddress}:${port}/api/pc-stats"
 
-print(f"Uruchomiono agenta monitorowania PC -> wysyłanie do {ESP32_URL}")
+def root_disk():
+    return "C:\\\\" if os.name == "nt" else "/"
 
-while True:
+
+def gpu_percent():
+    nvidia = shutil.which("nvidia-smi")
+    if not nvidia:
+        return 0
     try:
-        cpu = int(psutil.cpu_percent(interval=1))
-        ram = int(psutil.virtual_memory().percent)
-        
-        # Pobieranie zajętości głównego dysku (Windows: C:\\, Linux/macOS: /)
+        out = subprocess.run(
+            [nvidia, "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=2, check=False,
+        )
+        line = (out.stdout or "").strip().splitlines()
+        return int(float(line[0])) if line else 0
+    except Exception:
+        return 0
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--host", default="${ipAddress}")
+    p.add_argument("--port", type=int, default=${port})
+    p.add_argument("--no-gpu", action="store_true")
+    args = p.parse_args()
+    url = f"http://{args.host}:{args.port}/api/pc-stats"
+    print(f"ESP32 PC Agent -> {url}")
+    print("Firewall Windows: zezwól na HTTP do IP ESP32 w LAN.")
+    while True:
         try:
-            root_drive = 'C:\\\\' if os.name == 'nt' else '/'
-            disk = int(psutil.disk_usage(root_drive).percent)
-        except Exception:
-            disk = int(psutil.disk_usage('/').percent)
-            
-        payload = {
-            "cpu": cpu,
-            "ram": ram,
-            "gpu": 0,
-            "disk": disk
-        }
-        res = requests.post(ESP32_URL, json=payload, timeout=2)
-        print(f"Wysłano: CPU {cpu}%, RAM {ram}%, Dysk {disk}% -> Odpowiedź {res.status_code}")
-    except Exception as e:
-        print(f"Oczekiwanie na połączenie z ESP32: {e}")
-    time.sleep(1)
+            payload = {
+                "cpu": int(psutil.cpu_percent(interval=1)),
+                "ram": int(psutil.virtual_memory().percent),
+                "gpu": 0 if args.no_gpu else gpu_percent(),
+                "disk": int(psutil.disk_usage(root_disk()).percent),
+            }
+            res = requests.post(url, json=payload, timeout=2)
+            print(
+                f"CPU {payload['cpu']}% RAM {payload['ram']}% "
+                f"GPU {payload['gpu']}% DYSK {payload['disk']}% -> {res.status_code}"
+            )
+        except Exception as e:
+            print(f"Oczekiwanie na ESP32: {e}")
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    main()
 `;
 }
 
