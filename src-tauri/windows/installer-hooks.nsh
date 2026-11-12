@@ -11,6 +11,8 @@ Jeśli płytka ESP32 nie pojawia się jako port COMx w aplikacji:$\r$\n\
 1. Otwórz Menedżer urządzeń$\r$\n\
 2. Zainstaluj sterownik CH340 / CP210x / Espressif$\r$\n\
 3. Zobacz plik DRIVERS.txt w folderze instalacji$\r$\n$\r$\n\
+Projekty: pliki .esp32studio otwierają się w Studio.$\r$\n\
+Flash: pip install esptool → USB → Flash helper.$\r$\n$\r$\n\
 Dokumentacja: https://github.com/mateowoj-cpu/ESP32-App/blob/main/docs/windows-drivers.md"
 !macroend
 

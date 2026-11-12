@@ -25,6 +25,7 @@ import {
   isWindowsDriverTipDismissed,
   looksLikeWindowsHost,
 } from '../platform/windowsDrivers';
+import { FlashHelperPanel } from './FlashHelperPanel';
 import { 
   Usb, 
   Cpu, 
@@ -634,6 +635,8 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               </p>
             </div>
           )}
+
+          <FlashHelperPanel detectedChip={detectedChip} />
 
           {/* Popular Boards Catalog */}
           <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">

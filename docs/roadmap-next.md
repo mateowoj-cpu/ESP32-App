@@ -1,27 +1,21 @@
-# Kolejny krok po Fazie 4
+# Kolejny krok po Fazie 5
 
-## Stan po Fazie 4
+## Stan po Fazie 5
 
-- Agent PC (Python + build `.exe`, start/stop w Tauri, Releases)
-- Auto-update (plugin updater + pubkey + CI secrets)
-- Wcześniej: Serial native, NSIS/MSI, docs sterowników/podpisu
+- Flash helper (`esptool`) w widoku USB
+- Deep link `esp32studio://` + asocjacje `.esp32studio` / `.ino`
+- Smoke CI na PR (lint, testy, build, cargo check, agent `--once`)
+- Wcześniej: Serial native, NSIS/MSI, agent PC `.exe`, auto-update
 
-## Faza 5 (rekomendowana) — Flash & Deep Link
+## Faza 6 (rekomendowana) — Polish produktowy
 
-Cel: domknąć pętlę „zaprojektuj UI → wgraj na ESP32” bez ręcznego Arduino IDE.
+1. **Podpisany release `v0.2.0`** — Authenticode + updater E2E na prawdziwym certyfikacie
+2. **Tray / autostart agenta PC** — skrót Windows, opcjonalny start z logowaniem
+3. **GPU AMD/Intel** (opcjonalnie) — LibreHardwareMonitor / Performance Counters
+4. **Lokalizacja EN** UI
+5. **Kanał beta vs stable** auto-update
 
-Zakres:
+## Faza 7 (opcjonalna) — Build-from-Studio
 
-1. **Flash helper** — sidecar / wrapper `esptool` (wybór COM, baud, `.bin`/`.ino` build via PlatformIO CLI opcjonalnie)
-2. **Deep link / file association** — otwieranie `.ino` / project JSON z Explorera Windows w Studio
-3. **Smoke CI na PR** — `windows-latest`: `npm ci`, `lint`, `build`, (opcjonalnie) build PC agent bez pełnego `tauri build`
-4. **Tray / autostart agenta PC** — opcjonalnie skrót „uruchom agenta z Windows”
-
-Dlaczego to następne: Fazy 0–4 dają środowisko Windows + COM + instalator + update + telemetrię PC. Brakuje jeszcze jednego-click wgrania firmware i twardej bramki jakości na każdym PR.
-
-## Faza 6 (później) — Polish produktowy
-
-- Podpisane auto-update end-to-end na prawdziwym certyfikacie + pierwsze publiczne `v0.2.0`
-- GPU AMD/Intel (opcjonalnie LibreHardwareMonitor / Performance Counters)
-- Lokalizacja EN UI
-- Auto-update kanału `beta` vs `stable`
+- Integracja PlatformIO CLI / `arduino-cli` → kompilacja `.ino` → `.bin` bez opuszczania Studio
+- Flash jednym przyciskiem: Generate → Build → Write
