@@ -149,11 +149,16 @@ Docs: [docs/windows-pc-agent.md](./docs/windows-pc-agent.md) · Auto-update: [do
 Tauri sprawdza `releases/latest/download/latest.json`. Przycisk **Update** w nagłówku.  
 Wymaga secretu `TAURI_SIGNING_PRIVATE_KEY` w CI (publiczny klucz jest już w `tauri.conf.json`).
 
-## Eksport firmware
+## Eksport firmware / flash
 
 1. Skonfiguruj wyświetlacz, ekrany i automatyzacje.
-2. Pobierz `.ino` (przycisk w pasku) albo skopiuj kod z zakładki **Generator Kodu C++**.
-3. Otwórz szkic w Arduino IDE 2.x / PlatformIO, wybierz płytkę ESP32 i port `COMx`, wgraj firmware.
+2. Pobierz `.ino` albo skopiuj kod z **Generator Kodu C++**.
+3. Zbuduj w Arduino IDE 2.x / PlatformIO.
+4. W shellu Tauri: **USB → Flash helper** (`pip install esptool`) i wgraj `.bin`.
+
+Docs: [docs/windows-flash.md](./docs/windows-flash.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md)
+
+Projekt zapisuj jako `.esp32studio` (asocjacja Windows / `esp32studio://open?path=...`).
 
 Wymagane biblioteki Arduino (przykład OLED SSD1306): Adafruit SSD1306, Adafruit GFX, ArduinoJson.
 
@@ -171,8 +176,9 @@ APP_URL=http://localhost:3000
 - **Faza 0–1:** README Windows, skrypty cross-platform, abstrakcja Serial
 - **Faza 2:** scaffold Tauri 2 + natywny COM
 - **Faza 3:** NSIS/MSI, docs sterowników, Authenticode CI
-- **Faza 4 (obecna):** agent PC `.exe` + auto-update Tauri
-- **Faza 5 (następna):** flash helper (`esptool`) + deep link `.ino`/JSON + smoke CI na PR — zob. [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 4:** agent PC `.exe` + auto-update Tauri
+- **Faza 5 (obecna):** flash helper (`esptool`) + deep link / `.esp32studio` + smoke CI
+- **Faza 6 (następna):** polish — signed `v0.2.0`, tray/autostart agenta, EN — zob. [docs/roadmap-next.md](./docs/roadmap-next.md)
 
 ## Licencja
 

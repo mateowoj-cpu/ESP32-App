@@ -1,0 +1,8 @@
+[[permission]]
+identifier = "allow-flash"
+description = "Allows locating esptool, flashing firmware, and reading opened project/sketch files."
+commands.allow = [
+  "get_esptool_info",
+  "flash_write_firmware",
+  "read_open_file"
+]

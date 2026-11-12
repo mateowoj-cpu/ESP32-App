@@ -8,7 +8,10 @@
     "core:event:default",
     "allow-serial",
     "allow-pc-agent",
+    "allow-flash",
     "updater:default",
-    "process:default"
+    "process:default",
+    "dialog:default",
+    "deep-link:default"
   ]
 }

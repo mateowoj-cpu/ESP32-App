@@ -25,6 +25,7 @@ import { UsbDetectorView } from './components/UsbDetectorView';
 import { ConnectedEsp32Info } from './types';
 import { generateArduinoCppCode } from './utils/codeGenerator';
 import type { UpdateCheckResult } from './platform/updater';
+import type { OpenFilePayload } from './platform/flash';
 import { 
   Tv, 
   Layers, 
@@ -45,6 +46,7 @@ import {
   Copy,
   Type,
   RefreshCw,
+  FileJson,
 } from 'lucide-react';
 
 export default function App() {
@@ -101,15 +103,56 @@ export default function App() {
   const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
   const [updateBusy, setUpdateBusy] = useState(false);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [openFileNotice, setOpenFileNotice] = useState<OpenFilePayload | null>(null);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
 
   // Sync activeScreenIndex between app state and simState
   useEffect(() => {
     setSimState(prev => ({ ...prev, currentScreenIndex: activeScreenIndex }));
   }, [activeScreenIndex]);
 
-  // Auto-check updates inside Tauri shell (non-blocking)
+  const applyProjectPayload = (json: Record<string, unknown>, sourceLabel: string) => {
+    if (json.displayConfig) setDisplayConfig(json.displayConfig as typeof displayConfig);
+    if (json.systemConfig) setSystemConfig(json.systemConfig as typeof systemConfig);
+    if (json.apiConfig) setApiConfig(json.apiConfig as typeof apiConfig);
+    if (json.screens) setScreens(json.screens as typeof screens);
+    if (json.automations) setAutomations(json.automations as typeof automations);
+    setImportNotice(`Zaimportowano projekt: ${sourceLabel}`);
+    setTimeout(() => setImportNotice(null), 4000);
+  };
+
+  const handleExternalOpen = async (rawPaths: string[]) => {
+    try {
+      const { loadOpenTargets } = await import('./platform/deepLink');
+      const files = await loadOpenTargets(rawPaths);
+      for (const file of files) {
+        if (file.kind === 'project' && file.content) {
+          try {
+            const json = JSON.parse(file.content) as Record<string, unknown>;
+            applyProjectPayload(json, file.fileName);
+            setActiveTab('simulator');
+          } catch {
+            setImportNotice(`Niepoprawny JSON projektu: ${file.fileName}`);
+          }
+        } else if (file.kind === 'sketch') {
+          setOpenFileNotice(file);
+          setActiveTab('code');
+        } else if (file.kind === 'firmware') {
+          setOpenFileNotice(file);
+          setActiveTab('usb');
+        } else {
+          setOpenFileNotice(file);
+        }
+      }
+    } catch (err) {
+      setImportNotice(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // Auto-check updates + deep-link / file association listeners (Tauri)
   useEffect(() => {
     let cancelled = false;
+    let unlistenOpen: (() => void) | undefined;
     (async () => {
       try {
         const { isTauri } = await import('@tauri-apps/api/core');
@@ -121,13 +164,20 @@ export default function App() {
         if (result.status === 'available') {
           setShowUpdateBanner(true);
         }
+
+        const { listenAppOpenPaths } = await import('./platform/deepLink');
+        unlistenOpen = await listenAppOpenPaths(paths => {
+          void handleExternalOpen(paths);
+        });
       } catch {
         // browser / updater unavailable
       }
     })();
     return () => {
       cancelled = true;
+      unlistenOpen?.();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Real-time ticking clock in simulation
@@ -242,9 +292,11 @@ export default function App() {
     }
   };
 
-  // Export full project JSON
+  // Export full project as .esp32studio (JSON) — Windows file association
   const handleExportProjectJson = () => {
     const projectData = {
+      format: 'esp32studio',
+      version: 1,
       displayConfig,
       systemConfig,
       apiConfig,
@@ -252,11 +304,13 @@ export default function App() {
       automations,
       exportedAt: new Date().toISOString(),
     };
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], {
+      type: 'application/vnd.esp32studio+json',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `esp32_project_${displayConfig.model}.json`;
+    a.download = `esp32_project_${displayConfig.model}.esp32studio`;
     a.click();
     URL.revokeObjectURL(url);
     setProjectExported(true);
@@ -292,25 +346,21 @@ export default function App() {
     setTimeout(() => setCopiedIno(false), 2000);
   };
 
-  // Import project JSON
+  // Import project JSON / .esp32studio
   const handleImportProjectJson = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = event => {
       try {
-        const json = JSON.parse(event.target?.result as string);
-        if (json.displayConfig) setDisplayConfig(json.displayConfig);
-        if (json.systemConfig) setSystemConfig(json.systemConfig);
-        if (json.apiConfig) setApiConfig(json.apiConfig);
-        if (json.screens) setScreens(json.screens);
-        if (json.automations) setAutomations(json.automations);
-        alert('Projekt zaimportowany pomyślnie!');
-      } catch (err) {
-        alert('Błąd podczas parsowania pliku JSON');
+        const json = JSON.parse(event.target?.result as string) as Record<string, unknown>;
+        applyProjectPayload(json, file.name);
+      } catch {
+        setImportNotice('Błąd podczas parsowania pliku projektu');
       }
     };
     reader.readAsText(file);
+    e.target.value = '';
   };
 
   return (
@@ -412,17 +462,17 @@ export default function App() {
               <RefreshCw className={`w-4 h-4 ${updateBusy ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
               <span className="hidden xl:inline text-xs font-mono">Update</span>
             </button>
-            <label className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1" title="Importuj Projekt JSON">
+            <label className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1" title="Importuj projekt (.esp32studio / .json)">
               <Upload className="w-4 h-4" />
-              <input type="file" accept=".json" onChange={handleImportProjectJson} className="hidden" />
+              <input type="file" accept=".esp32studio,.json,application/json" onChange={handleImportProjectJson} className="hidden" />
             </label>
             <button
               onClick={handleExportProjectJson}
-              title="Zapisz kopię zapasową projektu (JSON)"
+              title="Zapisz projekt (.esp32studio) — skojarzony z aplikacją na Windows"
               className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5 px-2.5 font-medium"
             >
-              {projectExported ? <Check className="w-4 h-4 text-emerald-400" /> : <Layers className="w-4 h-4 text-slate-400" />}
-              <span className="hidden xl:inline text-xs font-mono">JSON</span>
+              {projectExported ? <Check className="w-4 h-4 text-emerald-400" /> : <FileJson className="w-4 h-4 text-slate-400" />}
+              <span className="hidden xl:inline text-xs font-mono">.esp32studio</span>
             </button>
           </div>
 
@@ -475,6 +525,41 @@ export default function App() {
               <X className="w-4 h-4" />
             </button>
           </div>
+        </div>
+      )}
+
+      {importNotice && (
+        <div className="border-b border-emerald-500/30 bg-emerald-950/30 px-4 py-2 text-xs text-emerald-100 flex items-center justify-between gap-3">
+          <span>{importNotice}</span>
+          <button type="button" onClick={() => setImportNotice(null)} className="p-1 rounded hover:bg-emerald-900/50">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {openFileNotice && (
+        <div className="border-b border-amber-500/30 bg-amber-950/30 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-amber-100">
+            {openFileNotice.kind === 'sketch' && (
+              <span>
+                Otwarto szkic <strong className="font-mono">{openFileNotice.fileName}</strong>
+                {' '}({openFileNotice.path}). Studio nie nadpisuje .ino — użyj Generatora C++ / Flash helpera dla .bin.
+              </span>
+            )}
+            {openFileNotice.kind === 'firmware' && (
+              <span>
+                Plik firmware <strong className="font-mono">{openFileNotice.fileName}</strong> — przejdź do USB → Flash helper i wskaż ten plik.
+              </span>
+            )}
+            {openFileNotice.kind !== 'sketch' && openFileNotice.kind !== 'firmware' && (
+              <span>
+                Otwarto: <strong className="font-mono">{openFileNotice.fileName}</strong>
+              </span>
+            )}
+          </div>
+          <button type="button" onClick={() => setOpenFileNotice(null)} className="p-1.5 rounded-lg text-amber-200/80 hover:bg-amber-900/40">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
