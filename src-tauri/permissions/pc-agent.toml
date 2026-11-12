@@ -1,0 +1,8 @@
+[[permission]]
+identifier = "allow-pc-agent"
+description = "Allows locating and controlling the bundled PC resource agent."
+commands.allow = [
+  "get_pc_agent_info",
+  "start_pc_agent",
+  "stop_pc_agent"
+]

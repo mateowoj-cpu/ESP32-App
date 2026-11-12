@@ -24,6 +24,7 @@ import { CodeView } from './components/CodeView';
 import { UsbDetectorView } from './components/UsbDetectorView';
 import { ConnectedEsp32Info } from './types';
 import { generateArduinoCppCode } from './utils/codeGenerator';
+import type { UpdateCheckResult } from './platform/updater';
 import { 
   Tv, 
   Layers, 
@@ -42,7 +43,8 @@ import {
   ExternalLink,
   X,
   Copy,
-  Type
+  Type,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function App() {
@@ -96,11 +98,37 @@ export default function App() {
   });
 
   const [projectExported, setProjectExported] = useState(false);
+  const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
+  const [updateBusy, setUpdateBusy] = useState(false);
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
   // Sync activeScreenIndex between app state and simState
   useEffect(() => {
     setSimState(prev => ({ ...prev, currentScreenIndex: activeScreenIndex }));
   }, [activeScreenIndex]);
+
+  // Auto-check updates inside Tauri shell (non-blocking)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { isTauri } = await import('@tauri-apps/api/core');
+        if (!isTauri()) return;
+        const { checkForAppUpdate } = await import('./platform/updater');
+        const result = await checkForAppUpdate();
+        if (cancelled) return;
+        setUpdateResult(result);
+        if (result.status === 'available') {
+          setShowUpdateBanner(true);
+        }
+      } catch {
+        // browser / updater unavailable
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Real-time ticking clock in simulation
   useEffect(() => {
@@ -174,6 +202,44 @@ export default function App() {
       currentScreenIndex: screenIdx !== undefined ? screenIdx : prev.currentScreenIndex,
       isDisplayAwake: true,
     }));
+  };
+
+  const handleCheckUpdates = async () => {
+    setUpdateBusy(true);
+    try {
+      const { checkForAppUpdate } = await import('./platform/updater');
+      const result = await checkForAppUpdate();
+      setUpdateResult(result);
+      setShowUpdateBanner(result.status === 'available' || result.status === 'error');
+    } catch (err) {
+      setUpdateResult({
+        status: 'error',
+        message: err instanceof Error ? err.message : String(err),
+      });
+      setShowUpdateBanner(true);
+    } finally {
+      setUpdateBusy(false);
+    }
+  };
+
+  const handleInstallUpdate = async () => {
+    setUpdateBusy(true);
+    try {
+      const { downloadAndInstallUpdate } = await import('./platform/updater');
+      const result = await downloadAndInstallUpdate();
+      if (result.status === 'error') {
+        setUpdateResult({ status: 'error', message: result.message });
+        setShowUpdateBanner(true);
+      }
+    } catch (err) {
+      setUpdateResult({
+        status: 'error',
+        message: err instanceof Error ? err.message : String(err),
+      });
+      setShowUpdateBanner(true);
+    } finally {
+      setUpdateBusy(false);
+    }
   };
 
   // Export full project JSON
@@ -336,6 +402,16 @@ export default function App() {
 
           {/* Import / Export JSON Buttons */}
           <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
+            <button
+              type="button"
+              onClick={() => void handleCheckUpdates()}
+              disabled={updateBusy}
+              title="Sprawdź aktualizacje aplikacji (Tauri)"
+              className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5 px-2.5 font-medium disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${updateBusy ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
+              <span className="hidden xl:inline text-xs font-mono">Update</span>
+            </button>
             <label className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1" title="Importuj Projekt JSON">
               <Upload className="w-4 h-4" />
               <input type="file" accept=".json" onChange={handleImportProjectJson} className="hidden" />
@@ -361,6 +437,46 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {showUpdateBanner && updateResult && (
+        <div className="border-b border-cyan-500/30 bg-cyan-950/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-cyan-100">
+            {updateResult.status === 'available' && (
+              <span>
+                Dostępna aktualizacja <strong className="font-mono">{updateResult.version}</strong>
+                {updateResult.body ? ` — ${updateResult.body.slice(0, 120)}` : ''}
+              </span>
+            )}
+            {updateResult.status === 'up-to-date' && <span>Aplikacja jest aktualna.</span>}
+            {updateResult.status === 'error' && (
+              <span>Aktualizacja: {updateResult.message}</span>
+            )}
+            {updateResult.status === 'unavailable' && (
+              <span>Auto-update dostępny tylko w aplikacji desktop (Tauri).</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {updateResult.status === 'available' && (
+              <button
+                type="button"
+                disabled={updateBusy}
+                onClick={() => void handleInstallUpdate()}
+                className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold disabled:opacity-50"
+              >
+                Pobierz i zainstaluj
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowUpdateBanner(false)}
+              className="p-1.5 rounded-lg text-cyan-300/80 hover:bg-cyan-900/50"
+              title="Zamknij"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Arduino IDE Quick Guide / Download Confirmation Modal */}
       {downloadInoModal && (

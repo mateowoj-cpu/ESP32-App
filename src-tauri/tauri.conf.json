@@ -26,15 +26,27 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY3RkExOUJDRjAwRTg3MkEKUldRcWh3N3d2Qm42WjhjdlNjVWlYUEoyUXlQd2Jzd2tNOFBYOUtKTk92TWJETDg3QzJBY0VBTGQK",
+      "endpoints": [
+        "https://github.com/mateowoj-cpu/ESP32-App/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": ["nsis", "msi"],
     "publisher": "ESP32 Display Studio",
     "homepage": "https://github.com/mateowoj-cpu/ESP32-App",
     "category": "DeveloperTool",
     "copyright": "Copyright © 2026 ESP32 Display Studio",
     "shortDescription": "Studio UI OLED/LCD i generator C++ dla ESP32",
-    "longDescription": "Wizualne środowisko do projektowania interfejsów OLED/LCD dla ESP32: symulator sprzętowy, edytor UI, automatyzacje, wykrywanie USB (COM) oraz generator szkiców Arduino/PlatformIO.",
+    "longDescription": "Wizualne środowisko do projektowania interfejsów OLED/LCD dla ESP32: symulator sprzętowy, edytor UI, automatyzacje, wykrywanie USB (COM), agent PC oraz generator szkiców Arduino/PlatformIO.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

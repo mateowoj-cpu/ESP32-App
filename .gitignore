@@ -11,3 +11,14 @@ coverage/
 src-tauri/tauri.windows-signing.local.json
 *.pfx
 *.p12
+
+# Tauri updater private key (never commit)
+src-tauri/.updater-key.local
+src-tauri/.updater-key.pub.local
+
+# PC agent build outputs / staged sidecar
+tools/pc-agent/build/
+tools/pc-agent/dist/
+tools/pc-agent/*.spec.bak
+src-tauri/binaries/*.exe
+src-tauri/resources/windows/esp32-pc-agent.exe

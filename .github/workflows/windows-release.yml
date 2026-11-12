@@ -1,4 +1,4 @@
-name: Windows Release (NSIS / MSI)
+name: Windows Release (NSIS / MSI / PC Agent / Updater)
 
 on:
   workflow_dispatch:
@@ -23,6 +23,11 @@ jobs:
           node-version: "22"
           cache: npm
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Setup Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -30,6 +35,14 @@ jobs:
 
       - name: Install frontend dependencies
         run: npm ci
+
+      - name: Build PC agent (.exe)
+        shell: pwsh
+        run: |
+          ./scripts/windows/Build-PcAgent.ps1
+          if (-not (Test-Path "./src-tauri/binaries/esp32-pc-agent-x86_64-pc-windows-msvc.exe")) {
+            throw "PC agent sidecar missing after build"
+          }
 
       - name: Import Authenticode certificate (optional)
         id: codesign
@@ -43,23 +56,29 @@ jobs:
 
       - name: Build Tauri Windows bundles
         shell: pwsh
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          $overlay = "./src-tauri/tauri.windows-signing.local.json"
-          if (Test-Path $overlay) {
-            Write-Host "Building with Authenticode overlay"
-            npm run tauri:build -- --config $overlay
-          } else {
-            Write-Host "Building unsigned (no certificate secrets)"
-            npm run tauri:build
+          $cmd = "npm run tauri:build --"
+          if (Test-Path "./src-tauri/tauri.windows-signing.local.json") {
+            $cmd += " --config ./src-tauri/tauri.windows-signing.local.json"
           }
+          if (Test-Path "./src-tauri/resources/windows/esp32-pc-agent.exe") {
+            $cmd += " --config ./src-tauri/tauri.windows-agent.example.json"
+          }
+          Write-Host "Running: $cmd"
+          Invoke-Expression $cmd
+          if ($LASTEXITCODE -ne 0) { throw "tauri build failed with exit $LASTEXITCODE" }
 
-      - name: Upload NSIS / MSI artifacts
+      - name: Upload NSIS / MSI / PC Agent / updater artifacts
         uses: actions/upload-artifact@v4
         with:
           name: esp32-display-studio-windows
           path: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*
+            src-tauri/target/release/bundle/msi/*
+            tools/pc-agent/dist/esp32-pc-agent.exe
           if-no-files-found: error
 
       - name: Publish GitHub Release (tags only)
@@ -67,8 +86,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*
+            src-tauri/target/release/bundle/msi/*
+            tools/pc-agent/dist/esp32-pc-agent.exe
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

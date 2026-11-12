@@ -126,14 +126,28 @@ CI: `.github/workflows/windows-release.yml` (tag `v*` lub ręczne uruchomienie).
 
 ## Agent PC (monitor zasobów)
 
-Wygenerowany skrypt Python (`esp32_pc_agent.py`) wysyła CPU/RAM/dysk do ESP32 przez HTTP.
+Źródło: [`tools/pc-agent`](./tools/pc-agent). Wysyła CPU/RAM/dysk/(opcjonalnie GPU) na `POST /api/pc-stats`.
 
 ```bash
-pip install psutil requests
-python esp32_pc_agent.py
+cd tools/pc-agent
+pip install -r requirements.txt
+python esp32_pc_agent.py --host 192.168.1.150 --port 8080
 ```
 
-Na Windows zajętość dysku jest liczona z `C:\`.
+Windows `.exe`:
+
+```powershell
+powershell -File .\scripts\windows\Build-PcAgent.ps1
+.\tools\pc-agent\dist\esp32-pc-agent.exe --host 192.168.1.150 --port 8080
+```
+
+W shellu Tauri: **Integracje → Monitor PC → Start/Stop**.  
+Docs: [docs/windows-pc-agent.md](./docs/windows-pc-agent.md) · Auto-update: [docs/windows-updater.md](./docs/windows-updater.md)
+
+## Auto-update (desktop)
+
+Tauri sprawdza `releases/latest/download/latest.json`. Przycisk **Update** w nagłówku.  
+Wymaga secretu `TAURI_SIGNING_PRIVATE_KEY` w CI (publiczny klucz jest już w `tauri.conf.json`).
 
 ## Eksport firmware
 
@@ -155,9 +169,10 @@ APP_URL=http://localhost:3000
 ## Roadmapa Windows (skrót)
 
 - **Faza 0–1:** README Windows, skrypty cross-platform, abstrakcja Serial
-- **Faza 2:** scaffold Tauri 2 + natywny COM (`src-tauri`, adapter `native`)
-- **Faza 3 (obecna):** NSIS/MSI, docs sterowników, Authenticode + workflow `windows-release`
-- **Kolejne:** agent PC jako `.exe`, auto-update
+- **Faza 2:** scaffold Tauri 2 + natywny COM
+- **Faza 3:** NSIS/MSI, docs sterowników, Authenticode CI
+- **Faza 4 (obecna):** agent PC `.exe` + auto-update Tauri
+- **Faza 5 (następna):** flash helper (`esptool`) + deep link `.ino`/JSON + smoke CI na PR — zob. [docs/roadmap-next.md](./docs/roadmap-next.md)
 
 ## Licencja
 
