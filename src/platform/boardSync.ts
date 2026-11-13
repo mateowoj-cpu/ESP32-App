@@ -1,5 +1,6 @@
 import {
   boardCacheKey,
+  loadBoardPreset,
   saveBoardPreset,
   type BoardFlashPreset,
 } from './boardCache';
@@ -25,7 +26,7 @@ export interface CommunityBoardCatalog {
 /** Bundled fallback when network is unavailable (mirrors public/board-profiles/community.json). */
 export const BUNDLED_COMMUNITY_CATALOG: CommunityBoardCatalog = {
   version: 1,
-  updatedAt: '2026-11-13T00:00:00.000Z',
+  updatedAt: '2026-11-13T12:00:00.000Z',
   source: 'esp32-display-studio/community-bundled',
   profiles: [
     {
@@ -49,6 +50,36 @@ export const BUNDLED_COMMUNITY_CATALOG: CommunityBoardCatalog = {
       boardProfile: 'esp32c3',
     },
     {
+      id: 'espressif-s2-native-usb',
+      label: 'ESP32-S2 (native USB CDC)',
+      vid: '303a',
+      pid: '0002',
+      chip: 'esp32s2',
+      offset: '0x0',
+      baud: 921600,
+      boardProfile: 'esp32s2',
+    },
+    {
+      id: 'espressif-c6-devkitc',
+      label: 'ESP32-C6-DevKitC-1 (USB Serial/JTAG)',
+      vid: '303a',
+      pid: '1001',
+      chip: 'esp32c6',
+      offset: '0x0',
+      baud: 921600,
+      boardProfile: 'esp32c6',
+    },
+    {
+      id: 'espressif-h2-devkitm',
+      label: 'ESP32-H2-DevKitM-1 (USB Serial/JTAG)',
+      vid: '303a',
+      pid: '1001',
+      chip: 'esp32h2',
+      offset: '0x0',
+      baud: 460800,
+      boardProfile: 'esp32h2',
+    },
+    {
       id: 'cp210x-generic-esp32',
       label: 'Generic ESP32 (CP210x)',
       vid: '10c4',
@@ -57,6 +88,26 @@ export const BUNDLED_COMMUNITY_CATALOG: CommunityBoardCatalog = {
       offset: '0x1000',
       baud: 921600,
       boardProfile: 'esp32',
+    },
+    {
+      id: 'cp2105-dual-esp32',
+      label: 'Generic ESP32 (CP2105 dual)',
+      vid: '10c4',
+      pid: 'ea70',
+      chip: 'esp32',
+      offset: '0x1000',
+      baud: 921600,
+      boardProfile: 'esp32',
+    },
+    {
+      id: 'cp210x-esp32-s3-bridge',
+      label: 'ESP32-S3 via CP210x UART bridge',
+      vid: '10c4',
+      pid: 'ea60',
+      chip: 'esp32s3',
+      offset: '0x0',
+      baud: 921600,
+      boardProfile: 'esp32s3',
     },
     {
       id: 'ch340-generic-esp32',
@@ -69,12 +120,62 @@ export const BUNDLED_COMMUNITY_CATALOG: CommunityBoardCatalog = {
       boardProfile: 'esp32',
     },
     {
+      id: 'ch9102-generic-esp32',
+      label: 'Generic ESP32 (CH9102)',
+      vid: '1a86',
+      pid: '55d4',
+      chip: 'esp32',
+      offset: '0x1000',
+      baud: 921600,
+      boardProfile: 'esp32',
+    },
+    {
+      id: 'ch342-generic-esp32',
+      label: 'Generic ESP32 (CH342 dual)',
+      vid: '1a86',
+      pid: '55d3',
+      chip: 'esp32',
+      offset: '0x1000',
+      baud: 460800,
+      boardProfile: 'esp32',
+    },
+    {
+      id: 'ch340-esp32-c3-bridge',
+      label: 'ESP32-C3 via CH340 UART bridge',
+      vid: '1a86',
+      pid: '7523',
+      chip: 'esp32c3',
+      offset: '0x0',
+      baud: 460800,
+      boardProfile: 'esp32c3',
+    },
+    {
       id: 'ftdi-generic-esp32',
-      label: 'Generic ESP32 (FTDI)',
+      label: 'Generic ESP32 (FTDI FT232R)',
       vid: '0403',
       pid: '6001',
       chip: 'esp32',
       offset: '0x1000',
+      baud: 921600,
+      boardProfile: 'esp32',
+    },
+    {
+      id: 'ftdi-ft231x-esp32',
+      label: 'Generic ESP32 (FTDI FT231X)',
+      vid: '0403',
+      pid: '6015',
+      chip: 'esp32',
+      offset: '0x1000',
+      baud: 921600,
+      boardProfile: 'esp32',
+    },
+    {
+      id: 'placeholder-merged-any-uart',
+      label: 'PLACEHOLDER — merged image @ 0x0 (verify board)',
+      vid: '0000',
+      pid: '0000',
+      chip: 'esp32',
+      offset: '0x0',
       baud: 921600,
       boardProfile: 'esp32',
     },
@@ -145,10 +246,18 @@ export async function fetchCommunityCatalog(
   }
 }
 
-/** Apply catalog profiles into local VID:PID cache (loose `*` port key). */
+/**
+ * Apply catalog profiles into local VID:PID cache (loose `*` port key).
+ * First-wins per VID:PID so expanded catalogs with multiple chips sharing a
+ * USB id (e.g. Espressif 303a:1001) do not clobber the primary entry.
+ * Returns the number of catalog rows processed (not uniquely stored).
+ */
 export function applyCommunityCatalog(catalog: CommunityBoardCatalog): number {
-  let applied = 0;
+  let processed = 0;
   for (const p of catalog.profiles) {
+    processed += 1;
+    const existing = loadBoardPreset(p.vid, p.pid, '*');
+    if (existing) continue;
     const preset: Omit<BoardFlashPreset, 'updatedAt'> = {
       chip: p.chip,
       offset: p.offset,
@@ -156,9 +265,8 @@ export function applyCommunityCatalog(catalog: CommunityBoardCatalog): number {
       boardProfile: p.boardProfile,
     };
     saveBoardPreset(p.vid, p.pid, '*', preset);
-    applied += 1;
   }
-  return applied;
+  return processed;
 }
 
 export async function syncCommunityBoardProfiles(opts?: {

@@ -1,7 +1,9 @@
 name: Desktop Unix Release (AppImage / deb / dmg)
 
-# Faza 13 — packaging smoke for Linux and macOS (no store submit).
+# Faza 13–14 — packaging for Linux and macOS (no store submit by default).
 # Windows remains the primary signed release path (windows-release.yml).
+# Optional AppImage-only smoke: desktop-unix-appimage-smoke.yml (workflow_dispatch).
+# Optional macOS notarize checklist: docs/macos-notarize.md.
 
 on:
   workflow_dispatch:

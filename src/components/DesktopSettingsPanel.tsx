@@ -119,7 +119,7 @@ export const DesktopSettingsPanel: React.FC = () => {
           <MonitorSmartphone className="ui-icon-sm text-cyan-400" aria-hidden="true" />
           {t('desktop.title')}
         </h3>
-        <span className="ui-type-micro font-mono text-cyan-400">v0.2.6</span>
+        <span className="ui-type-micro font-mono text-cyan-400">v0.2.7</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">

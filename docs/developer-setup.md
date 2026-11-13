@@ -1,6 +1,6 @@
 # Setup dla contributorów
 
-Jak uruchomić i testować ESP32 Display Studio lokalnie. Wersja linii: **0.2.6**.
+Jak uruchomić i testować ESP32 Display Studio lokalnie. Wersja linii: **0.2.7**.
 
 ## Wymagania
 
@@ -65,7 +65,7 @@ Sidecar PIO: `scripts/windows/Install-PlatformIoSidecar.ps1` lub `scripts/unix/i
 | `npm run smoke` | Lint + testy jednostkowe platform + `build` |
 | `npm run test:serial` | Mock serial |
 | `npm run test:i18n` | Locale keys PL/EN |
-| `npm run test:ota` / `test:board-*` / `test:telemetry` / `test:deeplink` | Testy platformy |
+| `npm run test:ota` / `test:board-*` / `test:telemetry` / `test:marketplace` / `test:deeplink` | Testy platformy |
 | `npm run pc-agent:test` | Smoke agenta Pythona |
 
 Przed PR warto: `npm run smoke`.
@@ -80,7 +80,7 @@ docs/                Ta dokumentacja
 packaging/winget/    Manifesty referencyjne (SHA placeholder do releasu)
 scripts/             Windows / Unix / winget helpers
 tools/pc-agent/      Agent monitora PC
-.github/workflows/   smoke, windows-release, desktop-unix, winget-draft, penv
+.github/workflows/   smoke, windows-release, desktop-unix (+ appimage-smoke), winget-draft, penv
 ```
 
 Architekturę warstw opisuje [architecture.md](./architecture.md).

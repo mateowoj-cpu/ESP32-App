@@ -1,0 +1,19 @@
+{
+  "version": "0.2.7",
+  "notes": "EXAMPLE ONLY — replace urls and signatures from real signed tauri builds. Do not publish placeholders.",
+  "pub_date": "2026-11-13T12:00:00Z",
+  "platforms": {
+    "windows-x86_64": {
+      "url": "https://github.com/mateowoj-cpu/ESP32-App/releases/download/v0.2.7/ESP32.Display.Studio_0.2.7_x64-setup.nsis.zip",
+      "signature": "REPLACE_WITH_TAURI_UPDATER_SIGNATURE_FROM_SIGNED_WINDOWS_BUILD"
+    },
+    "linux-x86_64": {
+      "url": "https://github.com/mateowoj-cpu/ESP32-App/releases/download/v0.2.7/ESP32.Display.Studio_0.2.7_amd64.AppImage.tar.gz",
+      "signature": "REPLACE_WITH_TAURI_UPDATER_SIGNATURE_FROM_SIGNED_LINUX_BUILD"
+    },
+    "darwin-aarch64": {
+      "url": "https://github.com/mateowoj-cpu/ESP32-App/releases/download/v0.2.7/ESP32.Display.Studio_0.2.7_aarch64.app.tar.gz",
+      "signature": "REPLACE_WITH_TAURI_UPDATER_SIGNATURE_FROM_SIGNED_MACOS_BUILD"
+    }
+  }
+}

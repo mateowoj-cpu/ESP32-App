@@ -13,7 +13,7 @@ When the toggle is on **and** the build defines `VITE_TELEMETRY_ENDPOINT`
 
 | Field | Meaning |
 |-------|---------|
-| `v` | App version (e.g. `0.2.6`) |
+| `v` | App version (e.g. `0.2.7`) |
 | `os` | Coarse OS: `windows` / `macos` / `linux` / `other` |
 | `event` | `app_open`, `build_result`, `flash_result`, `ota_result`, `diag_export`, `board_sync` |
 | `ok` | Optional boolean for result events |

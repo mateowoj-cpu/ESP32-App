@@ -1,0 +1,30 @@
+{
+  "format": "esp32studio-marketplace",
+  "kind": "widget_pack",
+  "version": 1,
+  "id": "status-strip",
+  "title": "Status strip",
+  "author": "ESP32 Display Studio",
+  "widgets": [
+    {
+      "id": "m_clock",
+      "type": "clock",
+      "x": 4,
+      "y": 4,
+      "width": 72,
+      "height": 20,
+      "clockFormat": "24h",
+      "showSeconds": false,
+      "showDate": false,
+      "binding": "time"
+    },
+    {
+      "id": "m_batt_wifi",
+      "type": "battery_wifi",
+      "x": 80,
+      "y": 4,
+      "width": 44,
+      "height": 20
+    }
+  ]
+}

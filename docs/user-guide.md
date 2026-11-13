@@ -1,6 +1,6 @@
 # Przewodnik użytkownika — ESP32 Display Studio
 
-Krótki przewodnik po aplikacji **0.2.6**. Szczegóły techniczne (sterowniki, OTA, winget) są w dokumentach powiązanych.
+Krótki przewodnik po aplikacji **0.2.7**. Szczegóły techniczne (sterowniki, OTA, winget) są w dokumentach powiązanych.
 
 ## Dwa tryby uruchomienia
 
@@ -34,6 +34,7 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 - **Symulator sprzętowy** — OLED/LCD, sensory, GPIO  
 - **Edytor UI** — widgety, animacje, sekwencje ekranów  
 - **Automatyzacje / cyber-zwierzak** — PIR, czas, dotyk, USB  
+- **Marketplace** — gotowe paczki widgetów / reguł (import JSON, sandbox bez wykonywania kodu)  
 - **Integracje** — pogoda (Open-Meteo itd.), **Monitor PC** (CPU/RAM/dysk)  
 - **Generator C++** — Arduino / PlatformIO + mapa pinów  
 - **i18n** — PL / EN (Ustawienia lub chrome aplikacji)

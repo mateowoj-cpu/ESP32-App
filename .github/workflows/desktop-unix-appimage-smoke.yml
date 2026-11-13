@@ -1,0 +1,72 @@
+name: Desktop Unix AppImage smoke
+
+# Faza 14 — optional Linux packaging smoke.
+# Manual only: do NOT run on every PR (full tauri build is expensive).
+# Use workflow_dispatch when validating AppImage changes.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-unix-appimage-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  appimage-smoke:
+    name: AppImage build smoke
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Setup Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux Tauri deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libudev-dev \
+            libssl-dev \
+            pkg-config \
+            file
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri Linux bundles (AppImage + deb)
+        run: npm run tauri:build -- --config src-tauri/tauri.linux.json
+
+      - name: Assert AppImage exists
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(src-tauri/target/release/bundle/appimage/*.AppImage)
+          if [ ${#files[@]} -lt 1 ]; then
+            echo "No AppImage produced under bundle/appimage/"
+            ls -laR src-tauri/target/release/bundle || true
+            exit 1
+          fi
+          echo "AppImage smoke OK: ${files[*]}"
+          file "${files[0]}"
+
+      - name: Upload AppImage smoke artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-display-studio-appimage-smoke
+          path: src-tauri/target/release/bundle/appimage/*
+          if-no-files-found: error
+          retention-days: 7
