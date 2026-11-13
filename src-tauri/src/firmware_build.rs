@@ -17,6 +17,8 @@ pub struct ToolchainInfo {
     pub arduino_cli: Option<String>,
     pub preferred: Option<String>,
     pub available: bool,
+    /// `sidecar` | `path` | `none`
+    pub source: String,
     pub hint: String,
 }
 
@@ -68,8 +70,50 @@ fn which(bin: &str) -> Option<PathBuf> {
     None
 }
 
-fn resolve_pio() -> Option<PathBuf> {
-    which("pio").or_else(|| which("platformio"))
+fn path_is_executable_candidate(p: &Path) -> bool {
+    p.is_file()
+}
+
+/// Sidecar / offline PlatformIO locations (no user PATH required).
+fn sidecar_pio_candidates(app: &AppHandle) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    if let Ok(env) = std::env::var("ESP32_STUDIO_PIO") {
+        out.push(PathBuf::from(env));
+    }
+    if let Ok(dir) = app.path().app_local_data_dir() {
+        let base = dir.join("sidecar").join("platformio");
+        if cfg!(windows) {
+            out.push(base.join("penv").join("Scripts").join("pio.exe"));
+            out.push(base.join("penv").join("Scripts").join("platformio.exe"));
+            out.push(base.join("pio.exe"));
+        } else {
+            out.push(base.join("penv").join("bin").join("pio"));
+            out.push(base.join("penv").join("bin").join("platformio"));
+            out.push(base.join("pio"));
+        }
+    }
+    if let Ok(res) = app.path().resource_dir() {
+        let base = res.join("sidecar").join("platformio");
+        if cfg!(windows) {
+            out.push(base.join("penv").join("Scripts").join("pio.exe"));
+            out.push(base.join("pio.exe"));
+        } else {
+            out.push(base.join("penv").join("bin").join("pio"));
+            out.push(base.join("pio"));
+        }
+    }
+    out
+}
+
+fn resolve_pio(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
+    for cand in sidecar_pio_candidates(app) {
+        if path_is_executable_candidate(&cand) {
+            return Some((cand, "sidecar"));
+        }
+    }
+    which("pio")
+        .or_else(|| which("platformio"))
+        .map(|p| (p, "path"))
 }
 
 fn resolve_arduino_cli() -> Option<PathBuf> {
@@ -96,8 +140,8 @@ fn version_of(bin: &Path) -> Option<String> {
 }
 
 #[tauri::command]
-pub fn get_firmware_toolchain_info() -> ToolchainInfo {
-    let pio = resolve_pio();
+pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
+    let pio = resolve_pio(&app);
     let arduino = resolve_arduino_cli();
     let preferred = if pio.is_some() {
         Some("platformio".into())
@@ -107,14 +151,21 @@ pub fn get_firmware_toolchain_info() -> ToolchainInfo {
         None
     };
 
+    let source = match &pio {
+        Some((_, "sidecar")) => "sidecar".to_string(),
+        Some((_, _)) => "path".to_string(),
+        None if arduino.is_some() => "path".to_string(),
+        None => "none".to_string(),
+    };
+
     let hint = match (&pio, &arduino) {
-        (Some(p), Some(a)) => format!(
-            "PlatformIO + arduino-cli (preferuję PIO). {} · {}",
+        (Some((p, src)), Some(a)) => format!(
+            "PlatformIO ({src}) + arduino-cli. {} · {}",
             version_of(p).unwrap_or_else(|| p.display().to_string()),
             version_of(a).unwrap_or_else(|| a.display().to_string())
         ),
-        (Some(p), None) => format!(
-            "PlatformIO: {}",
+        (Some((p, src)), None) => format!(
+            "PlatformIO ({src}): {}",
             version_of(p).unwrap_or_else(|| p.display().to_string())
         ),
         (None, Some(a)) => format!(
@@ -122,15 +173,16 @@ pub fn get_firmware_toolchain_info() -> ToolchainInfo {
             version_of(a).unwrap_or_else(|| a.display().to_string())
         ),
         (None, None) => {
-            "Brak toolchainu. Zainstaluj PlatformIO Core (`pio`) lub arduino-cli w PATH.".into()
+            "Brak toolchainu. Sidecar: scripts/windows/Install-PlatformIoSidecar.ps1 — albo `pio` / arduino-cli w PATH.".into()
         }
     };
 
     ToolchainInfo {
         available: preferred.is_some(),
         preferred: preferred.clone(),
-        platformio: pio.map(|p| p.display().to_string()),
+        platformio: pio.map(|(p, _)| p.display().to_string()),
         arduino_cli: arduino.map(|p| p.display().to_string()),
+        source,
         hint,
     }
 }
@@ -327,7 +379,7 @@ pub fn build_firmware_from_sketch(
     let tool_pref = preferred_tool
         .unwrap_or_else(|| "auto".into())
         .to_lowercase();
-    let pio = resolve_pio();
+    let pio = resolve_pio(&app);
     let arduino = resolve_arduino_cli();
 
     let use_pio = match tool_pref.as_str() {
@@ -337,16 +389,21 @@ pub fn build_firmware_from_sketch(
     };
 
     if use_pio {
-        let Some(pio_bin) = pio else {
+        let Some((pio_bin, pio_src)) = pio else {
             return Ok(BuildResult {
                 ok: false,
                 tool: "platformio".into(),
                 project_dir: Some(root.display().to_string()),
                 firmware_path: None,
                 exit_code: None,
-                message: "PlatformIO niedostępne w PATH.".into(),
+                message: "PlatformIO niedostępne (sidecar ani PATH). Uruchom Install-PlatformIoSidecar.ps1.".into(),
             });
         };
+
+        emit_log(
+            &app,
+            format!("Używam PlatformIO ({pio_src}): {}", pio_bin.display()),
+        );
 
         let args = vec![
             "run".into(),
@@ -365,7 +422,7 @@ pub fn build_firmware_from_sketch(
             firmware_path: firmware.as_ref().map(|p| p.display().to_string()),
             exit_code: Some(code),
             message: if ok {
-                format!("Zbudowano: {}", firmware.unwrap().display())
+                format!("Zbudowano ({pio_src}): {}", firmware.unwrap().display())
             } else if code != 0 {
                 format!("PlatformIO zakończył się kodem {code}. Zobacz log build.")
             } else {
@@ -381,7 +438,7 @@ pub fn build_firmware_from_sketch(
             project_dir: Some(root.display().to_string()),
             firmware_path: None,
             exit_code: None,
-            message: "Brak PlatformIO i arduino-cli w PATH.".into(),
+            message: "Brak PlatformIO (sidecar/PATH) i arduino-cli.".into(),
         });
     };
 

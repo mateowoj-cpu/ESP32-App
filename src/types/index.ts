@@ -257,6 +257,11 @@ export type PinFunction =
 export interface SystemConfig {
   wifiSsid: string;
   wifiPassword: string;
+  /** Include ArduinoOTA + HTTP /update in generated sketch (Faza 9). */
+  otaEnabled?: boolean;
+  otaPassword?: string;
+  /** ArduinoOTA port (default 3232). HTTP update uses WebServer port when enabled. */
+  otaPort?: number;
   autoReconnect: boolean;
   mdnsName: string;
   deepSleepTimeoutSec: number; // 0 = disabled

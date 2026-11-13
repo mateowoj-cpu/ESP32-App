@@ -50,6 +50,9 @@ jobs:
       - name: Board flash cache tests
         run: npm run test:board-cache
 
+      - name: OTA host validation tests
+        run: npm run test:ota
+
       - name: Production build
         run: npm run build
 

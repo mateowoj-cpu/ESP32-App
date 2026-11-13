@@ -468,6 +468,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
               <span className="ui-type-micro text-slate-500 mt-1 block">Dostępny w przeglądarce jako: http://{system.mdnsName}.local</span>
             </div>
+
+            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col gap-3">
+              <h4 className="text-xs font-semibold text-slate-200">{t('settings.ota')}</h4>
+              <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={system.otaEnabled !== false}
+                  onChange={e => setSystem(prev => ({ ...prev, otaEnabled: e.target.checked }))}
+                  className="accent-cyan-400"
+                />
+                {t('settings.otaEnable')}
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">{t('settings.otaPassword')}</label>
+                  <input
+                    type="password"
+                    value={system.otaPassword ?? 'esp32ota'}
+                    onChange={e => setSystem(prev => ({ ...prev, otaPassword: e.target.value }))}
+                    disabled={system.otaEnabled === false}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono disabled:opacity-40"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">{t('settings.otaPort')}</label>
+                  <input
+                    type="number"
+                    value={system.otaPort ?? 3232}
+                    onChange={e =>
+                      setSystem(prev => ({ ...prev, otaPort: Number(e.target.value) || 3232 }))
+                    }
+                    disabled={system.otaEnabled === false}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono disabled:opacity-40"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Power Saving & Deep Sleep */}

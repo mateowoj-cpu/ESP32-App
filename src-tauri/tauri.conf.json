@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ESP32 Display Studio",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "identifier": "studio.esp32.display",
   "build": {
     "frontendDist": "../dist",
@@ -83,7 +83,8 @@
     ],
     "resources": [
       "resources/windows/DRIVERS.txt",
-      "resources/windows/SIGNING.txt"
+      "resources/windows/SIGNING.txt",
+      "resources/sidecar/README.txt"
     ],
     "windows": {
       "digestAlgorithm": "sha256",

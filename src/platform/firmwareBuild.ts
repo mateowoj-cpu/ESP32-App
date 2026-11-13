@@ -6,6 +6,8 @@ export interface ToolchainInfo {
   arduinoCli?: string | null;
   preferred?: string | null;
   available: boolean;
+  /** `sidecar` | `path` | `none` */
+  source?: string | null;
   hint: string;
 }
 
