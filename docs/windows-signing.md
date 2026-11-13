@@ -75,7 +75,10 @@ Status powinien być `Valid`.
 
 Nawet po podpisie OV pierwsze pobrania mogą mieć ostrzeżenie, dopóki certyfikat nie zbierze reputacji. EV zwykle skraca ten okres. Publikuj instalatory z oficjalnej strony / GitHub Releases.
 
+Pełna checklista monitoringu reputacji (po signed winget / Releases): [windows-smartscreen.md](./windows-smartscreen.md).
+
 ## Powiązane
 
+- [SmartScreen / reputacja](./windows-smartscreen.md)
 - [Sterowniki USB](./windows-drivers.md)
 - [Instalator Windows](./windows-installer.md)

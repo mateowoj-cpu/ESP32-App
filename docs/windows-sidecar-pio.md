@@ -1,4 +1,4 @@
-# Sidecar PlatformIO (Faza 9–11)
+# Sidecar PlatformIO (Faza 9–12)
 
 Build-from-Studio **nie wymaga** `pio` w PATH użytkownika, jeśli zainstalujesz offline **sidecar** albo spakujesz penv w signed installerze.
 
@@ -16,6 +16,14 @@ Skrypt tworzy:
 | `%LOCALAPPDATA%\studio.esp32.display\sidecar\ota\espota.py` | klient ArduinoOTA |
 
 Wymaga Python 3 (zaznacz „Add to PATH” przy instalacji).
+
+## Linux / macOS (Faza 12)
+
+```bash
+./scripts/unix/install-platformio-sidecar.sh
+```
+
+Szczegóły ścieżek i autostartu: [desktop-unix.md](./desktop-unix.md).
 
 ## Bundling penv w instalatorze (Faza 10)
 

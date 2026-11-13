@@ -66,14 +66,18 @@ fn agent_exe_candidates(app: &AppHandle) -> Vec<PathBuf> {
     if let Ok(resource_dir) = app.path().resource_dir() {
         paths.push(resource_dir.join("resources/windows/esp32-pc-agent.exe"));
         paths.push(resource_dir.join("esp32-pc-agent.exe"));
+        paths.push(resource_dir.join("resources/unix/esp32-pc-agent"));
+        paths.push(resource_dir.join("esp32-pc-agent"));
     }
     if let Ok(exe_dir) = app.path().executable_dir() {
         paths.push(exe_dir.join("esp32-pc-agent.exe"));
+        paths.push(exe_dir.join("esp32-pc-agent"));
     }
     paths.push(PathBuf::from(
         "src-tauri/binaries/esp32-pc-agent-x86_64-pc-windows-msvc.exe",
     ));
     paths.push(PathBuf::from("tools/pc-agent/dist/esp32-pc-agent.exe"));
+    paths.push(PathBuf::from("tools/pc-agent/dist/esp32-pc-agent"));
     paths.push(PathBuf::from("tools/pc-agent/esp32_pc_agent.py"));
     paths
 }
@@ -175,9 +179,24 @@ pub fn set_pc_agent_autostart(
 
     #[cfg(not(windows))]
     {
-        let _ = (bin, prefix_args, host, port);
+        let mut args = prefix_args;
+        args.push("--host".into());
+        args.push(host);
+        args.push("--port".into());
+        args.push(port.to_string());
+        let quoted = std::iter::once(bin.as_str())
+            .chain(args.iter().map(String::as_str))
+            .map(|a| {
+                if a.contains(char::is_whitespace) {
+                    format!("\"{a}\"")
+                } else {
+                    a.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
         let body = format!(
-            "[Desktop Entry]\nType=Application\nName=ESP32 PC Agent\nExec=true\nX-GNOME-Autostart-enabled=false\n"
+            "[Desktop Entry]\nType=Application\nName=ESP32 PC Agent\nExec={quoted}\nX-GNOME-Autostart-enabled=true\n"
         );
         fs::write(&path, body).map_err(|e| e.to_string())?;
     }
