@@ -36,8 +36,18 @@ Profil płytki (esp32 / s3 / c3 / …) bierze się z wykrytego chipa.
 
 Cache toolchainu PIO zostaje między buildami (szybsze kolejne kompilacje).
 
+## Sidecar (Faza 9)
+
+Zamiast PATH możesz zainstalować offline PlatformIO:
+
+```powershell
+powershell -File .\scripts\windows\Install-PlatformIoSidecar.ps1
+```
+
+Szczegóły: [windows-sidecar-pio.md](./windows-sidecar-pio.md). OTA Wi‑Fi: [windows-ota.md](./windows-ota.md).
+
 ## Ograniczenia
 
 - Pierwszy build PlatformIO ściąga platformę espressif32 — może trwać długo.
 - Port COM nie może być otwarty w Serial Monitorze podczas flash.
-- Studio **nie** bundluje PlatformIO; musi być w PATH użytkownika.
+- Pełny penv PIO nie jest w repozytorium — użyj skryptu sidecar albo PATH.

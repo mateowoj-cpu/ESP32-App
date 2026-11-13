@@ -45,6 +45,7 @@ import {
   Thermometer,
   CheckCircle2
 } from 'lucide-react';
+import { useLocale } from '../i18n/LocaleContext';
 
 interface AutomationStudioProps {
   automations: AutomationRule[];
@@ -114,6 +115,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   simState,
   setSimState,
 }) => {
+  const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<StudioTab>('visual_blocks');
   const [isAddingRule, setIsAddingRule] = useState<boolean>(false);
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
@@ -820,10 +822,10 @@ void updatePetTimeline() {
         <div>
           <h2 className="ui-type-title text-slate-100 flex items-center gap-2">
             <Zap className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-            Centrum Automatyzacji i Zachowań Cyber-Zwierzaka
+            {t('auto.title')}
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Definiuj reakcje urządzenia na czujniki GPIO, harmonogram wielominutowej osi czasu oraz generuj gotowy kod C++ dla ESP32.
+            {t('auto.subtitle')}
           </p>
         </div>
 
@@ -836,7 +838,7 @@ void updatePetTimeline() {
               }`}
             >
               <Layers className="ui-icon-sm" aria-hidden="true" />
-              <span>Klocki Reguł</span>
+              <span>{t('auto.tabBlocks')}</span>
             </button>
             <button
               onClick={() => setActiveTab('timeline')}
@@ -845,7 +847,7 @@ void updatePetTimeline() {
               }`}
             >
               <Film className="ui-icon-sm" aria-hidden="true" />
-              <span>Oś Czasu i Generator (Timeline)</span>
+              <span>{t('auto.tabTimeline')}</span>
             </button>
             <button
               onClick={() => setActiveTab('script_dsl')}
@@ -854,7 +856,7 @@ void updatePetTimeline() {
               }`}
             >
               <Code className="ui-icon-sm" aria-hidden="true" />
-              <span>Język Skryptowy (DSL)</span>
+              <span>{t('auto.tabDsl')}</span>
             </button>
           </div>
 
@@ -863,7 +865,7 @@ void updatePetTimeline() {
             className="flex items-center gap-2 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-sm"
           >
             <Plus className="ui-icon-sm" aria-hidden="true" />
-            <span>Nowa Reguła</span>
+            <span>{t('auto.newRule')}</span>
           </button>
         </div>
       </div>

@@ -152,10 +152,16 @@ Wymaga secretu `TAURI_SIGNING_PRIVATE_KEY` w CI (publiczny klucz jest już w `ta
 ## Eksport firmware / build / flash
 
 1. Skonfiguruj wyświetlacz, ekrany i automatyzacje.
-2. W shellu Tauri: **USB → Build → Flash** (wymaga `pio` lub `arduino-cli` + `esptool` w PATH).
+2. W shellu Tauri: **USB → Build → Flash** (sidecar PIO lub `pio`/`arduino-cli` + `esptool`; OTA Wi‑Fi w tej samej zakładce).
 3. Albo pobierz `.ino` z **Generator Kodu C++** i zbuduj w Arduino IDE / PlatformIO ręcznie.
 
-Docs: [docs/windows-build-flash.md](./docs/windows-build-flash.md) · [docs/windows-flash.md](./docs/windows-flash.md) · [docs/windows-winget.md](./docs/windows-winget.md) · [docs/windows-diagnostics.md](./docs/windows-diagnostics.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
+Sidecar (bez PATH):
+
+```powershell
+powershell -File .\scripts\windows\Install-PlatformIoSidecar.ps1
+```
+
+Docs: [docs/windows-build-flash.md](./docs/windows-build-flash.md) · [docs/windows-sidecar-pio.md](./docs/windows-sidecar-pio.md) · [docs/windows-ota.md](./docs/windows-ota.md) · [docs/windows-flash.md](./docs/windows-flash.md) · [docs/windows-winget.md](./docs/windows-winget.md) · [docs/windows-diagnostics.md](./docs/windows-diagnostics.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
 
 Projekt zapisuj jako `.esp32studio` (asocjacja Windows / `esp32studio://open?path=...`).
 
@@ -179,8 +185,9 @@ APP_URL=http://localhost:3000
 - **Faza 5:** flash helper (`esptool`) + deep link / `.esp32studio` + smoke CI
 - **Faza 6:** tray/autostart, i18n PL/EN, kanały update, wersja `0.2.0`
 - **Faza 7:** Build-from-Studio (PlatformIO/`arduino-cli` → `.bin` → flash)
-- **Faza 8 (obecna):** i18n PL/EN, winget template, diagnostyka, board cache (`0.2.1`)
-- **Faza 9 (następna):** sidecar PIO / OTA / winget-pkgs — zob. [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 8:** i18n PL/EN, winget template, diagnostyka, board cache (`0.2.1`)
+- **Faza 9 (obecna):** sidecar PlatformIO, OTA Wi‑Fi, chrome i18n głębokich paneli, winget `0.2.2` — [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 10 (następna):** pełne tłumaczenia paneli, bundling penv, mDNS OTA, publikacja winget-pkgs
 
 ## Licencja
 

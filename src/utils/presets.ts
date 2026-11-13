@@ -31,6 +31,9 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   wifiSsid: 'Mój_Dom_WiFi',
   wifiPassword: 'tajne_haslo_123',
+  otaEnabled: true,
+  otaPassword: 'esp32ota',
+  otaPort: 3232,
   autoReconnect: true,
   mdnsName: 'esp32-display',
   deepSleepTimeoutSec: 60,

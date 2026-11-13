@@ -48,6 +48,7 @@ import {
   RadioTower,
   Bluetooth
 } from 'lucide-react';
+import { useLocale } from '../i18n/LocaleContext';
 
 interface VisualEditorProps {
   screens: Screen[];
@@ -79,6 +80,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
   simState,
   setSimState,
 }) => {
+  const { t } = useLocale();
   const currentScreen = screens[activeScreenIndex] || screens[0];
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(
     currentScreen?.widgets[0]?.id || null
@@ -798,7 +800,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             title="Dodaj nowy pusty ekran"
            aria-label="Dodaj nowy pusty ekran">
             <Plus className="ui-icon-sm" aria-hidden="true" />
-            <span>Nowy ekran</span>
+            <span>{t('editor.newScreen')}</span>
           </button>
         </div>
 
@@ -814,7 +816,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             title="Pokaż/ukryj podręczny panel symulatora czujników"
           >
             <SlidersHorizontal className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-            <span>Telemetria Live {showLiveSimDock ? 'ON' : 'OFF'}</span>
+            <span>{t('editor.liveTelemetry')} {showLiveSimDock ? 'ON' : 'OFF'}</span>
           </button>
 
           <button
@@ -823,7 +825,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             title="Duplikuj obecny ekran"
            aria-label="Duplikuj obecny ekran">
             <Copy className="ui-icon-sm" aria-hidden="true" />
-            <span className="hidden sm:inline">Klonuj</span>
+            <span className="hidden sm:inline">{t('editor.clone')}</span>
           </button>
           {screens.length > 1 && (
             <button
@@ -938,9 +940,9 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
         <div className="lg:col-span-3 flex flex-col gap-3 p-4 bg-slate-900 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">
-              Paleta Elementów
+              {t('editor.palette')}
             </h3>
-            <span className="ui-type-micro text-slate-500">Kliknij aby dodać</span>
+            <span className="ui-type-micro text-slate-500">{t('editor.paletteHint')}</span>
           </div>
 
           <div className="grid grid-cols-1 gap-2">

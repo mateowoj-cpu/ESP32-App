@@ -3,6 +3,7 @@ import { ConnectedEsp32Info } from '../types';
 import { getSerialAdapter, type SerialPortInfo } from '../platform';
 import type { EsptoolInfo } from '../platform/flash';
 import type { BuildResult, ToolchainInfo } from '../platform/firmwareBuild';
+import type { OtaMethod, OtaToolInfo } from '../platform/ota';
 import { useLocale } from '../i18n/LocaleContext';
 import { loadBoardPreset, saveBoardPreset } from '../platform/boardCache';
 import { appendDiagnosticsLog } from '../platform/diagnostics';
@@ -15,6 +16,7 @@ import {
   Terminal,
   Hammer,
   Play,
+  Wifi,
 } from 'lucide-react';
 
 export interface SketchBuildSources {
@@ -37,12 +39,17 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const [isTauri, setIsTauri] = useState(false);
   const [esptool, setEsptool] = useState<EsptoolInfo | null>(null);
   const [toolchain, setToolchain] = useState<ToolchainInfo | null>(null);
+  const [otaTool, setOtaTool] = useState<OtaToolInfo | null>(null);
   const [ports, setPorts] = useState<SerialPortInfo[]>([]);
   const [portId, setPortId] = useState('');
   const [baud, setBaud] = useState(460800);
   const [chip, setChip] = useState('auto');
   const [offset, setOffset] = useState('0x1000');
   const [firmwarePath, setFirmwarePath] = useState('');
+  const [otaHost, setOtaHost] = useState('');
+  const [otaPort, setOtaPort] = useState(3232);
+  const [otaPassword, setOtaPassword] = useState('esp32ota');
+  const [otaMethod, setOtaMethod] = useState<OtaMethod>('espota');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -88,8 +95,10 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       setIsTauri(true);
       const { getEsptoolInfo, listenFlashLog } = await import('../platform/flash');
       const { getFirmwareToolchainInfo, listenBuildLog } = await import('../platform/firmwareBuild');
+      const { getOtaToolInfo, listenOtaLog } = await import('../platform/ota');
       setEsptool(await getEsptoolInfo());
       setToolchain(await getFirmwareToolchainInfo());
+      setOtaTool(await getOtaToolInfo());
       const adapter = getSerialAdapter();
       if (adapter.listPorts) {
         const listed = await adapter.listPorts();
@@ -102,9 +111,13 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       const unBuild = await listenBuildLog(line => {
         setLogs(prev => [...prev.slice(-300), `[build] ${line}`]);
       });
+      const unOta = await listenOtaLog(line => {
+        setLogs(prev => [...prev.slice(-300), `[ota] ${line}`]);
+      });
       return () => {
         unFlash();
         unBuild();
+        unOta();
       };
     } catch {
       setIsTauri(false);
@@ -220,6 +233,41 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     }
   };
 
+  const handleOta = async () => {
+    if (!firmwarePath) {
+      setStatus(t('ota.needFirmware'));
+      return;
+    }
+    if (!otaHost.trim()) {
+      setStatus(t('ota.needHost'));
+      return;
+    }
+    setBusy(true);
+    setStatus(null);
+    setLogs(prev => [...prev, '--- start OTA ---']);
+    try {
+      const { flashOtaFirmware } = await import('../platform/ota');
+      const result = await flashOtaFirmware({
+        host: otaHost.trim(),
+        port: otaPort,
+        password: otaPassword,
+        firmwarePath,
+        method: otaMethod,
+      });
+      setStatus(result.message);
+      void appendDiagnosticsLog(
+        `${result.message} host=${otaHost} method=${otaMethod}`,
+        'ota',
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setStatus(msg);
+      void appendDiagnosticsLog(msg, 'ota');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!isTauri) {
     return (
       <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
@@ -260,6 +308,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         }`}
       >
         {toolchain?.hint || t('flash.checkingToolchain')}
+        {toolchain?.source === 'sidecar' && (
+          <span className="ml-2 text-cyan-300/80">[{t('flash.sidecar')}]</span>
+        )}
       </div>
 
       <div
@@ -396,6 +447,86 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         >
           <Play className={`ui-icon-sm ${busy ? 'animate-pulse' : ''}`} aria-hidden="true" />
           {t('flash.buildFlash')}
+        </button>
+      </div>
+
+      <div className="pt-3 border-t border-slate-800 flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+            <Wifi className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+            {t('ota.title')}
+          </h4>
+          <span
+            className={`ui-type-micro font-mono px-2 py-0.5 rounded border ${
+              otaTool?.available || otaMethod === 'http'
+                ? 'text-emerald-300 border-emerald-800/60 bg-emerald-950/30'
+                : 'text-amber-200 border-amber-800/60 bg-amber-950/30'
+            }`}
+          >
+            {otaMethod === 'http' ? t('ota.methodHttp') : otaTool?.hint || t('ota.checking')}
+          </span>
+        </div>
+        <p className="ui-type-micro text-slate-500">{t('ota.hint')}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <label className="flex flex-col gap-1 sm:col-span-2">
+            <span className="text-slate-400">{t('ota.host')}</span>
+            <input
+              value={otaHost}
+              onChange={e => setOtaHost(e.target.value)}
+              placeholder="192.168.1.50"
+              className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-slate-400">{t('ota.port')}</span>
+            <input
+              type="number"
+              value={otaMethod === 'http' ? otaPort : otaPort}
+              onChange={e => setOtaPort(Number(e.target.value) || 3232)}
+              className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-slate-400">{t('ota.method')}</span>
+            <select
+              value={otaMethod}
+              onChange={e => {
+                const m = e.target.value as OtaMethod;
+                setOtaMethod(m);
+                if (m === 'http' && otaPort === 3232) setOtaPort(8080);
+                if (m === 'espota' && otaPort === 8080) setOtaPort(3232);
+              }}
+              className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+            >
+              <option value="espota">espota (ArduinoOTA)</option>
+              <option value="http">HTTP /update</option>
+            </select>
+          </label>
+          {otaMethod === 'espota' && (
+            <label className="flex flex-col gap-1 sm:col-span-2">
+              <span className="text-slate-400">{t('ota.password')}</span>
+              <input
+                type="password"
+                value={otaPassword}
+                onChange={e => setOtaPassword(e.target.value)}
+                className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+              />
+            </label>
+          )}
+        </div>
+        <button
+          type="button"
+          disabled={
+            busy ||
+            !firmwarePath ||
+            !otaHost.trim() ||
+            (otaMethod === 'espota' && !otaTool?.available)
+          }
+          onClick={() => void handleOta()}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-40 text-cyan-100 border border-cyan-500/40 font-semibold rounded-xl text-xs transition-colors"
+        >
+          <Wifi className={`ui-icon-sm ${busy ? 'animate-pulse' : ''}`} aria-hidden="true" />
+          {t('ota.upload')}
         </button>
       </div>
 

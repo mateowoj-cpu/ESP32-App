@@ -1,7 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -20,7 +20,8 @@
     "test:i18n": "tsx src/i18n/locales.test.ts",
     "test:pio-board": "tsx src/utils/pioBoard.test.ts",
     "test:board-cache": "tsx src/platform/boardCache.test.ts",
-    "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run build"
+    "test:ota": "tsx src/platform/ota.test.ts",
+    "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run test:ota && npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

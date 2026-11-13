@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { GpioPinInspector } from './GpioPinInspector';
 import { Esp32PinoutMap } from './Esp32PinoutMap';
+import { useLocale } from '../i18n/LocaleContext';
 import { 
   Power, 
   Eye, 
@@ -56,6 +57,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
   automations,
   onTriggerAction,
 }) => {
+  const { t } = useLocale();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const activeScreen = screens[simState.currentScreenIndex] || screens[0];
   const [hardwareStationTab, setHardwareStationTab] = useState<'pinout' | 'gpio_monitor'>('pinout');
@@ -787,21 +789,21 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             <span>ESP32-WROOM-32D</span>
           </div>
           <span className="text-slate-600">|</span>
-          <span className="text-slate-400">Ekran: <strong className="text-slate-200 font-mono">{display.model.replace('_', ' ').toUpperCase()}</strong></span>
+          <span className="text-slate-400">{t('sim.screen')}: <strong className="text-slate-200 font-mono">{display.model.replace('_', ' ').toUpperCase()}</strong></span>
           <span className="text-slate-600">|</span>
-          <span className="text-slate-400">Dotyk: <strong className="text-rose-400 font-mono">{display.touchEnabled ? display.touchController.toUpperCase() : 'WYŁĄCZONY'}</strong></span>
+          <span className="text-slate-400">{t('sim.touch')}: <strong className="text-rose-400 font-mono">{display.touchEnabled ? display.touchController.toUpperCase() : t('sim.touchOff')}</strong></span>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-slate-400">Stan:</span>
+          <span className="text-slate-400">{t('sim.state')}:</span>
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded font-mono font-medium ${simState.isDisplayAwake ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'}`}>
             <span className={`w-2 h-2 rounded-full ${simState.isDisplayAwake ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-            {simState.isDisplayAwake ? 'WŁĄCZONY' : 'UŚPIONY (SLEEP)'}
+            {simState.isDisplayAwake ? t('sim.on') : t('sim.sleep')}
           </span>
           <button
             onClick={() => setSimState(prev => ({ ...prev, isDisplayAwake: !prev.isDisplayAwake }))}
             className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
-            title="Przełącz zasilanie ekranu"
+            title={t('sim.powerTitle')}
           >
             <Power className="ui-icon-sm" aria-hidden="true" />
           </button>
@@ -821,7 +823,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" title="Power LED (3.3V)" />
               <span>ESP32 I2C OLED & TOUCH EMULATOR</span>
             </span>
-            <span className="text-slate-500">{display.width} x {display.height} px · {display.touchEnabled ? 'Panel Pojemnościowy' : 'Tylko Wyświetlanie'}</span>
+            <span className="text-slate-500">{display.width} x {display.height} px · {display.touchEnabled ? t('sim.capacitive') : t('sim.displayOnly')}</span>
           </div>
 
           {/* Realistic Display Housing */}

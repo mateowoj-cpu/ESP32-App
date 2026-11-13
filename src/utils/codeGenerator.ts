@@ -22,6 +22,7 @@ export function generateArduinoCppCode(
  *  2. "Adafruit GFX Library" (by Adafruit)
  *  3. "ArduinoJson" (by Benoit Blanchon, wersja 6 lub 7)
  *  4. "WiFi", "HTTPClient", "WebServer" (wbudowane w pakiet ESP32)
+ *  5. "ArduinoOTA", "Update" (wbudowane — OTA Wi‑Fi ze Studio)${system.otaEnabled === false ? ' [WYŁĄCZONE]' : ''}
  * ==============================================================================
  */
 
@@ -33,6 +34,8 @@ export function generateArduinoCppCode(
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <WebServer.h>
+#include <Update.h>
+#include <ArduinoOTA.h>
 #include <time.h>
 ${system.bluetoothEnabled ? (system.bluetoothMode === 'classic_spp' ? '#include <BluetoothSerial.h>' : '#include <BLEDevice.h>\n#include <BLEServer.h>\n#include <BLEUtils.h>\n#include <BLE2902.h>') : '// Bluetooth wyłączony w opcjach'}
 
@@ -53,6 +56,12 @@ const char* WIFI_SSID     = "${system.wifiSsid}";
 const char* WIFI_PASSWORD = "${system.wifiPassword}";
 const char* NTP_SERVER    = "${system.ntpServer}";
 const char* TIMEZONE      = "${system.timezone}";
+
+// --- OTA (ArduinoOTA / espota + opcjonalny HTTP POST /update) ---
+#define OTA_ENABLED   ${system.otaEnabled === false ? 0 : 1}
+#define OTA_HOSTNAME  "${system.mdnsName || 'esp32-display'}"
+#define OTA_PASSWORD  "${(system.otaPassword ?? 'esp32ota').replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"
+#define OTA_PORT      ${system.otaPort ?? 3232}
 
 // --- AUTO-PRZEŁĄCZANIE EKRANU PO PODŁĄCZENIU KABLA USB-C DO PC ---
 #define USB_AUTO_SWITCH_ENABLED  ${system.usbAutoSwitchToPcMonitor ? 1 : 0}
@@ -146,6 +155,7 @@ void drawCyberPetEyes(int x, int y, int w, int h, PetMood mood);
 void renderActiveScreen();
 void fetchWeatherData();
 void setupWebServer();
+void setupOta();
 void checkAutomations();
 
 // ==============================================================================
@@ -235,6 +245,13 @@ void setup() {
     
     // Inicjalizacja serwera WWW dla powiadomień i agenta PC
     setupWebServer();
+
+#if OTA_ENABLED
+    setupOta();
+    Serial.print(F("[OTA] ArduinoOTA na porcie "));
+    Serial.println(OTA_PORT);
+    Serial.println(F("[OTA] HTTP Update: POST /update (port WebServer)"));
+#endif
     
     // Pobranie pierwszej pogody
     fetchWeatherData();
@@ -253,6 +270,9 @@ void setup() {
 void loop() {
   // Obsługa żądań serwera HTTP (np. z aplikacji na PC)
   server.handleClient();
+#if OTA_ENABLED
+  ArduinoOTA.handle();
+#endif
 
   unsigned long currentMillis = millis();
 
@@ -747,9 +767,55 @@ void setupWebServer() {
     }
   });
 
+#if OTA_ENABLED
+  // HTTP Update: POST multipart field "firmware" → /update (Studio method=http)
+  server.on("/update", HTTP_POST, []() {
+    server.sendHeader("Connection", "close");
+    server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+    delay(100);
+    ESP.restart();
+  }, []() {
+    HTTPUpload& upload = server.upload();
+    if (upload.status == UPLOAD_FILE_START) {
+      Serial.printf("[OTA-HTTP] Start: %s\\n", upload.filename.c_str());
+      if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+      if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        Update.printError(Serial);
+      }
+    } else if (upload.status == UPLOAD_FILE_END) {
+      if (Update.end(true)) {
+        Serial.printf("[OTA-HTTP] Sukces: %u B\\n", upload.totalSize);
+      } else {
+        Update.printError(Serial);
+      }
+    }
+  });
+#endif
+
   server.begin();
   Serial.println(F("Serwer HTTP REST uruchomiony na porcie ${api.pcMonitor.port}"));
 }
+
+#if OTA_ENABLED
+void setupOta() {
+  ArduinoOTA.setHostname(OTA_HOSTNAME);
+  ArduinoOTA.setPassword(OTA_PASSWORD);
+  ArduinoOTA.setPort(OTA_PORT);
+  ArduinoOTA.onStart([]() {
+    Serial.println(F("[OTA] Start aktualizacji…"));
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println(F("\\n[OTA] Koniec — restart"));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("[OTA] Błąd %u\\n", error);
+  });
+  ArduinoOTA.begin();
+}
+#endif
 `;
 }
 
