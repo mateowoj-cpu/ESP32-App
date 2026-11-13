@@ -9,9 +9,11 @@
     "allow-serial",
     "allow-pc-agent",
     "allow-flash",
+    "allow-desktop",
     "updater:default",
     "process:default",
     "dialog:default",
-    "deep-link:default"
+    "deep-link:default",
+    "autostart:default"
   ]
 }

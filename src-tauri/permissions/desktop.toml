@@ -1,0 +1,12 @@
+[[permission]]
+identifier = "allow-desktop"
+description = "Allows tray-related preferences, app autostart, and PC agent Startup shortcuts."
+commands.allow = [
+  "get_desktop_status",
+  "set_app_autostart",
+  "set_pc_agent_autostart",
+  "set_close_to_tray",
+  "show_main_window",
+  "check_update_channel",
+  "download_and_install_channel"
+]

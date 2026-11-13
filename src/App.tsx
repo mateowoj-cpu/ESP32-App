@@ -26,6 +26,7 @@ import { ConnectedEsp32Info } from './types';
 import { generateArduinoCppCode } from './utils/codeGenerator';
 import type { UpdateCheckResult } from './platform/updater';
 import type { OpenFilePayload } from './platform/flash';
+import { useLocale } from './i18n/LocaleContext';
 import { 
   Tv, 
   Layers, 
@@ -50,6 +51,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
+  const { t, updateChannel } = useLocale();
   const [activeTab, setActiveTab] = useState<
     'editor' | 'simulator' | 'usb' | 'automations' | 'integrations' | 'code' | 'settings'
   >('simulator');
@@ -158,7 +160,7 @@ export default function App() {
         const { isTauri } = await import('@tauri-apps/api/core');
         if (!isTauri()) return;
         const { checkForAppUpdate } = await import('./platform/updater');
-        const result = await checkForAppUpdate();
+        const result = await checkForAppUpdate(updateChannel);
         if (cancelled) return;
         setUpdateResult(result);
         if (result.status === 'available') {
@@ -178,7 +180,7 @@ export default function App() {
       unlistenOpen?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [updateChannel]);
 
   // Real-time ticking clock in simulation
   useEffect(() => {
@@ -258,7 +260,7 @@ export default function App() {
     setUpdateBusy(true);
     try {
       const { checkForAppUpdate } = await import('./platform/updater');
-      const result = await checkForAppUpdate();
+      const result = await checkForAppUpdate(updateChannel);
       setUpdateResult(result);
       setShowUpdateBanner(result.status === 'available' || result.status === 'error');
     } catch (err) {
@@ -276,7 +278,7 @@ export default function App() {
     setUpdateBusy(true);
     try {
       const { downloadAndInstallUpdate } = await import('./platform/updater');
-      const result = await downloadAndInstallUpdate();
+      const result = await downloadAndInstallUpdate(updateChannel);
       if (result.status === 'error') {
         setUpdateResult({ status: 'error', message: result.message });
         setShowUpdateBanner(true);
@@ -382,7 +384,7 @@ export default function App() {
               ESP32 Studio
             </span>
             <span className="text-[11px] text-slate-400 font-mono hidden sm:block">
-              LCD · OLED · Sensory · C++
+              {t('brand.sub')}
             </span>
           </div>
         </div>
@@ -390,13 +392,13 @@ export default function App() {
         {/* Zone 2: Navigation Links with Consistent w-4 h-4 Icons & High Legibility */}
         <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-medium">
           {[
-            { id: 'simulator', label: 'Symulator Sprzętowy', icon: Tv },
-            { id: 'editor', label: 'Edytor Graficzny UI', icon: Layers },
-            { id: 'usb', label: 'Wykryj ESP32 (USB)', icon: Usb, badge: detectedChip },
-            { id: 'automations', label: 'Automatyzacje & Zwierzak', icon: Zap },
-            { id: 'integrations', label: 'Integracje & API', icon: CloudSun },
-            { id: 'code', label: 'Generator Kodu C++', icon: Code },
-            { id: 'settings', label: 'Ustawienia & Dotyk', icon: Settings2 },
+            { id: 'simulator', label: t('nav.simulator'), icon: Tv },
+            { id: 'editor', label: t('nav.editor'), icon: Layers },
+            { id: 'usb', label: t('nav.usb'), icon: Usb, badge: detectedChip },
+            { id: 'automations', label: t('nav.automations'), icon: Zap },
+            { id: 'integrations', label: t('nav.integrations'), icon: CloudSun },
+            { id: 'code', label: t('nav.code'), icon: Code },
+            { id: 'settings', label: t('nav.settings'), icon: Settings2 },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -460,7 +462,7 @@ export default function App() {
               className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5 px-2.5 font-medium disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${updateBusy ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
-              <span className="hidden xl:inline text-xs font-mono">Update</span>
+              <span className="hidden xl:inline text-xs font-mono">{t('action.update')}</span>
             </button>
             <label className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1" title="Importuj projekt (.esp32studio / .json)">
               <Upload className="w-4 h-4" />
@@ -472,7 +474,7 @@ export default function App() {
               className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5 px-2.5 font-medium"
             >
               {projectExported ? <Check className="w-4 h-4 text-emerald-400" /> : <FileJson className="w-4 h-4 text-slate-400" />}
-              <span className="hidden xl:inline text-xs font-mono">.esp32studio</span>
+              <span className="hidden xl:inline text-xs font-mono">{t('action.exportProject')}</span>
             </button>
           </div>
 
@@ -493,16 +495,17 @@ export default function App() {
           <div className="text-xs text-cyan-100">
             {updateResult.status === 'available' && (
               <span>
-                Dostępna aktualizacja <strong className="font-mono">{updateResult.version}</strong>
+                {t('update.available')} <strong className="font-mono">{updateResult.version}</strong>
+                <span className="text-cyan-300/80"> ({updateChannel})</span>
                 {updateResult.body ? ` — ${updateResult.body.slice(0, 120)}` : ''}
               </span>
             )}
-            {updateResult.status === 'up-to-date' && <span>Aplikacja jest aktualna.</span>}
+            {updateResult.status === 'up-to-date' && <span>{t('update.upToDate')}</span>}
             {updateResult.status === 'error' && (
-              <span>Aktualizacja: {updateResult.message}</span>
+              <span>Update: {updateResult.message}</span>
             )}
             {updateResult.status === 'unavailable' && (
-              <span>Auto-update dostępny tylko w aplikacji desktop (Tauri).</span>
+              <span>{t('update.unavailable')}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -513,7 +516,7 @@ export default function App() {
                 onClick={() => void handleInstallUpdate()}
                 className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold disabled:opacity-50"
               >
-                Pobierz i zainstaluj
+                {t('update.install')}
               </button>
             )}
             <button

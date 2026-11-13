@@ -1,13 +1,21 @@
+mod desktop;
 mod flash;
 mod pc_agent;
 mod serial;
+mod update_channel;
 
+use desktop::{
+    get_desktop_status, set_app_autostart, set_close_to_tray, set_pc_agent_autostart,
+    show_main_window, DesktopPrefs,
+};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
 use pc_agent::{get_pc_agent_info, start_pc_agent, stop_pc_agent, PcAgentState};
 use serial::{
     close_serial_port, list_serial_ports, open_serial_port, write_serial_port, SerialManager,
 };
+use update_channel::{check_update_channel, download_and_install_channel};
 use tauri::{Emitter, Manager};
+use tauri_plugin_autostart::MacosLauncher;
 
 fn emit_open_paths(app: &tauri::AppHandle, args: &[String]) {
     let paths: Vec<String> = args
@@ -27,14 +35,20 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            Some(vec!["--autostart"]),
+        ))
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             emit_open_paths(app, &argv);
             if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
                 let _ = window.set_focus();
             }
         }))
         .manage(SerialManager::default())
         .manage(PcAgentState::default())
+        .manage(DesktopPrefs::default())
         .invoke_handler(tauri::generate_handler![
             list_serial_ports,
             open_serial_port,
@@ -45,7 +59,14 @@ pub fn run() {
             stop_pc_agent,
             get_esptool_info,
             flash_write_firmware,
-            read_open_file
+            read_open_file,
+            get_desktop_status,
+            set_app_autostart,
+            set_pc_agent_autostart,
+            set_close_to_tray,
+            show_main_window,
+            check_update_channel,
+            download_and_install_channel
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -56,7 +77,6 @@ pub fn run() {
                 )?;
             }
 
-            // Deep links: esp32studio://open?path=... or esp32studio://import/<file>
             #[cfg(desktop)]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
@@ -65,9 +85,11 @@ pub fn run() {
                     let urls: Vec<String> = event.urls().iter().map(|u| u.to_string()).collect();
                     let _ = handle.emit("app-open-paths", urls);
                 });
+
+                desktop::setup_tray(app.handle())?;
+                desktop::attach_close_to_tray(app.handle());
             }
 
-            // Cold start: files / URLs passed as CLI args
             let args: Vec<String> = std::env::args().skip(1).collect();
             emit_open_paths(app.handle(), &args);
 

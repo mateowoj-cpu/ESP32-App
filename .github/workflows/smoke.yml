@@ -41,6 +41,9 @@ jobs:
       - name: Deep link unit tests
         run: npm run test:deeplink
 
+      - name: i18n unit tests
+        run: npm run test:i18n
+
       - name: Production build
         run: npm run build
 
