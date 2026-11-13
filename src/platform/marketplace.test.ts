@@ -1,13 +1,19 @@
+import { webcrypto } from 'node:crypto';
 import {
   BUNDLED_MARKETPLACE_CATALOG,
   BUNDLED_MARKETPLACE_PACKS,
+  clearTrustedPublishers,
   exportRulePack,
   exportWidgetPack,
+  isAllowedMarketplaceUrl,
   isMarketplaceCatalog,
   parseMarketplacePack,
   parseMarketplacePackJson,
+  registerTrustedPublisher,
   sandboxImportRules,
   sandboxImportWidgets,
+  signMarketplacePack,
+  verifyMarketplacePackSignature,
 } from './marketplace';
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -100,5 +106,68 @@ const exportedR = exportRulePack(rules, {
   title: 'Export rules',
 });
 assert(parseMarketplacePack(exportedR).ok, 'round-trip rule export');
+
+assert(
+  isAllowedMarketplaceUrl(
+    'https://raw.githubusercontent.com/mateowoj-cpu/ESP32-App/main/public/marketplace/packs/pc-mini.json',
+  ),
+  'allowlist github raw',
+);
+assert(
+  !isAllowedMarketplaceUrl('https://evil.example/pack.json'),
+  'deny unknown host',
+);
+assert(
+  !isAllowedMarketplaceUrl('http://raw.githubusercontent.com/mateowoj-cpu/ESP32-App/main/x.json'),
+  'deny http',
+);
+assert(isAllowedMarketplaceUrl('/marketplace/packs/pc-mini.json'), 'allow relative marketplace');
+
+// Manifest v2 + Ed25519 signature (ephemeral test key — never a committed secret)
+clearTrustedPublishers();
+const kp = (await webcrypto.subtle.generateKey({ name: 'Ed25519' }, true, [
+  'sign',
+  'verify',
+])) as CryptoKeyPair;
+const spki = new Uint8Array(await webcrypto.subtle.exportKey('spki', kp.publicKey));
+const pkcs8 = Buffer.from(await webcrypto.subtle.exportKey('pkcs8', kp.privateKey)).toString(
+  'base64',
+);
+const rawPub = spki.subarray(spki.length - 32);
+registerTrustedPublisher({
+  id: 'test-publisher',
+  name: 'Test Publisher',
+  publicKeyB64: Buffer.from(rawPub).toString('base64'),
+});
+
+const v2base = exportWidgetPack(imported, {
+  id: 'signed-demo',
+  title: 'Signed demo',
+  author: 'test',
+  version: 2,
+  publisherId: 'test-publisher',
+});
+const signed = await signMarketplacePack(v2base, pkcs8, 'test-publisher');
+assert(signed.version === 2, 'signed pack version 2');
+assert(!!signed.signature, 'has signature');
+const parsedSigned = parseMarketplacePack(signed);
+assert(parsedSigned.ok, 'signed pack parses');
+const verified = await verifyMarketplacePackSignature(signed);
+assert(verified.ok, 'signature verifies');
+
+const tampered = {
+  ...signed,
+  title: 'Tampered',
+};
+const badVerify = await verifyMarketplacePackSignature(tampered);
+assert(!badVerify.ok, 'tampered pack fails verify');
+
+const unknownPub = await verifyMarketplacePackSignature({
+  ...signed,
+  publisherId: 'not-registered',
+});
+assert(!unknownPub.ok, 'unknown publisher rejected');
+
+clearTrustedPublishers();
 
 console.log('marketplace.test.ts: OK');

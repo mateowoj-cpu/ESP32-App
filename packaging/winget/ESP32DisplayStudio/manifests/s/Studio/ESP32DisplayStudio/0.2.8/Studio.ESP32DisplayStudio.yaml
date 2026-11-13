@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.singleton.1.6.0.schema.json
+# Template winget singleton manifest for ESP32 Display Studio (Faza 15 / v0.2.8).
+# Fill InstallerUrl / InstallerSha256 after publishing a signed GitHub Release (v0.2.8). Do NOT invent SHA256.
+
+PackageIdentifier: Studio.ESP32DisplayStudio
+PackageVersion: 0.2.8
+PackageLocale: en-US
+Publisher: ESP32 Display Studio
+PublisherUrl: https://github.com/mateowoj-cpu/ESP32-App
+PublisherSupportUrl: https://github.com/mateowoj-cpu/ESP32-App/issues
+Author: ESP32 Display Studio
+PackageName: ESP32 Display Studio
+PackageUrl: https://github.com/mateowoj-cpu/ESP32-App
+License: Proprietary
+Copyright: Copyright © 2026 ESP32 Display Studio
+ShortDescription: Visual OLED/LCD UI studio and C++ generator for ESP32
+Description: >
+  Design ESP32 display UIs, generate Arduino/PlatformIO sketches, talk to boards
+  over native serial, build firmware with a PlatformIO sidecar or PATH toolchain,
+  flash with esptool, upload OTA over Wi-Fi, export local diagnostics ZIP, and
+  sync community board flash profiles.
+Moniker: esp32-display-studio
+Tags:
+  - esp32
+  - arduino
+  - platformio
+  - oled
+  - lcd
+  - embedded
+  - ota
+Installers:
+  - Architecture: x64
+    InstallerType: nullsoft
+    Scope: user
+    InstallerUrl: https://github.com/mateowoj-cpu/ESP32-App/releases/download/v0.2.8/ESP32.Display.Studio_0.2.8_x64-setup.exe
+    InstallerSha256: REPLACE_WITH_SHA256_OF_NSIS_INSTALLER
+    UpgradeBehavior: install
+ManifestType: singleton
+ManifestVersion: 1.6.0

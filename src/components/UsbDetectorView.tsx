@@ -167,6 +167,9 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     const identified = identifyEsp32FromUsbVidPid(vid, pid);
     identified.portName = port.info.label;
     identified.baudRate = 115200;
+    if (identified.featureKeys?.length) {
+      identified.features = identified.featureKeys.map(key => t(key));
+    }
     setDetectedChip(identified);
     attachOpenPort(port);
     setShowPortPicker(false);

@@ -164,7 +164,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
 
   const handleBuild = async (): Promise<string | null> => {
     if (!buildSources) {
-      setStatus('Brak generatora szkicu — otwórz projekt w Studio.');
+      setStatus(t('flash.err.noSketch'));
       return null;
     }
     setBusy(true);
@@ -212,7 +212,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const handleFlash = async (pathOverride?: string) => {
     const path = pathOverride || firmwarePath;
     if (!portId || !path) {
-      setStatus('Wybierz port COM i plik .bin (lub zbuduj firmware).');
+      setStatus(t('flash.err.needPortBin'));
       return;
     }
     setBusy(true);
@@ -380,7 +380,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           type="button"
           onClick={() => void refresh()}
           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-          title="Odśwież toolchain / porty"
+          title={t('flash.refreshTitle')}
         >
           <RefreshCw className="ui-icon-sm" aria-hidden="true" />
         </button>

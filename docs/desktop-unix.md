@@ -1,4 +1,4 @@
-# Linux / macOS desktop parity (Faza 12 → 14)
+# Linux / macOS desktop parity (Faza 12 → 15)
 
 Windows pozostaje ścieżką release Authenticode / winget.  
 Shell Tauri 2 + natywny serial / OTA / Build działają też na **Linux** i **macOS**, o ile toolchain jest dostępny.
@@ -40,16 +40,28 @@ npm run tauri:dev
 
 Wymaga Rust + zależności systemowych Tauri 2 ([prerequisites](https://v2.tauri.app/start/prerequisites/)).
 
-## Bundling / CI (Faza 13–14)
+## Bundling / CI (Faza 13–15)
 
 Workflow [`.github/workflows/desktop-unix-release.yml`](../.github/workflows/desktop-unix-release.yml):
 
 | Job | Runner | Targets | Config overlay |
 |-----|--------|---------|----------------|
-| `linux-packages` | `ubuntu-22.04` | AppImage + deb | `src-tauri/tauri.linux.json` |
-| `macos-dmg` | `macos-14` | dmg | `src-tauri/tauri.macos.json` |
+| `linux-packages` | `ubuntu-22.04` | AppImage + deb | `tauri.linux.json` lub `tauri.linux.signed.json` |
+| `macos-dmg` | `macos-14` | dmg | `tauri.macos.json` lub `tauri.macos.signed.json` |
+| `multiplatform-latest-json` | `ubuntu-22.04` | opcjonalny attach | gdy signed + fragmenty platform |
 
 Wyzwalacze: tag `v*` oraz `workflow_dispatch`. Artefakty upload + opcjonalnie attach do GitHub Release.
+
+### Signed updater artifacts (Faza 15)
+
+Domyślne nakładki (`tauri.linux.json` / `tauri.macos.json`) mają `createUpdaterArtifacts: false` (smoke unsigned OK).
+
+Gdy sekret CI `TAURI_SIGNING_PRIVATE_KEY` jest ustawiony, workflow wybiera:
+
+- `src-tauri/tauri.linux.signed.json`
+- `src-tauri/tauri.macos.signed.json`
+
+(`createUpdaterArtifacts: true`). Bez sekretu build pozostaje unsigned.
 
 ### AppImage smoke (Faza 14)
 
@@ -57,7 +69,7 @@ Wyzwalacze: tag `v*` oraz `workflow_dispatch`. Artefakty upload + opcjonalnie at
 
 ### macOS notarize (opcjonalnie)
 
-Nakładki Unix mają `createUpdaterArtifacts: false` domyślnie. Codesign / notarize: checklista [macos-notarize.md](./macos-notarize.md) (sekrety człowieka; bez store submit).
+Codesign / notarize: checklista [macos-notarize.md](./macos-notarize.md) (sekrety człowieka; bez store submit).
 
 ### Multi-platform `latest.json` (gdy signed)
 
@@ -66,7 +78,7 @@ Gdy masz **podpisane** fragmenty updatera z Windows / Linux / macOS:
 ```bash
 chmod +x scripts/unix/build-multiplatform-latest-json.sh
 ./scripts/unix/build-multiplatform-latest-json.sh \
-  --version 0.2.7 \
+  --version 0.2.8 \
   --notes "…" \
   --windows path/to/windows-platform.json \
   --linux path/to/linux-platform.json \
@@ -76,13 +88,16 @@ chmod +x scripts/unix/build-multiplatform-latest-json.sh
 
 Skrypt **odmawia** fragmentów bez pola `signature` lub z placeholderem. Szablon przykładowy (niepublikować): `packaging/updater/latest.multiplatform.example.json`.
 
-Aby CI produkowało podpisane artefakty Unix updatera, ustaw `createUpdaterArtifacts: true` w lokalnej nakładce + `TAURI_SIGNING_PRIVATE_KEY` — domyślne `tauri.linux.json` / `tauri.macos.json` pozostają na `false` (smoke unsigned OK).
+Job CI `multiplatform-latest-json` (tag `v*`) szuka artefaktów nazwanych `windows-platform.json` / `linux-platform.json` / `darwin-platform.json` i — gdy obecne oraz klucz signing — składa `latest.multiplatform.json` do releasu. **Nie wymyśla** podpisów.
 
 Lokalnie:
 
 ```bash
 npm run tauri:build -- --config src-tauri/tauri.linux.json
 npm run tauri:build -- --config src-tauri/tauri.macos.json
+# signed (wymaga TAURI_SIGNING_PRIVATE_KEY):
+npm run tauri:build -- --config src-tauri/tauri.linux.signed.json
+npm run tauri:build -- --config src-tauri/tauri.macos.signed.json
 ```
 
 ## Docs powiązane

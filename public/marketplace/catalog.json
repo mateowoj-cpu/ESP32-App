@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedAt": "2026-11-13T00:00:00.000Z",
   "source": "esp32-display-studio/marketplace",
   "entries": [
@@ -12,7 +12,8 @@
       "descriptionEn": "Compact 24h clock and battery/Wi‑Fi icon for 128×64 OLED.",
       "author": "ESP32 Display Studio",
       "tags": ["oled", "clock", "status"],
-      "packId": "status-strip"
+      "packId": "status-strip",
+      "requireSignature": false
     },
     {
       "id": "pack-night-rules",
@@ -23,7 +24,8 @@
       "descriptionEn": "Dim after 22:00 and sleep-mood pet on night motion.",
       "author": "ESP32 Display Studio",
       "tags": ["automation", "night", "brightness"],
-      "packId": "night-rules"
+      "packId": "night-rules",
+      "requireSignature": false
     },
     {
       "id": "pack-pc-mini",
@@ -34,7 +36,8 @@
       "descriptionEn": "pc_monitor widget + CPU sparkline — data from the PC agent.",
       "author": "ESP32 Display Studio",
       "tags": ["pc", "monitor", "sparkline"],
-      "packId": "pc-mini"
+      "packId": "pc-mini",
+      "requireSignature": false
     }
   ]
 }

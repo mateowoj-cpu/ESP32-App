@@ -1,9 +1,11 @@
 name: Desktop Unix Release (AppImage / deb / dmg)
 
-# Faza 13–14 — packaging for Linux and macOS (no store submit by default).
+# Faza 13–15 — packaging for Linux and macOS (no store submit by default).
 # Windows remains the primary signed release path (windows-release.yml).
 # Optional AppImage-only smoke: desktop-unix-appimage-smoke.yml (workflow_dispatch).
 # Optional macOS notarize checklist: docs/macos-notarize.md.
+# Faza 15: when TAURI_SIGNING_PRIVATE_KEY is set, use *.signed.json overlays
+# (createUpdaterArtifacts: true) and optionally assemble multi-platform latest.json.
 
 on:
   workflow_dispatch:
@@ -51,8 +53,22 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Select Linux Tauri config
+        id: cfg
+        run: |
+          if [ -n "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" ]; then
+            echo "config=src-tauri/tauri.linux.signed.json" >> "$GITHUB_OUTPUT"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "config=src-tauri/tauri.linux.json" >> "$GITHUB_OUTPUT"
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build Tauri Linux bundles
-        run: npm run tauri:build -- --config src-tauri/tauri.linux.json
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npm run tauri:build -- --config "${{ steps.cfg.outputs.config }}"
 
       - name: Upload AppImage / deb artifacts
         uses: actions/upload-artifact@v4
@@ -61,6 +77,16 @@ jobs:
           path: |
             src-tauri/target/release/bundle/appimage/*
             src-tauri/target/release/bundle/deb/*
+          if-no-files-found: warn
+
+      - name: Upload Linux updater signature fragments (signed builds only)
+        if: steps.cfg.outputs.signed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-display-studio-linux-updater
+          path: |
+            src-tauri/target/release/bundle/appimage/*.sig
+            src-tauri/target/release/bundle/appimage/*.json
           if-no-files-found: warn
 
       - name: Attach to GitHub Release (tags only)
@@ -93,8 +119,22 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Select macOS Tauri config
+        id: cfg
+        run: |
+          if [ -n "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" ]; then
+            echo "config=src-tauri/tauri.macos.signed.json" >> "$GITHUB_OUTPUT"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "config=src-tauri/tauri.macos.json" >> "$GITHUB_OUTPUT"
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build Tauri macOS dmg
-        run: npm run tauri:build -- --config src-tauri/tauri.macos.json
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npm run tauri:build -- --config "${{ steps.cfg.outputs.config }}"
 
       - name: Upload dmg artifacts
         uses: actions/upload-artifact@v4
@@ -105,12 +145,88 @@ jobs:
             src-tauri/target/release/bundle/macos/*
           if-no-files-found: warn
 
+      - name: Upload macOS updater signature fragments (signed builds only)
+        if: steps.cfg.outputs.signed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-display-studio-macos-updater
+          path: |
+            src-tauri/target/release/bundle/macos/*.sig
+            src-tauri/target/release/bundle/macos/*.tar.gz
+            src-tauri/target/release/bundle/macos/*.json
+          if-no-files-found: warn
+
       - name: Attach to GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
             src-tauri/target/release/bundle/dmg/*
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  multiplatform-latest-json:
+    name: Assemble multi-platform latest.json (optional)
+    needs: [linux-packages, macos-dmg]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download platform updater fragments (if any)
+        uses: actions/download-artifact@v4
+        with:
+          path: updater-frags
+        continue-on-error: true
+
+      - name: Build multi-platform latest.json when fragments exist
+        id: assemble
+        env:
+          TAG: ${{ github.ref_name }}
+          HAS_SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+        run: |
+          set -euo pipefail
+          if [ "$HAS_SIGNING_KEY" != "true" ]; then
+            echo "TAURI_SIGNING_PRIVATE_KEY unset — skip multi-platform latest.json."
+            echo "built=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          VERSION="${TAG#v}"
+          chmod +x scripts/unix/build-multiplatform-latest-json.sh
+          WIN=""
+          LIN=""
+          DAR=""
+          # Humans may upload artifacts named windows-platform.json /
+          # linux-platform.json / darwin-platform.json (real signatures only).
+          if [ -d updater-frags ]; then
+            for name in windows-platform.json linux-platform.json darwin-platform.json; do
+              f=$(find updater-frags -type f -name "$name" 2>/dev/null | head -n1 || true)
+              case "$name" in
+                windows-platform.json) [ -n "$f" ] && WIN="$f" ;;
+                linux-platform.json) [ -n "$f" ] && LIN="$f" ;;
+                darwin-platform.json) [ -n "$f" ] && DAR="$f" ;;
+              esac
+            done
+          fi
+          if [ -z "${WIN}${LIN}${DAR}" ]; then
+            echo "No signed platform JSON fragments found — skip attach (see docs/desktop-unix.md)."
+            echo "built=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ARGS=(--version "$VERSION" --notes "ESP32 Display Studio $VERSION" --out latest.multiplatform.json)
+          [ -n "$WIN" ] && ARGS+=(--windows "$WIN")
+          [ -n "$LIN" ] && ARGS+=(--linux "$LIN")
+          [ -n "$DAR" ] && ARGS+=(--darwin "$DAR")
+          ./scripts/unix/build-multiplatform-latest-json.sh "${ARGS[@]}"
+          echo "built=true" >> "$GITHUB_OUTPUT"
+
+      - name: Attach latest.json to release
+        if: steps.assemble.outputs.built == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: latest.multiplatform.json
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
