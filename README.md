@@ -161,7 +161,7 @@ Sidecar (bez PATH):
 powershell -File .\scripts\windows\Install-PlatformIoSidecar.ps1
 ```
 
-Docs: [docs/windows-build-flash.md](./docs/windows-build-flash.md) · [docs/windows-sidecar-pio.md](./docs/windows-sidecar-pio.md) · [docs/windows-ota.md](./docs/windows-ota.md) · [docs/windows-flash.md](./docs/windows-flash.md) · [docs/windows-winget.md](./docs/windows-winget.md) · [docs/windows-diagnostics.md](./docs/windows-diagnostics.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
+Docs: [docs/windows-build-flash.md](./docs/windows-build-flash.md) · [docs/windows-sidecar-pio.md](./docs/windows-sidecar-pio.md) · [docs/windows-ota.md](./docs/windows-ota.md) · [docs/windows-flash.md](./docs/windows-flash.md) · [docs/windows-winget.md](./docs/windows-winget.md) · [docs/windows-diagnostics.md](./docs/windows-diagnostics.md) · [docs/windows-smartscreen.md](./docs/windows-smartscreen.md) · [docs/desktop-unix.md](./docs/desktop-unix.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
 
 Projekt zapisuj jako `.esp32studio` (asocjacja Windows / `esp32studio://open?path=...`).
 
@@ -188,8 +188,9 @@ APP_URL=http://localhost:3000
 - **Faza 8:** i18n PL/EN, winget template, diagnostyka, board cache (`0.2.1`)
 - **Faza 9:** sidecar PlatformIO, OTA Wi‑Fi, chrome i18n głębokich paneli, winget `0.2.2`
 - **Faza 10:** głębokie i18n paneli, bundling penv (stage script), mDNS OTA discovery, winget PR template
-- **Faza 11 (obecna):** i18n treści (pet/Integrations/pinout), winget `0.2.4` path, CI penv artifact, mDNS UX + OTA hardening (`0.2.4`) — [docs/roadmap-next.md](./docs/roadmap-next.md)
-- **Faza 12 (następna):** SmartScreen reputation, eksport diagnostyki ZIP, board sync, Linux/macOS parity
+- **Faza 11:** i18n treści (pet/Integrations/pinout), winget `0.2.4` path, CI penv artifact, mDNS UX + OTA hardening (`0.2.4`)
+- **Faza 12 (obecna):** SmartScreen checklist, eksport diagnostyki ZIP, board sync community, Linux/macOS parity (`0.2.5`) — [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 13 (następna):** CI desktop non-Windows, opt-in telemetria, draft winget PR, głębsze i18n
 
 ## Licencja
 

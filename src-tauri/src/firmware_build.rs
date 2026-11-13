@@ -173,7 +173,11 @@ pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
             version_of(a).unwrap_or_else(|| a.display().to_string())
         ),
         (None, None) => {
-            "Brak toolchainu. Sidecar: scripts/windows/Install-PlatformIoSidecar.ps1 — albo `pio` / arduino-cli w PATH.".into()
+            if cfg!(windows) {
+                "Brak toolchainu. Sidecar: scripts/windows/Install-PlatformIoSidecar.ps1 — albo `pio` / arduino-cli w PATH.".into()
+            } else {
+                "Brak toolchainu. Sidecar: scripts/unix/install-platformio-sidecar.sh — albo `pio` / arduino-cli w PATH.".into()
+            }
         }
     };
 
@@ -396,7 +400,11 @@ pub fn build_firmware_from_sketch(
                 project_dir: Some(root.display().to_string()),
                 firmware_path: None,
                 exit_code: None,
-                message: "PlatformIO niedostępne (sidecar ani PATH). Uruchom Install-PlatformIoSidecar.ps1.".into(),
+                message: if cfg!(windows) {
+                    "PlatformIO niedostępne (sidecar ani PATH). Uruchom Install-PlatformIoSidecar.ps1.".into()
+                } else {
+                    "PlatformIO niedostępne (sidecar ani PATH). Uruchom scripts/unix/install-platformio-sidecar.sh.".into()
+                },
             });
         };
 

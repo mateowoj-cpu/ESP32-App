@@ -73,6 +73,35 @@ export const DesktopSettingsPanel: React.FC = () => {
     }
   };
 
+  const exportDiagnostics = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { exportDiagnosticsZipWithDialog } = await import('../platform/diagnostics');
+      const path = await exportDiagnosticsZipWithDialog();
+      setMessage(`${t('desktop.diagnosticsExportOk')} ${path}`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const syncBoards = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { syncCommunityBoardProfiles } = await import('../platform/boardSync');
+      const meta = await syncCommunityBoardProfiles();
+      const suffix = meta.remote ? '' : ` ${t('desktop.boardSyncBundled')}`;
+      setMessage(`${t('desktop.boardSyncOk')} ${meta.count}${suffix}`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">
       <div className="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -80,7 +109,7 @@ export const DesktopSettingsPanel: React.FC = () => {
           <MonitorSmartphone className="ui-icon-sm text-cyan-400" aria-hidden="true" />
           {t('desktop.title')}
         </h3>
-        <span className="ui-type-micro font-mono text-cyan-400">v0.2.1</span>
+        <span className="ui-type-micro font-mono text-cyan-400">v0.2.5</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -129,18 +158,39 @@ export const DesktopSettingsPanel: React.FC = () => {
             className="accent-cyan-400"
           />
         </label>
-        {diagnosticsEnabled && isTauri && (
-          <button
-            type="button"
-            onClick={() => {
-              void import('../platform/diagnostics').then(m => m.openDiagnosticsFolder());
-            }}
-            className="self-start ui-type-micro text-cyan-400 hover:text-cyan-300"
-          >
-            {t('desktop.diagnosticsOpen')}
-          </button>
-        )}
+        <div className="flex flex-wrap gap-3">
+          {diagnosticsEnabled && isTauri && (
+            <button
+              type="button"
+              onClick={() => {
+                void import('../platform/diagnostics').then(m => m.openDiagnosticsFolder());
+              }}
+              className="self-start ui-type-micro text-cyan-400 hover:text-cyan-300"
+            >
+              {t('desktop.diagnosticsOpen')}
+            </button>
+          )}
+          {isTauri && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void exportDiagnostics()}
+              className="self-start ui-type-micro text-cyan-400 hover:text-cyan-300 disabled:opacity-50"
+            >
+              {t('desktop.diagnosticsExport')}
+            </button>
+          )}
+        </div>
       </div>
+
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void syncBoards()}
+        className="inline-flex items-center justify-center gap-1.5 self-start px-2.5 py-1.5 rounded-lg ui-type-micro bg-slate-800 border border-slate-700 text-slate-200 disabled:opacity-50"
+      >
+        {t('desktop.boardSync')}
+      </button>
 
       {!isTauri ? (
         <p className="ui-type-micro text-slate-500 leading-relaxed">{t('desktop.hint')}</p>
@@ -200,6 +250,8 @@ export const DesktopSettingsPanel: React.FC = () => {
           </p>
         </>
       )}
+
+      {!isTauri && message && <p className="ui-type-micro font-mono text-amber-300">{message}</p>}
     </div>
   );
 };

@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "source": "esp32-display-studio/community",
+  "profiles": [
+    {
+      "id": "espressif-s3-devkitc",
+      "label": "ESP32-S3-DevKitC-1",
+      "vid": "303a",
+      "pid": "1001",
+      "chip": "esp32s3",
+      "offset": "0x0",
+      "baud": 921600,
+      "boardProfile": "esp32s3"
+    },
+    {
+      "id": "espressif-c3-devkitm",
+      "label": "ESP32-C3-DevKitM-1",
+      "vid": "303a",
+      "pid": "1001",
+      "chip": "esp32c3",
+      "offset": "0x0",
+      "baud": 460800,
+      "boardProfile": "esp32c3"
+    },
+    {
+      "id": "cp210x-generic-esp32",
+      "label": "Generic ESP32 (CP210x)",
+      "vid": "10c4",
+      "pid": "ea60",
+      "chip": "esp32",
+      "offset": "0x1000",
+      "baud": 921600,
+      "boardProfile": "esp32"
+    },
+    {
+      "id": "ch340-generic-esp32",
+      "label": "Generic ESP32 (CH340)",
+      "vid": "1a86",
+      "pid": "7523",
+      "chip": "esp32",
+      "offset": "0x1000",
+      "baud": 921600,
+      "boardProfile": "esp32"
+    },
+    {
+      "id": "ftdi-generic-esp32",
+      "label": "Generic ESP32 (FTDI)",
+      "vid": "0403",
+      "pid": "6001",
+      "chip": "esp32",
+      "offset": "0x1000",
+      "baud": 921600,
+      "boardProfile": "esp32"
+    }
+  ]
+}

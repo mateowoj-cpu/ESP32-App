@@ -1,24 +1,22 @@
-# Kolejny krok po Fazie 11
+# Kolejny krok po Fazie 12
 
-## Stan po Fazie 11
+## Stan po Fazie 12
 
-- **i18n treści** — cyber-pet timeline/presety/generator, Integrations (miasta, agent PC, powiadomienia, warunki pogodowe), pinout chrome + role GPIO przez słownik PL/EN
-- **winget-pkgs ścieżka live** — szablon `0.2.4` + zaktualizowane `PR_BODY.md` / `windows-winget.md` (SHA256 / Authenticode / PR do microsoft/winget-pkgs tylko u człowieka)
-- **CI artifact penv** — workflow `windows-penv-artifact.yml` (`Stage-PlatformIoPenv.ps1` → artifact, nie git)
-- **mDNS UX** — filtr/preferencja `mdnsName` projektu, rank IPv4, ostatnie hosty OTA (localStorage)
-- **Hardening OTA** — timeout UI, cancel in-flight (`cancel_ota_firmware`), mapowanie `errorCode` → i18n
-- Linia wersji **0.2.4**
+- **SmartScreen reputation** — checklista człowieka w [windows-smartscreen.md](./windows-smartscreen.md) (+ signing); bez fałszywych certów / hashów w repo
+- **Eksport diagnostyki ZIP** — `export_diagnostics_zip` (manifest + `studio.log`) z Ustawienia → Desktop; lokalnie, bez telemetrii
+- **Board profiles online sync** — katalog community (`public/board-profiles/community.json`) + sync UI / fallback bundlowany
+- **Linux/macOS parity** — sidecar script Unix, hinty toolchainu, autostart agenta `.desktop`, docs [desktop-unix.md](./desktop-unix.md)
+- Linia wersji **0.2.5**
 
-## Faza 12 (rekomendowana)
+## Faza 13 (rekomendowana)
 
-1. **Store / SmartScreen reputation** — po pierwszym signed winget: monitoring reputacji, ewentualny EV cert
-2. **Eksport diagnostyki ZIP** — opt-in lokalny log → spakowany bundle (flash/OTA/COM) do supportu
-3. **Board profiles online sync** — community presets / biblioteka płytek poza lokalnym cache
-4. **Linux/macOS desktop parity** — serial + OTA poza Windows-first (toolchain discovery, sidecar)
+1. **CI desktop non-Windows** — smoke `tauri build` Linux (AppImage/deb) i/lub macOS `.dmg` (bez store submit)
+2. **Opt-in telemetria diagnostyczna** — agregacja tylko za zgodą (dziś: lokalny log + ZIP)
+3. **Automatyczny draft PR winget-pkgs** — po signed tagu, SHA z assetu (bez sekretów winget w repo)
+4. **Głębsze i18n** — modal przypisań pinout + katalog płytek USB
 
-## Faza 13+ (backlog)
+## Faza 14+ (backlog)
 
-- Telemetria diagnostyczna opt-in (już jest lokalny log) → agregacja tylko za zgodą
-- Automatyczny draft PR do winget-pkgs z CI po signed tagu (nadal bez sekretów winget w repo; SHA z assetu)
-- Rozszerzenie i18n głębokich paneli pinout (modal przypisań) i katalogu płytek USB
 - Community marketplace widgetów / reguł automatyzacji
+- EV code signing + monitoring reputacji SmartScreen (kontynuacja checklisty Fazy 12)
+- Rozszerzenie community board catalog (więcej VID:PID / offsetów)

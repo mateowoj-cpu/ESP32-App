@@ -12,8 +12,8 @@ use desktop::{
     show_main_window, DesktopPrefs,
 };
 use diagnostics::{
-    append_diagnostics_log, get_diagnostics_log_path, open_diagnostics_folder,
-    set_diagnostics_enabled, DiagnosticsState,
+    append_diagnostics_log, export_diagnostics_zip, get_diagnostics_log_path,
+    open_diagnostics_folder, set_diagnostics_enabled, DiagnosticsState,
 };
 use firmware_build::{build_firmware_from_sketch, get_firmware_toolchain_info};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
@@ -86,7 +86,8 @@ pub fn run() {
             set_diagnostics_enabled,
             append_diagnostics_log,
             get_diagnostics_log_path,
-            open_diagnostics_folder
+            open_diagnostics_folder,
+            export_diagnostics_zip
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
