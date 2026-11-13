@@ -818,8 +818,8 @@ void updatePetTimeline() {
       {/* Top Banner / Mode Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl">
         <div>
-          <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <Zap className="w-4 h-4 text-cyan-400" />
+          <h2 className="ui-type-title text-slate-100 flex items-center gap-2">
+            <Zap className="ui-icon-sm text-cyan-400" aria-hidden="true" />
             Centrum Automatyzacji i Zachowań Cyber-Zwierzaka
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
@@ -835,7 +835,7 @@ void updatePetTimeline() {
                 activeTab === 'visual_blocks' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Layers className="w-4 h-4" />
+              <Layers className="ui-icon-sm" aria-hidden="true" />
               <span>Klocki Reguł</span>
             </button>
             <button
@@ -844,7 +844,7 @@ void updatePetTimeline() {
                 activeTab === 'timeline' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Film className="w-4 h-4" />
+              <Film className="ui-icon-sm" aria-hidden="true" />
               <span>Oś Czasu i Generator (Timeline)</span>
             </button>
             <button
@@ -853,7 +853,7 @@ void updatePetTimeline() {
                 activeTab === 'script_dsl' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Code className="w-4 h-4" />
+              <Code className="ui-icon-sm" aria-hidden="true" />
               <span>Język Skryptowy (DSL)</span>
             </button>
           </div>
@@ -862,7 +862,7 @@ void updatePetTimeline() {
             onClick={() => setIsAddingRule(true)}
             className="flex items-center gap-2 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-sm"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="ui-icon-sm" aria-hidden="true" />
             <span>Nowa Reguła</span>
           </button>
         </div>
@@ -877,10 +877,10 @@ void updatePetTimeline() {
           <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                <Wand2 className="w-4 h-4 text-cyan-400" />
+                <Wand2 className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                 Szybkie Dodawanie Gotowych Reguł (1 kliknięcie)
               </span>
-              <span className="text-[10px] text-cyan-400 font-mono">Błyskawiczne szablony</span>
+              <span className="ui-type-micro text-cyan-400 font-mono">Błyskawiczne szablony</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -889,8 +889,8 @@ void updatePetTimeline() {
                 className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-purple-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Moon className="w-4 h-4 text-purple-400" />
-                  <Plus className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                  <Moon className="ui-icon-sm text-purple-400" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-purple-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-purple-300">Nocne Ściemnianie</div>
@@ -903,8 +903,8 @@ void updatePetTimeline() {
                 className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Sun className="w-4 h-4 text-amber-400" />
-                  <Plus className="w-4 h-4 text-slate-500 group-hover:text-amber-400 transition-colors" />
+                  <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-amber-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Pobudka Rano</div>
@@ -917,8 +917,8 @@ void updatePetTimeline() {
                 className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Eye className="w-4 h-4 text-cyan-400" />
-                  <Plus className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 transition-colors" />
+                  <Eye className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-cyan-300">Ruch PIR (GPIO 14)</div>
@@ -931,8 +931,8 @@ void updatePetTimeline() {
                 className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Usb className="w-4 h-4 text-emerald-400" />
-                  <Plus className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+                  <Usb className="ui-icon-sm text-emerald-400" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-emerald-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-emerald-300">Wpięcie USB-C</div>
@@ -945,8 +945,8 @@ void updatePetTimeline() {
                 className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-teal-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Sliders className="w-4 h-4 text-teal-400" />
-                  <Plus className="w-4 h-4 text-slate-500 group-hover:text-teal-400 transition-colors" />
+                  <Sliders className="ui-icon-sm text-teal-400" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-teal-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-teal-300">Zmierzch LDR</div>
@@ -959,8 +959,8 @@ void updatePetTimeline() {
                 className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-rose-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Flame className="w-4 h-4 text-rose-400" />
-                  <Plus className="w-4 h-4 text-slate-500 group-hover:text-rose-400 transition-colors" />
+                  <Flame className="ui-icon-sm text-rose-400" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-rose-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-rose-300">Gorąco &gt; 30°C</div>
@@ -974,8 +974,8 @@ void updatePetTimeline() {
           {isAddingRule && (
             <div className="p-5 bg-slate-900 border-2 border-cyan-500/50 rounded-2xl shadow-xl flex flex-col gap-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+                  <Sparkles className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   Kreator Nowej Automatyzacji ESP32
                 </h3>
                 <button
@@ -1005,7 +1005,7 @@ void updatePetTimeline() {
                     1. KIEDY (Wyzwalacz / Trigger):
                   </span>
                   <div>
-                    <label className="text-[11px] text-slate-400">Typ zdarzenia:</label>
+                    <label className="ui-type-micro text-slate-400">Typ zdarzenia:</label>
                     <select
                       value={newTriggerType}
                       onChange={e => setNewTriggerType(e.target.value as TriggerType)}
@@ -1022,7 +1022,7 @@ void updatePetTimeline() {
 
                   {newTriggerType === 'time_is' && (
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] text-slate-400">Ustaw godzinę (HH:MM):</label>
+                      <label className="ui-type-micro text-slate-400">Ustaw godzinę (HH:MM):</label>
                       <input
                         type="time"
                         value={newTriggerTime}
@@ -1035,7 +1035,7 @@ void updatePetTimeline() {
                             key={preset.value}
                             type="button"
                             onClick={() => setNewTriggerTime(preset.value)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                            className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                               newTriggerTime === preset.value
                                 ? 'bg-cyan-500 text-slate-950 font-bold'
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1050,7 +1050,7 @@ void updatePetTimeline() {
 
                   {newTriggerType === 'light_lux_below' && (
                     <div className="flex flex-col gap-2">
-                      <div className="flex justify-between text-[11px]">
+                      <div className="flex justify-between ui-type-micro">
                         <span className="text-slate-400">Próg jasności (lux):</span>
                         <span className="font-mono text-cyan-400 font-bold">{newTriggerThreshold} lx</span>
                       </div>
@@ -1069,7 +1069,7 @@ void updatePetTimeline() {
                             key={preset.value}
                             type="button"
                             onClick={() => setNewTriggerThreshold(preset.value)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                            className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                               newTriggerThreshold === preset.value
                                 ? 'bg-cyan-500 text-slate-950 font-bold'
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1084,7 +1084,7 @@ void updatePetTimeline() {
 
                   {newTriggerType === 'temp_above' && (
                     <div className="flex flex-col gap-2">
-                      <div className="flex justify-between text-[11px]">
+                      <div className="flex justify-between ui-type-micro">
                         <span className="text-slate-400">Próg temperatury:</span>
                         <span className="font-mono text-rose-400 font-bold">{newTriggerThreshold} °C</span>
                       </div>
@@ -1102,7 +1102,7 @@ void updatePetTimeline() {
                             key={p.value}
                             type="button"
                             onClick={() => setNewTriggerThreshold(p.value)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                            className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                               newTriggerThreshold === p.value
                                 ? 'bg-rose-500 text-slate-950 font-bold'
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1117,7 +1117,7 @@ void updatePetTimeline() {
 
                   {newTriggerType === 'pir_motion' && (
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[11px] text-slate-400">Pin wejściowy PIR:</label>
+                      <label className="ui-type-micro text-slate-400">Pin wejściowy PIR:</label>
                       <div className="flex flex-wrap gap-1.5">
                         {[14, 13, 12, 27, 4].map(pin => (
                           <button
@@ -1144,7 +1144,7 @@ void updatePetTimeline() {
                     2. TO WTEDY (Akcja / Action):
                   </span>
                   <div>
-                    <label className="text-[11px] text-slate-400">Typ akcji:</label>
+                    <label className="ui-type-micro text-slate-400">Typ akcji:</label>
                     <select
                       value={newActionType}
                       onChange={e => setNewActionType(e.target.value as ActionType)}
@@ -1159,7 +1159,7 @@ void updatePetTimeline() {
 
                   {newActionType === 'set_brightness' && (
                     <div className="flex flex-col gap-2">
-                      <div className="flex justify-between text-[11px]">
+                      <div className="flex justify-between ui-type-micro">
                         <span className="text-slate-400">Poziom jasności ekranu:</span>
                         <span className="font-mono text-cyan-400 font-bold">{newActionBrightness}%</span>
                       </div>
@@ -1178,7 +1178,7 @@ void updatePetTimeline() {
                             key={preset.value}
                             type="button"
                             onClick={() => setNewActionBrightness(preset.value)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                            className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                               newActionBrightness === preset.value
                                 ? 'bg-cyan-500 text-slate-950 font-bold'
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1193,7 +1193,7 @@ void updatePetTimeline() {
 
                   {newActionType === 'set_pet_mood' && (
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Nastrój / Zachowanie zwierzaka:</label>
+                      <label className="ui-type-micro text-slate-400 block mb-1">Nastrój / Zachowanie zwierzaka:</label>
                       <select
                         value={newActionMood}
                         onChange={e => setNewActionMood(e.target.value as PetMood)}
@@ -1218,7 +1218,7 @@ void updatePetTimeline() {
 
                   {newActionType === 'switch_screen' && (
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Docelowy ekran:</label>
+                      <label className="ui-type-micro text-slate-400 block mb-1">Docelowy ekran:</label>
                       <select
                         value={newActionScreenId}
                         onChange={e => setNewActionScreenId(e.target.value)}
@@ -1283,7 +1283,7 @@ void updatePetTimeline() {
                         className="bg-transparent border border-transparent hover:border-slate-700 focus:border-cyan-500 rounded px-2 py-0.5 text-xs font-bold text-slate-100 flex-1 transition-colors"
                       />
 
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                      <span className={`ui-type-micro font-mono px-2 py-0.5 rounded ${
                         rule.enabled ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-slate-800 text-slate-400'
                       }`}>
                         {rule.enabled ? 'AKTYWNA' : 'WYŁĄCZONA'}
@@ -1296,7 +1296,7 @@ void updatePetTimeline() {
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors"
                         title="Uruchom regułę w symulatorze"
                       >
-                        <Play className="w-4 h-4 text-cyan-400" />
+                        <Play className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                         <span>Testuj</span>
                       </button>
 
@@ -1305,7 +1305,7 @@ void updatePetTimeline() {
                         className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors"
                         title="Duplikuj regułę"
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="ui-icon-sm" aria-hidden="true" />
                       </button>
 
                       <button
@@ -1313,8 +1313,8 @@ void updatePetTimeline() {
                         className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors"
                         title="Rozwiń szybką edycję parametrów"
                       >
-                        <Sliders className="w-4 h-4 text-cyan-400" />
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        <Sliders className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+                        {isExpanded ? <ChevronUp className="ui-icon-sm" aria-hidden="true" /> : <ChevronDown className="ui-icon-sm" aria-hidden="true" />}
                       </button>
 
                       <button
@@ -1322,7 +1322,7 @@ void updatePetTimeline() {
                         className="p-2 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 rounded-lg transition-colors"
                         title="Usuń"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="ui-icon-sm" aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -1334,7 +1334,7 @@ void updatePetTimeline() {
                       <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-2.5">
                         <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
                           <span className="text-xs font-bold text-cyan-400 uppercase font-mono flex items-center gap-2">
-                            <Sparkles className="w-4 h-4" />
+                            <Sparkles className="ui-icon-sm" aria-hidden="true" />
                             JEŚLI (Wyzwalacz):
                           </span>
                           <select
@@ -1343,7 +1343,7 @@ void updatePetTimeline() {
                               ...r,
                               trigger: { ...r.trigger, type: e.target.value as TriggerType }
                             }))}
-                            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200"
+                            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 ui-type-micro text-slate-200"
                           >
                             <option value="time_is">Godzina NTP == Czas</option>
                             <option value="pir_motion">Ruch PIR (GPIO)</option>
@@ -1358,7 +1358,7 @@ void updatePetTimeline() {
                         {rule.trigger.type === 'time_is' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] text-slate-400">Ustaw godzinę:</span>
+                              <span className="ui-type-micro text-slate-400">Ustaw godzinę:</span>
                               <input
                                 type="time"
                                 value={rule.trigger.time || '22:00'}
@@ -1378,7 +1378,7 @@ void updatePetTimeline() {
                                     ...r,
                                     trigger: { ...r.trigger, time: p.value }
                                   }))}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                                  className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                                     rule.trigger.time === p.value
                                       ? 'bg-cyan-500 text-slate-950 font-bold'
                                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1394,7 +1394,7 @@ void updatePetTimeline() {
                         {rule.trigger.type === 'light_lux_below' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] text-slate-400">Próg światła (lux):</span>
+                              <span className="ui-type-micro text-slate-400">Próg światła (lux):</span>
                               <span className="font-mono text-cyan-300 font-bold">{rule.trigger.threshold ?? 20} lx</span>
                             </div>
                             <input
@@ -1418,7 +1418,7 @@ void updatePetTimeline() {
                                     ...r,
                                     trigger: { ...r.trigger, threshold: p.value }
                                   }))}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                                  className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                                     rule.trigger.threshold === p.value
                                       ? 'bg-cyan-500 text-slate-950 font-bold'
                                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1433,7 +1433,7 @@ void updatePetTimeline() {
 
                         {rule.trigger.type === 'pir_motion' && (
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] text-slate-400">Pin czujnika ruchu:</span>
+                            <span className="ui-type-micro text-slate-400">Pin czujnika ruchu:</span>
                             <div className="flex gap-1">
                               {[14, 13, 12, 27, 4].map(pin => (
                                 <button
@@ -1443,7 +1443,7 @@ void updatePetTimeline() {
                                     ...r,
                                     trigger: { ...r.trigger, gpioPin: pin }
                                   }))}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono ${
+                                  className={`px-2 py-0.5 rounded ui-type-micro font-mono ${
                                     (rule.trigger.gpioPin || 14) === pin
                                       ? 'bg-cyan-500 text-slate-950 font-bold'
                                       : 'bg-slate-900 text-slate-400 border border-slate-800'
@@ -1459,7 +1459,7 @@ void updatePetTimeline() {
                         {rule.trigger.type === 'temp_above' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] text-slate-400">Próg temperatury:</span>
+                              <span className="ui-type-micro text-slate-400">Próg temperatury:</span>
                               <span className="font-mono text-rose-400 font-bold">{rule.trigger.threshold ?? 30} °C</span>
                             </div>
                             <input
@@ -1482,7 +1482,7 @@ void updatePetTimeline() {
                                     ...r,
                                     trigger: { ...r.trigger, threshold: p.value }
                                   }))}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono ${
+                                  className={`px-2 py-0.5 rounded ui-type-micro font-mono ${
                                     rule.trigger.threshold === p.value
                                       ? 'bg-rose-500 text-slate-950 font-bold'
                                       : 'bg-slate-900 text-slate-400 border border-slate-800'
@@ -1497,14 +1497,14 @@ void updatePetTimeline() {
 
                         {rule.trigger.type === 'usb_connected' && (
                           <div className="text-xs text-slate-400 flex items-center gap-2">
-                            <Usb className="w-4 h-4 text-cyan-400" />
+                            <Usb className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                             <span>Wykrywanie podłączenia kabla USB-C do portu COM/komputera</span>
                           </div>
                         )}
 
                         {rule.trigger.type === 'boot_button_pressed' && (
                           <div className="text-xs text-slate-400 flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-amber-400" />
+                            <Zap className="ui-icon-sm text-amber-400" aria-hidden="true" />
                             <span>Wciśnięcie przycisku BOOT na płytce (GPIO 0)</span>
                           </div>
                         )}
@@ -1514,7 +1514,7 @@ void updatePetTimeline() {
                       <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-2.5">
                         <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
                           <span className="text-xs font-bold text-emerald-400 uppercase font-mono flex items-center gap-2">
-                            <Activity className="w-4 h-4" />
+                            <Activity className="ui-icon-sm" aria-hidden="true" />
                             TO WTEDY (Akcja):
                           </span>
                           <select
@@ -1523,7 +1523,7 @@ void updatePetTimeline() {
                               ...r,
                               action: { ...r.action, type: e.target.value as ActionType }
                             }))}
-                            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200"
+                            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 ui-type-micro text-slate-200"
                           >
                             <option value="set_brightness">Zmień jasność ekranu (PWM)</option>
                             <option value="set_pet_mood">Zmień nastrój zwierzaka</option>
@@ -1536,7 +1536,7 @@ void updatePetTimeline() {
                         {rule.action.type === 'set_brightness' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[11px] text-slate-400">Jasność ekranu:</span>
+                              <span className="ui-type-micro text-slate-400">Jasność ekranu:</span>
                               <span className="font-mono text-cyan-300 font-bold">{rule.action.brightness ?? 20}%</span>
                             </div>
                             <input
@@ -1560,7 +1560,7 @@ void updatePetTimeline() {
                                     ...r,
                                     action: { ...r.action, brightness: p.value }
                                   }))}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors ${
+                                  className={`px-2 py-0.5 rounded ui-type-micro font-mono transition-colors ${
                                     rule.action.brightness === p.value
                                       ? 'bg-cyan-500 text-slate-950 font-bold'
                                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
@@ -1575,7 +1575,7 @@ void updatePetTimeline() {
 
                         {rule.action.type === 'set_pet_mood' && (
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] text-slate-400">Wybierz nastrój zwierzaka:</label>
+                            <label className="ui-type-micro text-slate-400">Wybierz nastrój zwierzaka:</label>
                             <select
                               value={rule.action.petMood || 'neutral'}
                               onChange={e => handleUpdateRule(rule.id, r => ({
@@ -1603,7 +1603,7 @@ void updatePetTimeline() {
 
                         {rule.action.type === 'switch_screen' && (
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] text-slate-400">Wybierz docelowy ekran:</label>
+                            <label className="ui-type-micro text-slate-400">Wybierz docelowy ekran:</label>
                             <select
                               value={rule.action.targetScreenId || screens[0]?.id}
                               onChange={e => handleUpdateRule(rule.id, r => ({
@@ -1623,7 +1623,7 @@ void updatePetTimeline() {
 
                         {rule.action.type === 'wake_display' && (
                           <div className="text-xs text-slate-400 flex items-center gap-2">
-                            <Sun className="w-4 h-4 text-amber-400" />
+                            <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
                             <span>Wybudzenie ekranu ze stanu uśpienia (Wakeup) i reset timera aktywności</span>
                           </div>
                         )}
@@ -1646,12 +1646,12 @@ void updatePetTimeline() {
             <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Wand2 className="w-4 h-4 text-cyan-400" />
+                  <Wand2 className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   Szybkie Presety Zachowań
                 </span>
-                <span className="text-[10px] text-cyan-400 font-mono">1 kliknięcie</span>
+                <span className="ui-type-micro text-cyan-400 font-mono">1 kliknięcie</span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="ui-type-micro text-slate-400">
                 Wybierz gotowy, realistyczny cykl zachowań cyber-zwierzaka zaprogramowany na określoną liczbę minut:
               </p>
 
@@ -1662,7 +1662,7 @@ void updatePetTimeline() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
-                      <Sun className="w-4 h-4 text-amber-400" />
+                      <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
                       Poranne Przebudzenie
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">3 min</span>
@@ -1678,7 +1678,7 @@ void updatePetTimeline() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
-                      <Compass className="w-4 h-4 text-teal-400" />
+                      <Compass className="ui-icon-sm text-teal-400" aria-hidden="true" />
                       Ciekawski Robot
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">5 min</span>
@@ -1694,7 +1694,7 @@ void updatePetTimeline() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
-                      <Moon className="w-4 h-4 text-purple-400" />
+                      <Moon className="ui-icon-sm text-purple-400" aria-hidden="true" />
                       Wieczorne Zasypianie
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">4 min</span>
@@ -1710,7 +1710,7 @@ void updatePetTimeline() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-rose-400" />
+                      <Flame className="ui-icon-sm text-rose-400" aria-hidden="true" />
                       Pełne Szaleństwo!
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">2 min</span>
@@ -1727,18 +1727,18 @@ void updatePetTimeline() {
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                   <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <Sparkles className="ui-icon-sm text-emerald-400" aria-hidden="true" />
                     Generator Czasowy
                   </span>
-                  <span className="text-[10px] text-emerald-400 font-mono">Algorytmiczny</span>
+                  <span className="ui-type-micro text-emerald-400 font-mono">Algorytmiczny</span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="ui-type-micro text-slate-400 mt-1">
                   Wygeneruj spersonalizowany harmonogram zachowań o żądanym czasie trwania i temperamencie:
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Długość osi czasu:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Długość osi czasu:</label>
                     <select
                       value={generatorMinutes}
                       onChange={e => setGeneratorMinutes(Number(e.target.value))}
@@ -1753,7 +1753,7 @@ void updatePetTimeline() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Temperament zwierzaka:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Temperament zwierzaka:</label>
                     <select
                       value={generatorPersonality}
                       onChange={e => setGeneratorPersonality(e.target.value as any)}
@@ -1772,7 +1772,7 @@ void updatePetTimeline() {
                 onClick={handleGenerateCustomTimeline}
                 className="w-full mt-2 py-2 px-3 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
               >
-                <Sparkles className="w-4 h-4 text-slate-950" />
+                <Sparkles className="ui-icon-sm text-slate-950" aria-hidden="true" />
                 <span>Wygeneruj Harmonogram ({generatorMinutes} min)</span>
               </button>
             </div>
@@ -1781,10 +1781,10 @@ void updatePetTimeline() {
             <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col items-center justify-between gap-3">
               <div className="w-full flex items-center justify-between pb-2 border-b border-slate-800">
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Tv className="w-4 h-4 text-cyan-400" />
+                  <Tv className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   Wirtualna Matryca Robot Face
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded">
+                <span className="ui-type-micro font-mono px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded">
                   {currentActiveStep?.behavior?.toUpperCase() || 'NEUTRAL'}
                 </span>
               </div>
@@ -1797,10 +1797,10 @@ void updatePetTimeline() {
                   height={100}
                   className="rounded-lg shadow-lg border border-cyan-500/20"
                 />
-                <div className="absolute top-3 left-4 text-[9px] font-mono text-cyan-400/70 tracking-wider">
+                <div className="absolute top-3 left-4 ui-type-micro font-mono text-cyan-400/70 tracking-wider">
                   SSD1306 OLED 128x64
                 </div>
-                <div className="absolute bottom-3 right-4 text-[10px] font-mono font-bold text-cyan-300">
+                <div className="absolute bottom-3 right-4 ui-type-micro font-mono font-bold text-cyan-300">
                   {formatTime(currentTimeSec)} / {formatTime(totalDurationSec)}
                 </div>
               </div>
@@ -1808,18 +1808,18 @@ void updatePetTimeline() {
               {/* Informacja o aktualnym zachowaniu */}
               <div className="w-full flex items-center justify-between text-xs px-1">
                 <div className="flex flex-col">
-                  <span className="text-slate-400 text-[10px]">Aktualne zachowanie:</span>
+                  <span className="text-slate-400 ui-type-micro">Aktualne zachowanie:</span>
                   <span className="text-slate-100 font-bold truncate max-w-[140px]">
                     {currentActiveStep?.name || 'Czuwanie'}
                   </span>
                 </div>
 
-                <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-300">
+                <label className="flex items-center gap-1.5 cursor-pointer ui-type-micro text-slate-300">
                   <input
                     type="checkbox"
                     checked={syncWithSimulator}
                     onChange={e => setSyncWithSimulator(e.target.checked)}
-                    className="rounded text-cyan-500 focus:ring-0 focus:outline-none"
+                    className="rounded text-cyan-500 focus:ring-0 focus:outline-none ui-focus-ring"
                   />
                   <span>Sync z ESP32</span>
                 </label>
@@ -1841,7 +1841,7 @@ void updatePetTimeline() {
                   }`}
                   title={isPlaying ? 'Pauza' : 'Odtwarzaj'}
                 >
-                  {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                  {isPlaying ? <Pause className="ui-icon-sm fill-current" aria-hidden="true" /> : <Play className="ui-icon-sm fill-current" aria-hidden="true" />}
                   <span>{isPlaying ? 'Pauza' : 'Odtwarzaj'}</span>
                 </button>
 
@@ -1850,7 +1850,7 @@ void updatePetTimeline() {
                   className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors text-xs flex items-center gap-1"
                   title="Przewiń do 00:00"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="ui-icon-sm" aria-hidden="true" />
                   <span className="hidden sm:inline">Od początku</span>
                 </button>
 
@@ -1866,7 +1866,7 @@ void updatePetTimeline() {
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
                   title="Poprzedni krok"
                 >
-                  <SkipBack className="w-4 h-4" />
+                  <SkipBack className="ui-icon-sm" aria-hidden="true" />
                 </button>
 
                 <button
@@ -1879,21 +1879,21 @@ void updatePetTimeline() {
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors"
                   title="Następny krok"
                 >
-                  <SkipForward className="w-4 h-4" />
+                  <SkipForward className="ui-icon-sm" aria-hidden="true" />
                 </button>
               </div>
 
               {/* Wyświetlacz czasu i prędkość odtwarzania */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 font-mono text-sm px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl">
-                  <Clock className="w-4 h-4 text-cyan-400" />
+                  <Clock className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   <span className="text-cyan-400 font-bold">{formatTime(currentTimeSec)}</span>
                   <span className="text-slate-500">/</span>
                   <span className="text-slate-400">{formatTime(totalDurationSec)}</span>
                 </div>
 
                 <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs">
-                  <span className="text-[10px] text-slate-500 uppercase px-2 font-mono">Prędkość:</span>
+                  <span className="ui-type-micro text-slate-500 uppercase px-2 font-mono">Prędkość:</span>
                   {[1, 2, 5, 10].map(speed => (
                     <button
                       key={speed}
@@ -1930,7 +1930,7 @@ void updatePetTimeline() {
                       }`}
                       title={`${step.name} (${step.durationSec}s) - kliknij aby przeskoczyć`}
                     >
-                      <span className="text-[10px] font-medium text-slate-300 truncate select-none group-hover:text-cyan-300">
+                      <span className="ui-type-micro font-medium text-slate-300 truncate select-none group-hover:text-cyan-300">
                         {step.name}
                       </span>
                     </div>
@@ -1963,10 +1963,10 @@ void updatePetTimeline() {
             <div className="lg:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-cyan-400" />
+                  <Layers className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   Kroki Sekwencji Zachowań ({timelineSteps.length} kroków • {formatTime(totalDurationSec)})
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className="ui-type-micro text-slate-400">
                   Edytuj czas, kolejność lub zachowanie
                 </span>
               </div>
@@ -1994,11 +1994,11 @@ void updatePetTimeline() {
                             <span className="text-xs font-bold text-slate-100">
                               {step.name}
                             </span>
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase ${getBehaviorBadgeColor(step.behavior)}`}>
+                            <span className={`ui-type-micro font-mono px-2 py-0.5 rounded border uppercase ${getBehaviorBadgeColor(step.behavior)}`}>
                               {step.behavior}
                             </span>
                           </div>
-                          <span className="text-[11px] text-slate-400 mt-0.5">
+                          <span className="ui-type-micro text-slate-400 mt-0.5">
                             {step.description}
                           </span>
                         </div>
@@ -2007,7 +2007,7 @@ void updatePetTimeline() {
                       {/* Zmiana czasu trwania i zachowania */}
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] text-slate-400">Trwanie:</span>
+                          <span className="ui-type-micro text-slate-400">Trwanie:</span>
                           <input
                             type="number"
                             min={2}
@@ -2047,7 +2047,7 @@ void updatePetTimeline() {
                             className="p-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 rounded-lg transition-colors"
                             title="Przesuń w górę"
                           >
-                            <MoveUp className="w-4 h-4" />
+                            <MoveUp className="ui-icon-sm" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => handleMoveStep(index, 'down')}
@@ -2055,7 +2055,7 @@ void updatePetTimeline() {
                             className="p-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-slate-300 rounded-lg transition-colors"
                             title="Przesuń w dół"
                           >
-                            <MoveDown className="w-4 h-4" />
+                            <MoveDown className="ui-icon-sm" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => handleDeleteStep(step.id)}
@@ -2063,7 +2063,7 @@ void updatePetTimeline() {
                             className="p-1.5 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 disabled:opacity-30 rounded-lg transition-colors"
                             title="Usuń krok"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="ui-icon-sm" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
@@ -2078,14 +2078,14 @@ void updatePetTimeline() {
               <div>
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                   <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-cyan-400" />
+                    <Plus className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                     Dodaj Krok do Osi
                   </span>
                 </div>
 
                 <div className="flex flex-col gap-3 mt-3">
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Zachowanie:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Zachowanie:</label>
                     <select
                       value={newStepBehavior}
                       onChange={e => {
@@ -2122,7 +2122,7 @@ void updatePetTimeline() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Czas trwania (sekundy):</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Czas trwania (sekundy):</label>
                     <input
                       type="number"
                       min={2}
@@ -2134,7 +2134,7 @@ void updatePetTimeline() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Etykieta kroku:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Etykieta kroku:</label>
                     <input
                       type="text"
                       value={newStepName}
@@ -2145,7 +2145,7 @@ void updatePetTimeline() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-medium text-slate-400 block mb-1">Opis zachowania:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Opis zachowania:</label>
                     <input
                       type="text"
                       value={newStepDesc}
@@ -2161,7 +2161,7 @@ void updatePetTimeline() {
                 onClick={handleAddStep}
                 className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="ui-icon-sm" aria-hidden="true" />
                 <span>Dodaj ten krok na koniec</span>
               </button>
             </div>
@@ -2172,7 +2172,7 @@ void updatePetTimeline() {
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <div>
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <Code className="w-4 h-4 text-cyan-400" />
+                  <Code className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   Kod C++ Osi Czasu dla ESP32 (Non-blocking state machine millis)
                 </span>
                 <span className="text-xs text-slate-400 mt-0.5 block">
@@ -2184,7 +2184,7 @@ void updatePetTimeline() {
                 onClick={handleCopyCpp}
                 className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors"
               >
-                {copiedCpp ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                {copiedCpp ? <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" /> : <Copy className="ui-icon-sm text-slate-400" aria-hidden="true" />}
                 <span>{copiedCpp ? 'Skopiowano!' : 'Kopiuj kod C++'}</span>
               </button>
             </div>
@@ -2201,7 +2201,7 @@ void updatePetTimeline() {
         <div className="flex flex-col gap-3 p-4 bg-slate-900 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
             <span className="text-slate-400 font-mono">Skrypt zdarzeń ESP32 Automation DSL:</span>
-            <span className="text-[11px] text-slate-500">Auto-kompilowane do pętli loop() w C++</span>
+            <span className="ui-type-micro text-slate-500">Auto-kompilowane do pętli loop() w C++</span>
           </div>
           <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed selection:bg-cyan-500/30">
             {generateDslText()}

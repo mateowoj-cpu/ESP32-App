@@ -24,6 +24,11 @@ import {
   Check,
   Play,
   Square,
+  Sun,
+  Cloud,
+  CloudRain,
+  Snowflake,
+  CloudLightning,
 } from 'lucide-react';
 import { generatePythonPcAgentScript } from '../utils/codeGenerator';
 import type { PcAgentInfo } from '../platform/pcAgent';
@@ -409,11 +414,11 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between gap-5 shadow-xl">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-                <CloudSun className="w-4 h-4 text-amber-400" />
+              <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+                <CloudSun className="ui-icon-sm text-amber-400" aria-hidden="true" />
                 {t('integ.weather')}
               </h3>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+              <span className={`ui-type-micro font-mono px-2 py-0.5 rounded border ${
                 currentProvider === 'open-meteo' || currentProvider === 'wttr-in'
                   ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
                   : 'text-cyan-400 bg-cyan-950/60 border-cyan-800'
@@ -424,10 +429,10 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
             {/* Provider Selector Tabs */}
             <div>
-              <label className="text-[11px] font-mono text-slate-400 block mb-1.5">
+              <label className="ui-type-micro font-mono text-slate-400 block mb-1.5">
                 Dostawca bezpłatnego API pogodowego:
               </label>
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 text-[11px] font-mono">
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 ui-type-micro font-mono">
                 <button
                   onClick={() => handleProviderChange('open-meteo')}
                   className={`px-2 py-1.5 rounded-lg transition-all text-left flex items-center justify-between ${
@@ -437,7 +442,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   }`}
                 >
                   <span>Open-Meteo</span>
-                  {currentProvider === 'open-meteo' && <Check className="w-4 h-4" />}
+                  {currentProvider === 'open-meteo' && <Check className="ui-icon-sm" aria-hidden="true" />}
                 </button>
 
                 <button
@@ -449,7 +454,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   }`}
                 >
                   <span>wttr.in</span>
-                  {currentProvider === 'wttr-in' && <Check className="w-4 h-4" />}
+                  {currentProvider === 'wttr-in' && <Check className="ui-icon-sm" aria-hidden="true" />}
                 </button>
 
                 <button
@@ -461,7 +466,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   }`}
                 >
                   <span>OpenWeather</span>
-                  {currentProvider === 'openweathermap' && <Check className="w-4 h-4" />}
+                  {currentProvider === 'openweathermap' && <Check className="ui-icon-sm" aria-hidden="true" />}
                 </button>
 
                 <button
@@ -473,7 +478,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   }`}
                 >
                   <span>Własny REST</span>
-                  {currentProvider === 'custom' && <Check className="w-4 h-4" />}
+                  {currentProvider === 'custom' && <Check className="ui-icon-sm" aria-hidden="true" />}
                 </button>
               </div>
             </div>
@@ -482,7 +487,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs text-slate-400">Wybierz miasto z listy:</label>
-                <span className="text-[10px] text-amber-400 font-mono">Dortmund & Europa</span>
+                <span className="ui-type-micro text-amber-400 font-mono">Dortmund & Europa</span>
               </div>
               <select
                 value={POPULAR_CITIES[apiConfig.weather.city] ? apiConfig.weather.city : ''}
@@ -500,7 +505,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
             {/* Online City Geocoding Search Input */}
             <div className="relative">
-              <label className="text-[11px] text-slate-400 block mb-1">
+              <label className="ui-type-micro text-slate-400 block mb-1">
                 Wyszukaj dowolne miasto na świecie (Online Geocoding):
               </label>
               <div className="flex items-center gap-1.5">
@@ -524,7 +529,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     }}
                     className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:ring-1 focus:ring-amber-400"
                   />
-                  <Search className="w-4 h-4 text-slate-500 absolute left-2.5 top-2.5" />
+                  <Search className="ui-icon-sm text-slate-500 absolute left-2.5 top-2.5" aria-hidden="true" />
                 </div>
                 <button
                   type="button"
@@ -532,7 +537,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   disabled={isSearchingCity}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition-colors"
                 >
-                  {isSearchingCity ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Szukaj'}
+                  {isSearchingCity ? <RefreshCw className="ui-icon-sm animate-spin" aria-hidden="true" /> : 'Szukaj'}
                 </button>
               </div>
 
@@ -546,7 +551,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                       className="w-full px-3 py-2 text-left hover:bg-amber-950/40 hover:text-amber-300 flex items-center justify-between text-slate-200 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
+                        <MapPin className="ui-icon-sm text-amber-400 shrink-0" aria-hidden="true" />
                         <span className="font-semibold">{result.name}</span>
                         {result.admin1 && <span className="text-xs text-slate-400">({result.admin1})</span>}
                       </div>
@@ -564,7 +569,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-mono text-slate-300 flex items-center gap-1.5">
-                    <Key className="w-4 h-4 text-cyan-400" />
+                    <Key className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                     Klucz OpenWeatherMap API:
                   </label>
                   <a
@@ -574,7 +579,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     className="text-xs text-cyan-400 hover:underline flex items-center gap-1"
                   >
                     <span>Darmowe konto</span>
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="ui-icon-sm" aria-hidden="true" />
                   </a>
                 </div>
                 <input
@@ -610,39 +615,46 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold font-mono text-amber-300 flex items-center gap-2">
+                  <div className="ui-type-heading font-mono text-amber-300 flex items-center gap-2">
                     <span>{apiConfig.weather.data.temperature.toFixed(1)} °C</span>
-                    <span className="text-xl">
-                      {apiConfig.weather.data.icon === 'sun' ? '☀️' : 
-                       apiConfig.weather.data.icon === 'cloud' ? '⛅' : 
-                       apiConfig.weather.data.icon === 'rain' ? '🌧️' : 
-                       apiConfig.weather.data.icon === 'snow' ? '❄️' : '⛈️'}
+                    <span className="text-amber-200/90" aria-hidden="true">
+                      {apiConfig.weather.data.icon === 'sun' ? (
+                        <Sun className="ui-icon-lg" />
+                      ) : apiConfig.weather.data.icon === 'cloud' ? (
+                        <Cloud className="ui-icon-lg" />
+                      ) : apiConfig.weather.data.icon === 'rain' ? (
+                        <CloudRain className="ui-icon-lg" />
+                      ) : apiConfig.weather.data.icon === 'snow' ? (
+                        <Snowflake className="ui-icon-lg" />
+                      ) : (
+                        <CloudLightning className="ui-icon-lg" />
+                      )}
                     </span>
                   </div>
                   <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5 mt-1">
-                    <MapPin className="w-4 h-4 text-amber-400" />
+                    <MapPin className="ui-icon-sm text-amber-400" aria-hidden="true" />
                     <span>{apiConfig.weather.city}</span>
                     <span className="text-slate-400 font-normal">· {apiConfig.weather.data.condition}</span>
                   </div>
                 </div>
                 <div className="text-right text-xs font-mono text-slate-400">
                   <div className="text-emerald-400 font-semibold">{currentProvider.toUpperCase()}</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Aktualizacja: {apiConfig.weather.data.lastUpdated}</div>
+                  <div className="ui-type-micro text-slate-500 mt-0.5">Aktualizacja: {apiConfig.weather.data.lastUpdated}</div>
                 </div>
               </div>
 
               {/* Extended Metrics: Wind, Humidity, Pressure */}
               <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-xs font-mono text-slate-300">
                 <div className="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                  <Wind className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <Wind className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
                   <span>{apiConfig.weather.data.windSpeed} km/h</span>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                  <Droplets className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <Droplets className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
                   <span>{apiConfig.weather.data.humidity}% wilg.</span>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
-                  <Gauge className="w-4 h-4 text-amber-400 shrink-0" />
+                  <Gauge className="ui-icon-sm text-amber-400 shrink-0" aria-hidden="true" />
                   <span>{apiConfig.weather.data.pressure ?? 1016} hPa</span>
                 </div>
               </div>
@@ -667,7 +679,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             </div>
 
             {weatherFetchStatus && (
-              <div className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-[11px] font-mono text-cyan-300">
+              <div className="p-2 bg-slate-950 border border-slate-800 rounded-lg ui-type-micro font-mono text-cyan-300">
                 {weatherFetchStatus}
               </div>
             )}
@@ -678,7 +690,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             disabled={isFetchingWeather}
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md"
           >
-            <RefreshCw className={`w-4 h-4 ${isFetchingWeather ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`ui-icon-sm ${isFetchingWeather ? 'animate-spin' : ''}`} aria-hidden="true" />
             <span>Pobierz Dane Live ({apiConfig.weather.city}) do Symulatora</span>
           </button>
         </div>
@@ -687,11 +699,11 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between gap-5 shadow-xl">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-cyan-400" />
+              <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+                <Cpu className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                 {t('integ.pc')}
               </h3>
-              <span className="text-[10px] font-mono text-cyan-400">
+              <span className="ui-type-micro font-mono text-cyan-400">
                 PORT {apiConfig.pcMonitor.port}
               </span>
             </div>
@@ -701,7 +713,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             </p>
 
             <div className="flex flex-col gap-2">
-              <label className="text-[11px] text-slate-400">Adres IP ESP32 (LAN):</label>
+              <label className="ui-type-micro text-slate-400">Adres IP ESP32 (LAN):</label>
               <input
                 type="text"
                 value={esp32Host}
@@ -709,20 +721,20 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 placeholder="192.168.1.150"
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono"
               />
-              <p className="text-[10px] text-slate-500 leading-relaxed">
+              <p className="ui-type-micro text-slate-500 leading-relaxed">
                 Firewall Windows: zezwól na ruch HTTP z <code>esp32-pc-agent.exe</code> do tego IP.
               </p>
             </div>
 
             {isTauriHost && (
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-2 text-[11px]">
+                <div className="flex items-center justify-between gap-2 ui-type-micro">
                   <span className="text-slate-400">Agent .exe (Tauri)</span>
                   <span className={`font-mono ${pcAgentInfo?.running ? 'text-emerald-400' : 'text-slate-500'}`}>
                     {pcAgentInfo?.running ? 'DZIAŁA' : pcAgentInfo?.available ? 'GOTOWY' : 'BRAK .EXE'}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 leading-relaxed">
+                <p className="ui-type-micro text-slate-500 leading-relaxed">
                   {pcAgentInfo?.hint || 'Sprawdzanie zasobów aplikacji…'}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -730,32 +742,32 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     type="button"
                     disabled={pcAgentBusy || !pcAgentInfo?.available || pcAgentInfo?.running}
                     onClick={() => void handleStartPcAgent()}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 disabled:opacity-40"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ui-type-micro font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 disabled:opacity-40"
                   >
-                    <Play className="w-3.5 h-3.5" />
+                    <Play className="ui-icon-sm" aria-hidden="true" />
                     Start
                   </button>
                   <button
                     type="button"
                     disabled={pcAgentBusy || !pcAgentInfo?.running}
                     onClick={() => void handleStopPcAgent()}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-200 border border-slate-700 disabled:opacity-40"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ui-type-micro font-semibold bg-slate-800 text-slate-200 border border-slate-700 disabled:opacity-40"
                   >
-                    <Square className="w-3.5 h-3.5" />
+                    <Square className="ui-icon-sm" aria-hidden="true" />
                     Stop
                   </button>
                   <button
                     type="button"
                     disabled={pcAgentBusy}
                     onClick={() => void handleRefreshPcAgent()}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-slate-900 text-slate-300 border border-slate-800"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ui-type-micro font-medium bg-slate-900 text-slate-300 border border-slate-800"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${pcAgentBusy ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`ui-icon-sm ${pcAgentBusy ? 'animate-spin' : ''}`} aria-hidden="true" />
                     Odśwież
                   </button>
                 </div>
                 {pcAgentMessage && (
-                  <p className="text-[10px] font-mono text-cyan-300/90">{pcAgentMessage}</p>
+                  <p className="ui-type-micro font-mono text-cyan-300/90">{pcAgentMessage}</p>
                 )}
               </div>
             )}
@@ -865,7 +877,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               onClick={handleDownloadPythonAgent}
               className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition-colors"
             >
-              <Download className="w-4 h-4" />
+              <Download className="ui-icon-sm" aria-hidden="true" />
               <span>Pobierz Agenta PC (.py)</span>
             </button>
             <a
@@ -874,7 +886,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               rel="noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-medium transition-colors"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="ui-icon-sm" aria-hidden="true" />
               <span>Pobierz esp32-pc-agent.exe (Releases)</span>
             </a>
           </div>
@@ -884,11 +896,11 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col justify-between gap-5 shadow-xl">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-                <Bell className="w-4 h-4 text-emerald-400" />
+              <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+                <Bell className="ui-icon-sm text-emerald-400" aria-hidden="true" />
                 {t('integ.notify')}
               </h3>
-              <span className="text-[10px] font-mono text-emerald-400">
+              <span className="ui-type-micro font-mono text-emerald-400">
                 HTTP PUSH
               </span>
             </div>
@@ -899,7 +911,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
             <div className="flex flex-col gap-2">
               <div>
-                <label className="text-[11px] text-slate-400">Tytuł powiadomienia:</label>
+                <label className="ui-type-micro text-slate-400">Tytuł powiadomienia:</label>
                 <input
                   type="text"
                   value={notifTitle}
@@ -909,7 +921,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-400">Treść wiadomości:</label>
+                <label className="ui-type-micro text-slate-400">Treść wiadomości:</label>
                 <textarea
                   value={notifMessage}
                   onChange={e => setNotifMessage(e.target.value)}
@@ -919,7 +931,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               </div>
             </div>
 
-            <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-[11px]">
+            <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 ui-type-micro">
               <span className="text-slate-400">Czas wyświetlania banera:</span>
               <strong className="text-emerald-400 ml-1 font-mono">{apiConfig.notifications.displayDurationSec} sekund</strong>
             </div>
@@ -929,7 +941,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             onClick={handleSendNotification}
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md"
           >
-            <Send className="w-4 h-4" />
+            <Send className="ui-icon-sm" aria-hidden="true" />
             <span>Wyślij Testowe Powiadomienie na Ekran</span>
           </button>
         </div>

@@ -420,14 +420,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       {/* Top Action Header */}
       <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <Usb className="w-4 h-4 text-cyan-400" />
+          <h2 className="ui-type-title text-slate-100 flex items-center gap-2">
+            <Usb className="ui-icon-md text-cyan-400" aria-hidden="true" />
             {t('usb.title')}
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="ui-type-caption text-slate-400 mt-1 max-w-prose leading-relaxed">
             {t('usb.noDeviceHint')}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1 font-mono">
+          <p className="ui-type-micro text-slate-500 mt-1 font-mono">
             Backend: {backendLabel(serialBackend)}
             {portConnected ? ` · ${t('usb.portOpen')}` : ` · ${t('usb.portClosed')}`}
           </p>
@@ -442,7 +442,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-xs transition-colors border border-slate-700"
               title={t('usb.ports')}
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="ui-icon-sm" aria-hidden="true" />
               <span>{t('usb.ports')}</span>
             </button>
           )}
@@ -451,7 +451,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             disabled={isDetecting}
             className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
           >
-            <Usb className={`w-4 h-4 ${isDetecting ? 'animate-bounce' : ''}`} />
+            <Usb className={`ui-icon-sm ${isDetecting ? 'animate-bounce' : ''}`} aria-hidden="true" />
             <span>{isDetecting ? t('usb.scanning') : t('usb.detect')}</span>
           </button>
         </div>
@@ -459,7 +459,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
 
       {detectError && (
         <div className="p-4 bg-amber-950/40 border border-amber-800/80 rounded-xl text-xs text-amber-300 flex items-start gap-3">
-          <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <AlertCircle className="ui-icon-sm text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
           <div className="leading-relaxed">
             <strong>{t('usb.info')}:</strong> {detectError}
           </div>
@@ -472,7 +472,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
               {t('usb.pickPort')}
             </h3>
-            <span className="text-[10px] text-slate-500 font-mono">{availablePorts.length} {t('usb.available')}</span>
+            <span className="ui-type-micro text-slate-500 font-mono">{availablePorts.length} {t('usb.available')}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {availablePorts.map(port => (
@@ -484,7 +484,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                 className="p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 rounded-xl text-left transition-all"
               >
                 <div className="text-xs font-semibold text-slate-100 font-mono">{port.label}</div>
-                <div className="text-[10px] text-slate-500 mt-1 font-mono">
+                <div className="ui-type-micro text-slate-500 mt-1 font-mono">
                   {port.usbVendorId != null
                     ? `VID 0x${port.usbVendorId.toString(16).toUpperCase().padStart(4, '0')}`
                     : 'VID ?'}
@@ -506,12 +506,12 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             onClick={handleDismissDriverHelp}
             className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
             title="Ukryj wskazówki sterowników"
-          >
-            <X className="w-4 h-4" />
+           aria-label="Ukryj wskazówki sterowników">
+            <X className="ui-icon-sm" aria-hidden="true" />
           </button>
           <div className="flex items-start gap-3 pr-8">
             <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className="ui-icon-sm" aria-hidden="true" />
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-semibold text-slate-100">
@@ -537,23 +537,23 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                   <span className="text-xs font-semibold text-slate-100 group-hover:text-amber-200">
                     {driver.name}
                   </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 shrink-0" />
+                  <ExternalLink className="ui-icon-sm text-slate-500 group-hover:text-amber-400 shrink-0" aria-hidden="true" />
                 </div>
-                <div className="text-[10px] font-mono text-cyan-400/90 mt-1">VID {driver.vidHex}</div>
-                <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                <div className="ui-type-micro font-mono text-cyan-400/90 mt-1">VID {driver.vidHex}</div>
+                <div className="ui-type-micro text-slate-500 mt-1 leading-relaxed">
                   {driver.typicalBoards}. {driver.notes}
                 </div>
               </a>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-[11px]">
+          <div className="flex flex-wrap items-center gap-3 ui-type-micro">
             <a
               href={WINDOWS_DRIVERS_DOC_URL}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-medium"
             >
-              <BookOpen className="w-3.5 h-3.5" />
+              <BookOpen className="ui-icon-sm" aria-hidden="true" />
               {t('usb.drivers')}
             </a>
             <span className="text-slate-600">·</span>
@@ -573,15 +573,15 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400">
-                    <Cpu className="w-5 h-5" />
+                    <Cpu className="ui-icon-md" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-100">{detectedChip.chipModel}</h3>
-                    <span className="text-[11px] font-mono text-cyan-400 font-semibold">{detectedChip.chipFamily}</span>
+                    <span className="ui-type-micro font-mono text-cyan-400 font-semibold">{detectedChip.chipFamily}</span>
                   </div>
                 </div>
 
-                <span className="px-2.5 py-1 bg-emerald-950/80 border border-emerald-800 text-emerald-400 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5">
+                <span className="px-2.5 py-1 bg-emerald-950/80 border border-emerald-800 text-emerald-400 rounded-full ui-type-micro font-mono font-bold flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   {t('usb.recognized')}
                 </span>
@@ -590,29 +590,29 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               {/* Specs Grid */}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="text-[10px] uppercase font-mono text-slate-400">Architektura:</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">Architektura:</span>
                   <span className="font-semibold text-slate-200">{detectedChip.architecture}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="text-[10px] uppercase font-mono text-slate-400">Liczba Rdzeni & Zegar:</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">Liczba Rdzeni & Zegar:</span>
                   <span className="font-semibold text-slate-200 font-mono">{detectedChip.coreCount} rdzenie @ {detectedChip.maxCpuClockMhz} MHz</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="text-[10px] uppercase font-mono text-slate-400">Pamięć Flash & PSRAM:</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">Pamięć Flash & PSRAM:</span>
                   <span className="font-semibold text-cyan-300 font-mono">{detectedChip.flashSizeMb} MB Flash {detectedChip.psramSizeMb > 0 ? `+ ${detectedChip.psramSizeMb} MB PSRAM` : ''}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="text-[10px] uppercase font-mono text-slate-400">Adres MAC / USB ID:</span>
-                  <span className="font-mono text-slate-300 text-[11px]">{detectedChip.macAddress} ({detectedChip.usbVendorId}:{detectedChip.usbProductId})</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">Adres MAC / USB ID:</span>
+                  <span className="font-mono text-slate-300 ui-type-micro">{detectedChip.macAddress} ({detectedChip.usbVendorId}:{detectedChip.usbProductId})</span>
                 </div>
               </div>
 
               {/* Supported Features Tags */}
               <div className="flex flex-col gap-2">
-                <span className="text-[11px] font-mono text-slate-400 uppercase">Wbudowane Funkcje Układu:</span>
+                <span className="ui-type-micro font-mono text-slate-400 uppercase">Wbudowane Funkcje Układu:</span>
                 <div className="flex flex-wrap gap-1.5">
                   {detectedChip.features.map(f => (
-                    <span key={f} className="px-2.5 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded text-[11px]">
+                    <span key={f} className="px-2.5 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded ui-type-micro">
                       {f}
                     </span>
                   ))}
@@ -624,14 +624,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                 onClick={handleApplyToProject}
                 className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm mt-1"
               >
-                {appliedPresetId ? <Check className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                {appliedPresetId ? <Check className="ui-icon-sm" aria-hidden="true" /> : <ArrowRight className="ui-icon-sm" aria-hidden="true" />}
                 <span>{appliedPresetId ? t('usb.applied') : t('usb.apply')}</span>
               </button>
             </div>
           ) : (
             <div className="p-8 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center gap-3">
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-600">
-                <Usb className="w-8 h-8" />
+                <Usb className="w-8 h-8" aria-hidden="true" />
               </div>
               <h3 className="text-sm font-semibold text-slate-200">{t('usb.noDevice')}</h3>
               <p className="text-xs text-slate-400 max-w-sm">
@@ -648,7 +648,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">
                 Baza Płytek ESP32 i Kontrolerów Dotyku
               </h3>
-              <span className="text-[10px] text-slate-500">Wybierz aby przetestować</span>
+              <span className="ui-type-micro text-slate-500">Wybierz aby przetestować</span>
             </div>
 
             <div className="grid grid-cols-1 gap-2.5">
@@ -659,19 +659,19 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                   className="p-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800 hover:border-cyan-500/50 rounded-xl text-left transition-all flex items-center justify-between group"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="px-2 py-1 bg-slate-900 border border-slate-700 text-cyan-400 rounded font-mono text-[10px] font-bold">
+                    <span className="px-2 py-1 bg-slate-900 border border-slate-700 text-cyan-400 rounded font-mono ui-type-micro font-bold">
                       {board.family}
                     </span>
                     <div>
                       <div className="text-xs font-semibold text-slate-200 group-hover:text-cyan-300 transition-colors">
                         {board.name}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="ui-type-micro text-slate-400">
                         {board.cores}x {board.clockMhz}MHz · {board.flashMb}MB Flash · Dotyk: <strong className="text-rose-400">{board.touchController.toUpperCase()}</strong>
                       </div>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors" />
+                  <ArrowRight className="ui-icon-sm text-slate-600 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
                 </button>
               ))}
             </div>
@@ -682,7 +682,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         <div className="lg:col-span-6 flex flex-col gap-4 p-5 bg-slate-900 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-emerald-400" />
+              <Terminal className="ui-icon-sm text-emerald-400" aria-hidden="true" />
               Monitor Szeregowy Portu COM (115200 baud)
             </h3>
             <button
@@ -690,7 +690,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-rose-400 transition-colors"
               title="Wyczyść logi konsoli"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="ui-icon-sm" aria-hidden="true" />
             </button>
           </div>
 
@@ -698,7 +698,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 min-h-[420px] max-h-[500px] overflow-y-auto flex flex-col gap-1.5 leading-relaxed selection:bg-emerald-500/30">
             {serialLogs.map(log => (
               <div key={log.id} className="flex items-start gap-2">
-                <span className="text-[10px] text-slate-600 select-none">{log.timestamp}</span>
+                <span className="ui-type-micro text-slate-600 select-none">{log.timestamp}</span>
                 <span className={`break-all ${
                   log.direction === 'tx' 
                     ? 'text-cyan-400 font-bold' 
@@ -720,18 +720,18 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               value={commandInput}
               onChange={e => setCommandInput(e.target.value)}
               placeholder="Wpisz komendę (np. ping, info, touch, restart)..."
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-cyan-500"
+              className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none ui-focus-ring focus:border-cyan-500"
             />
             <button
               type="submit"
               className="flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
             >
-              <Send className="w-4 h-4" />
+              <Send className="ui-icon-sm" aria-hidden="true" />
               <span>Wyślij</span>
             </button>
           </form>
 
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
+          <div className="flex items-center justify-between ui-type-micro font-mono text-slate-500 pt-1">
             <span>Szybkie komendy:</span>
             <div className="flex gap-2">
               <button

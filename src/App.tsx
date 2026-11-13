@@ -42,7 +42,6 @@ import {
   Download, 
   Upload, 
   Check, 
-  Sparkles,
   Usb,
   FileCode,
   FolderArchive,
@@ -377,31 +376,34 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-dvh bg-slate-950 text-slate-100 flex flex-col font-sans ui-type-body">
+      <a href="#main-workspace" className="ui-skip-link">
+        Przejdź do treści
+      </a>
       {/* 
         TOP BAR CONTRACT:
         Zone 1: Wordmark Brand
-        Zone 2: 5 Clean Single-Line Navigation Links (No wrapping)
-        Zone 3: 1 Primary Action Button
+        Zone 2: Navigation Links (No wrapping)
+        Zone 3: Primary Action Button
       */}
       <header className="flex items-center justify-between gap-4 xl:gap-8 px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50 backdrop-blur-md">
         {/* Zone 1: Brand Wordmark */}
         <div className="flex items-center gap-3 whitespace-nowrap shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-            <Cpu className="w-5 h-5 text-cyan-400" />
+          <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400" aria-hidden="true">
+            <Cpu className="ui-icon-md text-cyan-400" aria-hidden="true" />
           </div>
           <div>
-            <span className="text-base font-bold tracking-tight text-white font-mono block leading-tight">
+            <span className="ui-type-title tracking-tight text-white font-mono block">
               ESP32 Studio
             </span>
-            <span className="text-[11px] text-slate-400 font-mono hidden sm:block">
+            <span className="ui-type-micro text-slate-400 font-mono hidden sm:block">
               {t('brand.sub')}
             </span>
           </div>
         </div>
 
-        {/* Zone 2: Navigation Links with Consistent w-4 h-4 Icons & High Legibility */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-medium">
+        {/* Zone 2: Navigation — consistent icon-sm + caption type */}
+        <nav className="hidden lg:flex items-center gap-2" aria-label="Główna nawigacja">
           {[
             { id: 'simulator', label: t('nav.simulator'), icon: Tv },
             { id: 'editor', label: t('nav.editor'), icon: Layers },
@@ -417,17 +419,19 @@ export default function App() {
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs xl:text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`ui-nav-item shrink-0 ${
                   isActive
-                    ? 'bg-cyan-500/15 text-cyan-300 shadow-[inset_0_0_12px_rgba(6,182,212,0.15)] border border-cyan-500/40'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900 border border-transparent'
+                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-900'
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                <Icon className={`ui-icon-sm shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} aria-hidden="true" />
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="ESP32 Wykryty" />
+                  <span className="ui-status-dot" title="ESP32 Wykryty" aria-label="ESP32 wykryty" />
                 )}
               </button>
             );
@@ -435,12 +439,17 @@ export default function App() {
         </nav>
 
         {/* Zone 3: Font Scale Accessibility & Actions */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="ui-cluster shrink-0 gap-2.5">
           {/* Global Font Scale Accessibility Controller */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl" title="Dostosuj wielkość czcionki w aplikacji (UI Accessibility)">
-            <Type className="w-4 h-4 text-cyan-400 ml-1 shrink-0" />
-            <span className="hidden xl:inline text-slate-400 text-xs font-medium mr-0.5">Tekst:</span>
-            <div className="flex items-center gap-0.5">
+          <div
+            className="ui-cluster gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl"
+            role="group"
+            aria-label="Wielkość tekstu UI"
+            title="Dostosuj wielkość czcionki w aplikacji (UI Accessibility)"
+          >
+            <Type className="ui-icon-sm text-cyan-400 ml-1 shrink-0" aria-hidden="true" />
+            <span className="hidden xl:inline text-slate-400 ui-type-micro font-medium mr-0.5">Tekst:</span>
+            <div className="ui-cluster gap-1">
               {[
                 { key: 'normal', label: 'A', title: 'Standardowa wielkość (100%)' },
                 { key: 'large', label: 'A+', title: 'Powiększona czcionka (115%)' },
@@ -450,9 +459,10 @@ export default function App() {
                   key={scale.key}
                   type="button"
                   onClick={() => setUiFontScale(scale.key as any)}
-                  className={`px-2 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+                  aria-pressed={uiFontScale === scale.key}
+                  className={`min-h-8 min-w-8 px-2 py-1 rounded-lg ui-type-micro font-mono font-bold transition-colors ui-focus-ring ${
                     uiFontScale === scale.key
-                      ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                      ? 'bg-cyan-500 text-slate-950'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                   }`}
                   title={scale.title}
@@ -464,49 +474,65 @@ export default function App() {
           </div>
 
           {/* Import / Export JSON Buttons */}
-          <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
+          <div className="ui-cluster gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
             <button
               type="button"
               onClick={() => void handleCheckUpdates()}
               disabled={updateBusy}
               title="Sprawdź aktualizacje aplikacji (Tauri)"
-              className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5 px-2.5 font-medium disabled:opacity-50"
+              aria-label={t('action.update')}
+              className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ui-type-micro font-medium disabled:opacity-50 gap-1.5 px-2.5"
             >
-              <RefreshCw className={`w-4 h-4 ${updateBusy ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} />
-              <span className="hidden xl:inline text-xs font-mono">{t('action.update')}</span>
+              <RefreshCw className={`ui-icon-sm ${updateBusy ? 'animate-spin text-cyan-400' : 'text-slate-400'}`} aria-hidden="true" />
+              <span className="hidden xl:inline font-mono">{t('action.update')}</span>
             </button>
-            <label className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1" title="Importuj projekt (.esp32studio / .json)">
-              <Upload className="w-4 h-4" />
+            <label
+              className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+              title="Importuj projekt (.esp32studio / .json)"
+              aria-label="Importuj projekt"
+            >
+              <Upload className="ui-icon-sm" aria-hidden="true" />
               <input type="file" accept=".esp32studio,.json,application/json" onChange={handleImportProjectJson} className="hidden" />
             </label>
             <button
+              type="button"
               onClick={handleExportProjectJson}
               title="Zapisz projekt (.esp32studio) — skojarzony z aplikacją na Windows"
-              className="p-2 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1.5 px-2.5 font-medium"
+              aria-label={t('action.exportProject')}
+              className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ui-type-micro font-medium gap-1.5 px-2.5"
             >
-              {projectExported ? <Check className="w-4 h-4 text-emerald-400" /> : <FileJson className="w-4 h-4 text-slate-400" />}
-              <span className="hidden xl:inline text-xs font-mono">{t('action.exportProject')}</span>
+              {projectExported ? (
+                <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />
+              ) : (
+                <FileJson className="ui-icon-sm text-slate-400" aria-hidden="true" />
+              )}
+              <span className="hidden xl:inline font-mono">{t('action.exportProject')}</span>
             </button>
           </div>
 
           {/* Primary Action: Download INO */}
           <button
+            type="button"
             onClick={() => handleDownloadInoQuick()}
-            className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl text-xs xl:text-sm transition-all shadow-md shadow-cyan-500/20 whitespace-nowrap shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+            className="ui-cluster gap-2 min-h-10 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl ui-type-caption transition-transform whitespace-nowrap shrink-0 active:scale-[0.98] ui-focus-ring"
             title="Pobierz gotowy szkic .ino do bezpośredniego wgrania przez Arduino IDE"
           >
-            <Download className="w-4 h-4 stroke-[2.5]" />
+            <Download className="ui-icon-sm" aria-hidden="true" />
             <span>Pobierz .INO</span>
           </button>
         </div>
       </header>
 
       {showUpdateBanner && updateResult && (
-        <div className="border-b border-cyan-500/30 bg-cyan-950/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs text-cyan-100">
+        <div
+          className="border-b border-cyan-500/30 bg-cyan-950/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="ui-type-caption text-cyan-100 min-w-0 ui-token">
             {updateResult.status === 'available' && (
               <span>
-                {t('update.available')} <strong className="font-mono">{updateResult.version}</strong>
+                {t('update.available')} <strong className="font-mono ui-token">{updateResult.version}</strong>
                 <span className="text-cyan-300/80"> ({updateChannel})</span>
                 {updateResult.body ? ` — ${updateResult.body.slice(0, 120)}` : ''}
               </span>
@@ -519,13 +545,13 @@ export default function App() {
               <span>{t('update.unavailable')}</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="ui-cluster gap-2">
             {updateResult.status === 'available' && (
               <button
                 type="button"
                 disabled={updateBusy}
                 onClick={() => void handleInstallUpdate()}
-                className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold disabled:opacity-50"
+                className="min-h-9 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 ui-type-caption font-bold disabled:opacity-50 ui-focus-ring"
               >
                 {t('update.install')}
               </button>
@@ -533,115 +559,141 @@ export default function App() {
             <button
               type="button"
               onClick={() => setShowUpdateBanner(false)}
-              className="p-1.5 rounded-lg text-cyan-300/80 hover:bg-cyan-900/50"
+              className="ui-btn-icon text-cyan-300/80 hover:bg-cyan-900/50"
               title="Zamknij"
+              aria-label="Zamknij banner aktualizacji"
             >
-              <X className="w-4 h-4" />
+              <X className="ui-icon-sm" aria-hidden="true" />
             </button>
           </div>
         </div>
       )}
 
       {importNotice && (
-        <div className="border-b border-emerald-500/30 bg-emerald-950/30 px-4 py-2 text-xs text-emerald-100 flex items-center justify-between gap-3">
-          <span>{importNotice}</span>
-          <button type="button" onClick={() => setImportNotice(null)} className="p-1 rounded hover:bg-emerald-900/50">
-            <X className="w-3.5 h-3.5" />
+        <div
+          className="border-b border-emerald-500/30 bg-emerald-950/30 px-4 py-2 ui-type-caption text-emerald-100 flex items-center justify-between gap-3"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="min-w-0 ui-token">{importNotice}</span>
+          <button
+            type="button"
+            onClick={() => setImportNotice(null)}
+            className="ui-btn-icon hover:bg-emerald-900/50"
+            aria-label="Zamknij powiadomienie"
+          >
+            <X className="ui-icon-sm" aria-hidden="true" />
           </button>
         </div>
       )}
 
       {openFileNotice && (
-        <div className="border-b border-amber-500/30 bg-amber-950/30 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs text-amber-100">
+        <div className="border-b border-amber-500/30 bg-amber-950/30 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3" role="status">
+          <div className="ui-type-caption text-amber-100 min-w-0">
             {openFileNotice.kind === 'sketch' && (
               <span>
-                Otwarto szkic <strong className="font-mono">{openFileNotice.fileName}</strong>
-                {' '}({openFileNotice.path}). Studio nie nadpisuje .ino — użyj Generatora C++ / Flash helpera dla .bin.
+                Otwarto szkic <strong className="font-mono ui-token">{openFileNotice.fileName}</strong>
+                {' '}(<span className="font-mono ui-token">{openFileNotice.path}</span>). Studio nie nadpisuje .ino — użyj Generatora C++ / Flash helpera dla .bin.
               </span>
             )}
             {openFileNotice.kind === 'firmware' && (
               <span>
-                Plik firmware <strong className="font-mono">{openFileNotice.fileName}</strong> — przejdź do USB → Flash helper i wskaż ten plik.
+                Plik firmware <strong className="font-mono ui-token">{openFileNotice.fileName}</strong> — przejdź do USB → Flash helper i wskaż ten plik.
               </span>
             )}
             {openFileNotice.kind !== 'sketch' && openFileNotice.kind !== 'firmware' && (
               <span>
-                Otwarto: <strong className="font-mono">{openFileNotice.fileName}</strong>
+                Otwarto: <strong className="font-mono ui-token">{openFileNotice.fileName}</strong>
               </span>
             )}
           </div>
-          <button type="button" onClick={() => setOpenFileNotice(null)} className="p-1.5 rounded-lg text-amber-200/80 hover:bg-amber-900/40">
-            <X className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={() => setOpenFileNotice(null)}
+            className="ui-btn-icon text-amber-200/80 hover:bg-amber-900/40"
+            aria-label="Zamknij powiadomienie pliku"
+          >
+            <X className="ui-icon-sm" aria-hidden="true" />
           </button>
         </div>
       )}
 
       {/* Arduino IDE Quick Guide / Download Confirmation Modal */}
       {downloadInoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-slate-900 border border-cyan-500/30 rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-5 relative">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="ino-download-title">
+          <div className="bg-slate-900 border border-cyan-500/30 rounded-2xl max-w-lg w-full p-6 flex flex-col gap-5 relative">
             <button
+              type="button"
               onClick={() => setDownloadInoModal(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="absolute top-4 right-4 ui-btn-icon text-slate-400 hover:text-white hover:bg-slate-800"
+              aria-label="Zamknij"
             >
-              <X className="w-4 h-4" />
+              <X className="ui-icon-sm" aria-hidden="true" />
             </button>
 
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
-                <FileCode className="w-5 h-5" />
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0" aria-hidden="true">
+                <FileCode className="ui-icon-md" aria-hidden="true" />
               </div>
-              <div className="flex flex-col gap-1">
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <div className="ui-stack gap-1 min-w-0">
+                <h3 id="ino-download-title" className="ui-type-title text-white flex flex-wrap items-center gap-2">
                   <span>Pobrano Szkic Arduino IDE</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     .ino
                   </span>
                 </h3>
-                <p className="text-xs text-slate-400 font-mono">
-                  Plik: <span className="text-cyan-300 font-bold">{customSketchName}.ino</span>
+                <p className="ui-type-caption text-slate-400 font-mono">
+                  Plik: <span className="text-cyan-300 font-bold ui-token">{customSketchName}.ino</span>
                 </p>
               </div>
             </div>
 
             {/* Step-by-Step Arduino IDE Instructions */}
-            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3 text-xs">
-              <div className="font-semibold text-slate-200 flex items-center gap-2 text-xs">
-                <FolderArchive className="w-4 h-4 text-amber-400" />
+            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl ui-stack gap-3 ui-type-caption">
+              <div className="font-semibold text-slate-200 ui-cluster gap-2">
+                <FolderArchive className="ui-icon-sm text-amber-400" aria-hidden="true" />
                 <span>Ważna zasada Arduino IDE:</span>
               </div>
-              <p className="text-slate-300 leading-relaxed text-xs">
+              <p className="text-slate-300 leading-relaxed">
                 Arduino IDE wymaga, aby plik szkicu znajdował się w folderze o identycznej nazwie:
               </p>
-              <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800 text-xs font-mono text-cyan-300 select-all">
-                📁 {customSketchName}/<br />
-                &nbsp;&nbsp;&nbsp;└── 📄 {customSketchName}.ino
+              <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800 font-mono text-cyan-300 select-all ui-token">
+                <div className="ui-cluster gap-2">
+                  <FolderArchive className="ui-icon-sm text-slate-500" aria-hidden="true" />
+                  <span>{customSketchName}/</span>
+                </div>
+                <div className="pl-6 ui-cluster gap-2 mt-1">
+                  <span className="text-slate-600" aria-hidden="true">└──</span>
+                  <FileCode className="ui-icon-sm text-slate-500" aria-hidden="true" />
+                  <span>{customSketchName}.ino</span>
+                </div>
               </div>
-              <p className="text-slate-400 text-xs leading-relaxed">
+              <p className="text-slate-400 leading-relaxed">
                 (Jeśli otworzysz plik bezpośrednio, Arduino IDE wyświetli okienko z zapytaniem i utworzy ten folder automatycznie).
               </p>
             </div>
 
             {/* Custom file name quick re-download */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-300 font-medium">
+            <div className="ui-stack gap-1.5">
+              <label htmlFor="sketch-name-input" className="ui-type-caption text-slate-300 font-medium">
                 Zmień nazwę pliku przed wgraniem (opcjonalnie):
               </label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 focus-within:border-cyan-500">
+              <div className="ui-cluster gap-2">
+                <div className="flex-1 flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 focus-within:border-cyan-500 min-w-0">
                   <input
+                    id="sketch-name-input"
                     type="text"
                     value={customSketchName}
                     onChange={(e) => setCustomSketchName(e.target.value)}
-                    className="bg-transparent text-xs font-mono text-slate-200 focus:outline-none w-full"
+                    className="bg-transparent ui-type-caption font-mono text-slate-200 focus:outline-none w-full ui-focus-ring rounded"
                     placeholder="esp32_display_studio"
                   />
-                  <span className="text-slate-500 text-xs font-mono select-none">.ino</span>
+                  <span className="text-slate-500 ui-type-caption font-mono select-none">.ino</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleDownloadInoQuick(customSketchName)}
-                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-colors shrink-0"
+                  className="min-h-10 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg ui-type-caption font-medium border border-slate-700 transition-colors shrink-0 ui-focus-ring"
                 >
                   Pobierz Ponownie
                 </button>
@@ -649,28 +701,35 @@ export default function App() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
               <button
+                type="button"
                 onClick={handleCopyInoToClipboard}
-                className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs transition-colors border border-slate-700 font-medium"
+                className="ui-cluster gap-2 min-h-10 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg ui-type-caption border border-slate-700 font-medium ui-focus-ring"
               >
-                {copiedIno ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {copiedIno ? (
+                  <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />
+                ) : (
+                  <Copy className="ui-icon-sm" aria-hidden="true" />
+                )}
                 <span>{copiedIno ? 'Skopiowano!' : 'Kopiuj C++'}</span>
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="ui-cluster gap-2">
                 <button
+                  type="button"
                   onClick={() => {
                     setDownloadInoModal(false);
                     setActiveTab('code');
                   }}
-                  className="px-3 py-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-medium"
+                  className="min-h-10 px-3 py-2 ui-type-caption text-cyan-400 hover:text-cyan-300 font-medium ui-focus-ring rounded-lg"
                 >
                   Zobacz cały kod i biblioteki &rarr;
                 </button>
                 <button
+                  type="button"
                   onClick={() => setDownloadInoModal(false)}
-                  className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors"
+                  className="min-h-10 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg ui-type-caption transition-colors ui-focus-ring"
                 >
                   Gotowe
                 </button>
@@ -681,88 +740,39 @@ export default function App() {
       )}
 
       {/* Mobile Navigation Bar */}
-      <div className="lg:hidden flex items-center overflow-x-auto gap-1.5 p-2 bg-slate-900 border-b border-slate-800 text-xs scrollbar-none">
-        <button
-          onClick={() => setActiveTab('simulator')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'simulator' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Tv className="w-4 h-4" />
-          <span>{t('nav.mobile.simulator')}</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('editor')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'editor' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>{t('nav.mobile.editor')}</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('usb')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'usb' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Usb className="w-4 h-4" />
-          <span>{t('nav.mobile.usb')}</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('automations')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'automations' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Zap className="w-4 h-4" />
-          <span>{t('nav.mobile.automations')}</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('integrations')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'integrations' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <CloudSun className="w-4 h-4" />
-          <span>{t('nav.mobile.integrations')}</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('code')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'code' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Code className="w-4 h-4" />
-          <span>{t('nav.mobile.code')}</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`px-3 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-medium transition-colors ${
-            activeTab === 'settings' 
-              ? 'bg-cyan-500 text-slate-950 font-semibold shadow-sm' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-800'
-          }`}
-        >
-          <Settings2 className="w-4 h-4" />
-          <span>{t('nav.mobile.settings')}</span>
-        </button>
-      </div>
+      <nav className="lg:hidden flex items-center overflow-x-auto gap-2 p-2 bg-slate-900 border-b border-slate-800 scrollbar-none" aria-label="Nawigacja mobilna">
+        {[
+          { id: 'simulator' as const, label: t('nav.mobile.simulator'), icon: Tv },
+          { id: 'editor' as const, label: t('nav.mobile.editor'), icon: Layers },
+          { id: 'usb' as const, label: t('nav.mobile.usb'), icon: Usb },
+          { id: 'automations' as const, label: t('nav.mobile.automations'), icon: Zap },
+          { id: 'integrations' as const, label: t('nav.mobile.integrations'), icon: CloudSun },
+          { id: 'code' as const, label: t('nav.mobile.code'), icon: Code },
+          { id: 'settings' as const, label: t('nav.mobile.settings'), icon: Settings2 },
+        ].map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              aria-current={isActive ? 'page' : undefined}
+              className={`ui-nav-item shrink-0 ${
+                isActive
+                  ? 'bg-cyan-500 text-slate-950 border-cyan-400'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Icon className="ui-icon-sm" aria-hidden="true" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Main Workspace Stage */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main id="main-workspace" className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 ui-section ui-section-gap">
         {activeTab === 'simulator' && (
           <HardwareSimulator
             display={displayConfig}
@@ -859,7 +869,7 @@ export default function App() {
       </main>
 
       {/* Footer Strip */}
-      <footer className="border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-500 font-mono">
+      <footer className="border-t border-slate-900 py-4 px-6 text-center ui-type-micro text-slate-500 font-mono">
         {t('footer.copy')}
       </footer>
     </div>
