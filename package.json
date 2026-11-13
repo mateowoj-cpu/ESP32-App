@@ -1,7 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.2.6",
+  "version": "0.2.7",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -23,7 +23,8 @@
     "test:board-sync": "tsx src/platform/boardSync.test.ts",
     "test:ota": "tsx src/platform/ota.test.ts",
     "test:telemetry": "tsx src/platform/telemetry.test.ts",
-    "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run test:board-sync && npm run test:ota && npm run test:telemetry && npm run build"
+    "test:marketplace": "tsx src/platform/marketplace.test.ts",
+    "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run test:board-sync && npm run test:ota && npm run test:telemetry && npm run test:marketplace && npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

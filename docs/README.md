@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.6** (Faza 13). Następna: [Faza 14](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.7** (Faza 14). Następna: [Faza 15](./roadmap-next.md).
 
 Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 
@@ -11,7 +11,7 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 | [user-guide.md](./user-guide.md) | Użytkownik | Przeglądarka vs desktop, USB, Build/Flash/OTA, ustawienia |
 | [developer-setup.md](./developer-setup.md) | Contributor | Node/Rust, skrypty, smoke, CI |
 | [architecture.md](./architecture.md) | Contributor | Warstwy UI / platform / Tauri |
-| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–13 + plan 14+ |
+| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–14 + plan 15+ |
 
 ## Desktop Windows
 
@@ -20,8 +20,8 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 | [windows-desktop.md](./windows-desktop.md) | Tray, autostart, i18n PL/EN, kanały update |
 | [windows-installer.md](./windows-installer.md) | NSIS / MSI, WebView2 |
 | [windows-drivers.md](./windows-drivers.md) | CH340 / CP210x / Espressif USB |
-| [windows-signing.md](./windows-signing.md) | Authenticode (sekrety człowieka) |
-| [windows-smartscreen.md](./windows-smartscreen.md) | Checklist SmartScreen |
+| [windows-signing.md](./windows-signing.md) | Authenticode OV/EV (sekrety człowieka) |
+| [windows-smartscreen.md](./windows-smartscreen.md) | Checklist SmartScreen + EV |
 | [windows-updater.md](./windows-updater.md) | Auto-update Tauri (stable / beta) |
 | [windows-winget.md](./windows-winget.md) | Szablony + draft CI (publish = human) |
 | [windows-deep-link.md](./windows-deep-link.md) | `esp32studio://`, `.esp32studio` |
@@ -41,7 +41,8 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 
 | Dokument | Temat |
 |----------|--------|
-| [desktop-unix.md](./desktop-unix.md) | Serial/flash/OTA na Unix + CI AppImage/deb/dmg |
+| [desktop-unix.md](./desktop-unix.md) | Serial/flash/OTA na Unix + CI AppImage/deb/dmg + multi-platform latest.json |
+| [macos-notarize.md](./macos-notarize.md) | Opcjonalny codesign / notarize (sekrety człowieka) |
 | [telemetry.md](./telemetry.md) | Opt-in telemetria (domyślnie off, EN) |
 
 ## Co nie jest „gotowe na sklep”
@@ -50,6 +51,6 @@ Te elementy są w repo jako **szablony / checklisty** — nie oznaczają live dy
 
 - Live merge do `microsoft/winget-pkgs` (draft CI OK; review człowieka)
 - Authenticode EV / reputacja SmartScreen (sekrety + podpis poza agentem)
-- Notaryzacja macOS / submit do store (backlog Faza 14)
+- Notaryzacja macOS / submit do store (docs + opcjonalne CI hooks; sekrety Apple u właściciela)
 
 Powrót do [README głównego](../README.md).

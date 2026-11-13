@@ -19,6 +19,7 @@ import { HardwareSimulator } from './components/HardwareSimulator';
 import { VisualEditor } from './components/VisualEditor';
 import { AutomationStudio } from './components/AutomationStudio';
 import { IntegrationsView } from './components/IntegrationsView';
+import { MarketplaceView } from './components/MarketplaceView';
 import { SettingsView } from './components/SettingsView';
 import { CodeView } from './components/CodeView';
 import { UsbDetectorView } from './components/UsbDetectorView';
@@ -51,12 +52,20 @@ import {
   Type,
   RefreshCw,
   FileJson,
+  Store,
 } from 'lucide-react';
 
 export default function App() {
   const { t, updateChannel, diagnosticsEnabled } = useLocale();
   const [activeTab, setActiveTab] = useState<
-    'editor' | 'simulator' | 'usb' | 'automations' | 'integrations' | 'code' | 'settings'
+    | 'editor'
+    | 'simulator'
+    | 'usb'
+    | 'automations'
+    | 'marketplace'
+    | 'integrations'
+    | 'code'
+    | 'settings'
   >('simulator');
 
   // UI Font Size Accessibility Scaling
@@ -409,6 +418,7 @@ export default function App() {
             { id: 'editor', label: t('nav.editor'), icon: Layers },
             { id: 'usb', label: t('nav.usb'), icon: Usb, badge: detectedChip },
             { id: 'automations', label: t('nav.automations'), icon: Zap },
+            { id: 'marketplace', label: t('nav.marketplace'), icon: Store },
             { id: 'integrations', label: t('nav.integrations'), icon: CloudSun },
             { id: 'code', label: t('nav.code'), icon: Code },
             { id: 'settings', label: t('nav.settings'), icon: Settings2 },
@@ -747,6 +757,7 @@ export default function App() {
           { id: 'editor' as const, label: t('nav.mobile.editor'), icon: Layers },
           { id: 'usb' as const, label: t('nav.mobile.usb'), icon: Usb },
           { id: 'automations' as const, label: t('nav.mobile.automations'), icon: Zap },
+          { id: 'marketplace' as const, label: t('nav.mobile.marketplace'), icon: Store },
           { id: 'integrations' as const, label: t('nav.mobile.integrations'), icon: CloudSun },
           { id: 'code' as const, label: t('nav.mobile.code'), icon: Code },
           { id: 'settings' as const, label: t('nav.mobile.settings'), icon: Settings2 },
@@ -836,6 +847,16 @@ export default function App() {
             screens={screens}
             simState={simState}
             setSimState={setSimState}
+          />
+        )}
+
+        {activeTab === 'marketplace' && (
+          <MarketplaceView
+            screens={screens}
+            setScreens={setScreens}
+            activeScreenIndex={activeScreenIndex}
+            automations={automations}
+            setAutomations={setAutomations}
           />
         )}
 

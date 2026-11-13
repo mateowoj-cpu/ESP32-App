@@ -1,6 +1,6 @@
 # Architektura — ESP32 Display Studio
 
-Przegląd warstw aplikacji w stanie **0.2.6** (po Fazach 0–13). Szczegóły wdrożeniowe: dokumenty tematyczne w tym katalogu.
+Przegląd warstw aplikacji w stanie **0.2.7** (po Fazach 0–14). Szczegóły wdrożeniowe: dokumenty tematyczne w tym katalogu.
 
 ## Stack
 
@@ -68,6 +68,8 @@ W Tauri `main.tsx` rejestruje adapter native przed renderem. Komendy Rust: `list
 4. **OTA** — `espota` lub HTTP `/update` + [mDNS](./windows-ota.md)
 
 Cache profilu płytki (`boardCache`) i sync community (`boardSync` ← `public/board-profiles/community.json`) przyspieszają kolejne flashowanie.
+
+Marketplace społeczności (`marketplace.ts` ← `public/marketplace/`) importuje wyłącznie JSON widgetów / reguł z walidacją schematu — bez `eval` / arbitrary code.
 
 ## Preferencje lokalne
 

@@ -1,0 +1,29 @@
+{
+  "format": "esp32studio-marketplace",
+  "kind": "widget_pack",
+  "version": 1,
+  "id": "pc-mini",
+  "title": "PC mini monitor",
+  "author": "ESP32 Display Studio",
+  "widgets": [
+    {
+      "id": "m_pc",
+      "type": "pc_monitor",
+      "x": 4,
+      "y": 4,
+      "width": 120,
+      "height": 36
+    },
+    {
+      "id": "m_cpu_spark",
+      "type": "sparkline",
+      "x": 4,
+      "y": 42,
+      "width": 120,
+      "height": 18,
+      "label": "CPU",
+      "binding": "cpu",
+      "historyPoints": 16
+    }
+  ]
+}

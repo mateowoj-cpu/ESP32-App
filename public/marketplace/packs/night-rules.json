@@ -1,0 +1,24 @@
+{
+  "format": "esp32studio-marketplace",
+  "kind": "rule_pack",
+  "version": 1,
+  "id": "night-rules",
+  "title": "Night rules",
+  "author": "ESP32 Display Studio",
+  "rules": [
+    {
+      "id": "m_rule_dim",
+      "name": "Dim at 22:00",
+      "enabled": true,
+      "trigger": { "type": "time_is", "time": "22:00" },
+      "action": { "type": "set_brightness", "brightness": 15 }
+    },
+    {
+      "id": "m_rule_night_pir",
+      "name": "Night PIR → sleep mood",
+      "enabled": true,
+      "trigger": { "type": "pir_motion", "gpioPin": 14 },
+      "action": { "type": "set_pet_mood", "petMood": "sleep" }
+    }
+  ]
+}

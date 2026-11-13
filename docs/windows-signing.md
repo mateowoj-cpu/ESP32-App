@@ -4,8 +4,8 @@ Cel: podpisane instalatory **NSIS** (`.exe`) i **MSI**, żeby SmartScreen nie bl
 
 ## Wymagania
 
-- Certyfikat **Code Signing** (OV lub EV; EV szybciej buduje reputację SmartScreen)
-- Plik `.pfx` (lub certyfikat w magazynie Windows / Azure Key Vault)
+- Certyfikat **Code Signing** (OV lub **EV**; EV szybciej buduje reputację SmartScreen — zob. [windows-smartscreen.md](./windows-smartscreen.md))
+- Plik `.pfx` (OV) **albo** certyfikat na tokenie USB / HSM (typowe dla EV)
 - Windows z **signtool.exe** (Windows SDK / VS Build Tools) — standardowa ścieżka Tauri
 
 ## Konfiguracja w projekcie
@@ -25,7 +25,7 @@ npm run tauri:build -- --config src-tauri/tauri.windows-signing.local.json
 
 `tauri.windows-signing.local.json` jest w `.gitignore`.
 
-## Lokalny podpis (magazyn certyfikatów)
+## Lokalny podpis (magazyn certyfikatów / OV .pfx)
 
 1. Zaimportuj `.pfx` do magazynu **Current User → Personal**.
 2. Odczytaj thumbprint:
@@ -42,13 +42,25 @@ npm run tauri:build -- --config src-tauri/tauri.windows-signing.local.json
 
 Tauri wywoła `signtool` dla binariów i instalatorów.
 
+## EV na tokenie / HSM (Faza 14)
+
+1. Podłącz token USB (lub skonfiguruj HSM) i odblokuj PIN **tylko** na maszynie build.
+2. Upewnij się, że certyfikat pojawia się w `Cert:\CurrentUser\My` z EKU *Code Signing*.
+3. Thumbprint → `tauri.windows-signing.local.json` (nigdy do gita).
+4. GitHub-hosted runners **nie** widzą lokalnego tokena USB:
+   - self-hosted Windows runner z podłączonym tokenem, **albo**
+   - cloud HSM / Key Vault wspierany przez CA + sekrety CI zgodne z polityką CA.
+5. Po buildzie zweryfikuj Subject (nazwa organizacji EV) i timestamp.
+
+Pełna checklista reputacji / SmartScreen: [windows-smartscreen.md](./windows-smartscreen.md).
+
 ## Sekrety GitHub Actions
 
 Workflow `.github/workflows/windows-release.yml` oczekuje (opcjonalnie):
 
 | Secret | Opis |
 |--------|------|
-| `WINDOWS_CERTIFICATE` | Zawartość `.pfx` zakodowana w Base64 |
+| `WINDOWS_CERTIFICATE` | Zawartość `.pfx` zakodowana w Base64 (głównie OV; EV często nie eksportuje się do `.pfx`) |
 | `WINDOWS_CERTIFICATE_PASSWORD` | Hasło do `.pfx` |
 | `WINDOWS_CERTIFICATE_THUMBPRINT` | SHA1 thumbprint (bez spacji) |
 
@@ -79,6 +91,6 @@ Pełna checklista monitoringu reputacji (po signed winget / Releases): [windows-
 
 ## Powiązane
 
-- [SmartScreen / reputacja](./windows-smartscreen.md)
+- [SmartScreen / reputacja / EV](./windows-smartscreen.md)
 - [Sterowniki USB](./windows-drivers.md)
 - [Instalator Windows](./windows-installer.md)

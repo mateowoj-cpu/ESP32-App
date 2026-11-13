@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "source": "esp32-display-studio/marketplace",
+  "entries": [
+    {
+      "id": "pack-status-strip",
+      "kind": "widget_pack",
+      "title": "Pasek statusu (zegar + Wi‑Fi)",
+      "titleEn": "Status strip (clock + Wi‑Fi)",
+      "description": "Kompaktowy zegar 24h i ikona baterii/Wi‑Fi pod OLED 128×64.",
+      "descriptionEn": "Compact 24h clock and battery/Wi‑Fi icon for 128×64 OLED.",
+      "author": "ESP32 Display Studio",
+      "tags": ["oled", "clock", "status"],
+      "packId": "status-strip"
+    },
+    {
+      "id": "pack-night-rules",
+      "kind": "rule_pack",
+      "title": "Reguły nocne",
+      "titleEn": "Night rules",
+      "description": "Przyciemnienie po 22:00 i sen zwierzaka przy ruchu w nocy.",
+      "descriptionEn": "Dim after 22:00 and sleep-mood pet on night motion.",
+      "author": "ESP32 Display Studio",
+      "tags": ["automation", "night", "brightness"],
+      "packId": "night-rules"
+    },
+    {
+      "id": "pack-pc-mini",
+      "kind": "widget_pack",
+      "title": "Mini monitor PC",
+      "titleEn": "PC mini monitor",
+      "description": "Widget pc_monitor + sparkline CPU — dane z agenta PC.",
+      "descriptionEn": "pc_monitor widget + CPU sparkline — data from the PC agent.",
+      "author": "ESP32 Display Studio",
+      "tags": ["pc", "monitor", "sparkline"],
+      "packId": "pc-mini"
+    }
+  ]
+}

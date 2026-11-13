@@ -28,7 +28,15 @@ function assert(cond: unknown, msg: string): asserts cond {
 }
 
 assert(isCommunityCatalog(BUNDLED_COMMUNITY_CATALOG), 'bundled catalog valid');
-assert(BUNDLED_COMMUNITY_CATALOG.profiles.length >= 3, 'has profiles');
+assert(BUNDLED_COMMUNITY_CATALOG.profiles.length >= 10, 'expanded profiles (Faza 14)');
+assert(
+  BUNDLED_COMMUNITY_CATALOG.profiles.some(p => p.vid === '1a86' && p.pid === '55d4'),
+  'CH9102 profile',
+);
+assert(
+  BUNDLED_COMMUNITY_CATALOG.profiles.some(p => p.vid === '0403' && p.pid === '6015'),
+  'FT231X profile',
+);
 
 const n = applyCommunityCatalog(BUNDLED_COMMUNITY_CATALOG);
 assert(n === BUNDLED_COMMUNITY_CATALOG.profiles.length, 'applied count');

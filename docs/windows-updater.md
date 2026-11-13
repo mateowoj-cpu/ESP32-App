@@ -13,7 +13,7 @@ ESP32 Display Studio używa `tauri-plugin-updater`.
 3. Po pobraniu aktualizacji restartuje się (`plugin-process` → `relaunch`).
 
 W UI: przycisk **Update** w nagłówku (tylko shell Tauri) oraz banner, gdy jest nowa wersja.
-Aktualna linia produktowa: **0.2.6** (Windows updater; nakładki Unix mają `createUpdaterArtifacts: false` — zob. [desktop-unix.md](./desktop-unix.md)).
+Aktualna linia produktowa: **0.2.7** (Windows updater; nakładki Unix mają `createUpdaterArtifacts: false` — multi-platform `latest.json` gdy signed: [desktop-unix.md](./desktop-unix.md) + `scripts/unix/build-multiplatform-latest-json.sh`).
 
 ## Klucze podpisu updatera
 
