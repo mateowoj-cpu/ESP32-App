@@ -1,6 +1,6 @@
 [package]
 name = "esp32-display-studio"
-version = "0.2.2"
+version = "0.2.3"
 description = "ESP32 Display Studio — desktop shell with native serial (COM) support"
 authors = ["ESP32 Display Studio"]
 license = ""
@@ -29,3 +29,4 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-autostart = "2"
 serialport = "4.6"
 url = "2"
+mdns-sd = "0.21"

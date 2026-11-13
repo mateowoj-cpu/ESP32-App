@@ -1,10 +1,14 @@
 //! Wi‑Fi OTA upload via espota.py (ArduinoOTA) or HTTP Update endpoint.
+//! Also exposes LAN mDNS discovery for ArduinoOTA / HTTP Update hosts.
 
+use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::thread;
+use std::time::{Duration, Instant};
 
+use mdns_sd::{ServiceDaemon, ServiceEvent};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
@@ -24,6 +28,18 @@ pub struct OtaResult {
     pub exit_code: Option<i32>,
     pub method: String,
     pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscoveredOtaHost {
+    /// Preferred connect target: IPv4 if known, otherwise hostname (e.g. `esp32-display.local`).
+    pub host: String,
+    pub hostname: String,
+    pub addresses: Vec<String>,
+    pub port: u16,
+    pub service: String,
+    pub fullname: String,
 }
 
 fn which(bin: &str) -> Option<PathBuf> {
@@ -243,6 +259,102 @@ pub fn get_ota_tool_info(app: AppHandle) -> OtaToolInfo {
             hint: "Brak espota.py. Uruchom scripts/windows/Install-PlatformIoSidecar.ps1 albo zainstaluj rdzeń Arduino ESP32.".into(),
         },
     }
+}
+
+fn trim_mdns_dot(s: &str) -> String {
+    s.trim_end_matches('.').to_string()
+}
+
+fn preferred_host(hostname: &str, addresses: &[String]) -> String {
+    if let Some(ipv4) = addresses.iter().find(|a| a.parse::<std::net::Ipv4Addr>().is_ok()) {
+        return ipv4.clone();
+    }
+    if !hostname.is_empty() {
+        return hostname.to_string();
+    }
+    addresses.first().cloned().unwrap_or_default()
+}
+
+/// Browse LAN for ArduinoOTA (`_arduino._tcp`) and HTTP Update (`_http._tcp`) services.
+#[tauri::command]
+pub fn discover_ota_hosts(timeout_ms: Option<u64>) -> Result<Vec<DiscoveredOtaHost>, String> {
+    let timeout = Duration::from_millis(timeout_ms.unwrap_or(2800).clamp(800, 12_000));
+    let mdns = ServiceDaemon::new().map_err(|e| format!("mDNS daemon: {e}"))?;
+
+    let service_types = ["_arduino._tcp.local.", "_http._tcp.local."];
+    let mut receivers = Vec::new();
+    for ty in service_types {
+        match mdns.browse(ty) {
+            Ok(rx) => receivers.push((ty.to_string(), rx)),
+            Err(e) => {
+                // One service type failing should not abort the whole scan.
+                eprintln!("mDNS browse {ty}: {e}");
+            }
+        }
+    }
+    if receivers.is_empty() {
+        let _ = mdns.shutdown();
+        return Err("Nie udało się uruchomić przeglądania mDNS.".into());
+    }
+
+    let mut found: BTreeMap<String, DiscoveredOtaHost> = BTreeMap::new();
+    let deadline = Instant::now() + timeout;
+
+    while Instant::now() < deadline {
+        let mut progressed = false;
+        for (_ty, rx) in &receivers {
+            match rx.recv_timeout(Duration::from_millis(40)) {
+                Ok(ServiceEvent::ServiceResolved(info)) => {
+                    progressed = true;
+                    if !info.is_valid() {
+                        continue;
+                    }
+                    let hostname = trim_mdns_dot(&info.host);
+                    let mut addresses: Vec<String> = info
+                        .addresses
+                        .iter()
+                        .filter(|a| a.is_ipv4())
+                        .map(|a| a.to_string())
+                        .collect();
+                    if addresses.is_empty() {
+                        addresses = info.addresses.iter().map(|a| a.to_string()).collect();
+                    }
+                    addresses.sort();
+                    addresses.dedup();
+                    let host = preferred_host(&hostname, &addresses);
+                    if host.is_empty() {
+                        continue;
+                    }
+                    let key = format!("{host}:{}", info.port);
+                    found.insert(
+                        key,
+                        DiscoveredOtaHost {
+                            host,
+                            hostname,
+                            addresses,
+                            port: info.port,
+                            service: trim_mdns_dot(&info.ty_domain),
+                            fullname: trim_mdns_dot(&info.fullname),
+                        },
+                    );
+                }
+                Ok(_) => {
+                    progressed = true;
+                }
+                Err(_) => {}
+            }
+        }
+        if !progressed {
+            thread::sleep(Duration::from_millis(30));
+        }
+    }
+
+    for ty in service_types {
+        let _ = mdns.stop_browse(ty);
+    }
+    let _ = mdns.shutdown();
+
+    Ok(found.into_values().collect())
 }
 
 #[tauri::command]

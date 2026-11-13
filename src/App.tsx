@@ -515,10 +515,11 @@ export default function App() {
             type="button"
             onClick={() => handleDownloadInoQuick()}
             className="ui-cluster gap-2 min-h-10 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl ui-type-caption transition-transform whitespace-nowrap shrink-0 active:scale-[0.98] ui-focus-ring"
-            title="Pobierz gotowy szkic .ino do bezpośredniego wgrania przez Arduino IDE"
+            title={t('action.downloadIno')}
+            aria-label={t('action.downloadIno')}
           >
             <Download className="ui-icon-sm" aria-hidden="true" />
-            <span>Pobierz .INO</span>
+            <span>{t('action.downloadIno')}</span>
           </button>
         </div>
       </header>

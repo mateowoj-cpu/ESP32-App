@@ -17,6 +17,15 @@ export interface OtaResult {
   message: string;
 }
 
+export interface DiscoveredOtaHost {
+  host: string;
+  hostname: string;
+  addresses: string[];
+  port: number;
+  service: string;
+  fullname: string;
+}
+
 export async function getOtaToolInfo(): Promise<OtaToolInfo> {
   return invoke<OtaToolInfo>('get_ota_tool_info');
 }
@@ -35,6 +44,11 @@ export async function flashOtaFirmware(opts: {
     firmwarePath: opts.firmwarePath,
     method: opts.method ?? 'espota',
   });
+}
+
+/** Browse LAN for `_arduino._tcp` / `_http._tcp` (desktop Tauri only). */
+export async function discoverOtaHosts(timeoutMs = 2800): Promise<DiscoveredOtaHost[]> {
+  return invoke<DiscoveredOtaHost[]>('discover_ota_hosts', { timeoutMs });
 }
 
 export async function listenOtaLog(onLine: (line: string) => void): Promise<UnlistenFn> {

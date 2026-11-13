@@ -428,7 +428,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
               <Wifi className="ui-icon-sm text-emerald-400" aria-hidden="true" />
-              Sieć Wi-Fi i Parametry Systemowe ESP32
+              {t('settings.wifiSection')}
             </h3>
             <span className="ui-type-micro font-mono text-emerald-400">
               {system.cpuFrequencyMhz} MHz
@@ -438,7 +438,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* Wi-Fi Configuration */}
           <div className="flex flex-col gap-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Nazwa Sieci (SSID Wi-Fi):</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.wifiSsid')}</label>
               <input
                 type="text"
                 value={system.wifiSsid}
@@ -448,7 +448,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Hasło Wi-Fi:</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.wifiPassword')}</label>
               <input
                 type="password"
                 value={system.wifiPassword}
@@ -458,7 +458,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Nazwa mDNS w sieci lokalnej:</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.mdnsName')}</label>
               <input
                 type="text"
                 value={system.mdnsName}
@@ -466,7 +466,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono"
                 placeholder="esp32-display"
               />
-              <span className="ui-type-micro text-slate-500 mt-1 block">Dostępny w przeglądarce jako: http://{system.mdnsName}.local</span>
+              <span className="ui-type-micro text-slate-400 mt-1 block">{t('settings.mdnsHint')} http://{system.mdnsName}.local</span>
             </div>
 
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col gap-3">
@@ -511,12 +511,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col gap-3">
             <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
               <Moon className="ui-icon-sm text-indigo-400" aria-hidden="true" />
-              Zarządzanie Energią i Uśpienie (Deep Sleep)
+              {t('settings.power')}
             </h4>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-400">Czas do uśpienia przy braku ruchu:</span>
+                <span className="text-slate-400">{t('settings.idleSleep')}</span>
                 <span className="font-mono text-indigo-300 font-bold">
                   {system.deepSleepTimeoutSec === 0 ? 'Wyłączone (Zawsze włączony)' : `${system.deepSleepTimeoutSec} sekund`}
                 </span>

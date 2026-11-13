@@ -17,7 +17,7 @@ use diagnostics::{
 };
 use firmware_build::{build_firmware_from_sketch, get_firmware_toolchain_info};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
-use ota::{flash_ota_firmware, get_ota_tool_info};
+use ota::{discover_ota_hosts, flash_ota_firmware, get_ota_tool_info};
 use pc_agent::{get_pc_agent_info, start_pc_agent, stop_pc_agent, PcAgentState};
 use serial::{
     close_serial_port, list_serial_ports, open_serial_port, write_serial_port, SerialManager,
@@ -74,6 +74,7 @@ pub fn run() {
             build_firmware_from_sketch,
             get_ota_tool_info,
             flash_ota_firmware,
+            discover_ota_hosts,
             get_desktop_status,
             set_app_autostart,
             set_pc_agent_autostart,

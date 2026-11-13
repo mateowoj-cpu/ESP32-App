@@ -775,7 +775,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-sm">
         {/* Screen Tabs */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs text-slate-500 font-mono mr-2">Ekrany:</span>
+          <span className="text-xs text-slate-500 font-mono mr-2">{t('editor.screens')}</span>
           {screens.map((screen, idx) => (
             <button
               key={screen.id}
@@ -798,7 +798,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             onClick={handleAddScreen}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium"
             title="Dodaj nowy pusty ekran"
-           aria-label="Dodaj nowy pusty ekran">
+           aria-label={t('editor.addScreen')}>
             <Plus className="ui-icon-sm" aria-hidden="true" />
             <span>{t('editor.newScreen')}</span>
           </button>
@@ -829,10 +829,12 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
           </button>
           {screens.length > 1 && (
             <button
+              type="button"
               onClick={handleDeleteScreen}
-              className="p-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 rounded-lg text-xs transition-colors"
-              title="Usuń obecny ekran"
-             aria-label="Usuń obecny ekran">
+              className="cursor-pointer p-2 min-h-10 min-w-10 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 rounded-lg text-xs transition-colors"
+              title={t('editor.deleteScreen')}
+              aria-label={t('editor.deleteScreen')}
+            >
               <Trash2 className="ui-icon-sm" aria-hidden="true" />
             </button>
           )}
@@ -844,8 +846,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
         <div className="p-3 bg-slate-900/90 border border-cyan-800/40 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs font-mono shadow-md">
           <div className="flex items-center gap-2">
             <RadioTower className="ui-icon-sm text-cyan-400 animate-pulse" aria-hidden="true" />
-            <span className="text-slate-200 font-bold">Podręczna Telemetria Symulatora:</span>
-            <span className="ui-type-micro text-slate-400 hidden sm:inline">(Zmień wartość, aby sprawdzić reakcję elementów graficznych na żywo)</span>
+            <span className="text-slate-200 font-bold">{t('editor.liveDock')}</span>
+            <span className="ui-type-micro text-slate-400 hidden sm:inline">{t('editor.liveDockHint')}</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -954,8 +956,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Eye className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Cyber-Zwierzak (Oczy)</div>
-                <div className="ui-type-micro text-slate-400">Reaguje na ruch PIR i czujniki światła</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.pet')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.petHint')}</div>
               </div>
             </button>
 
@@ -967,8 +969,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Type className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Tekst / Czujnik Live</div>
-                <div className="ui-type-micro text-slate-400">Bindowanie z pirActive, lux, temp, pot</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.text')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.textHint')}</div>
               </div>
             </button>
 
@@ -980,8 +982,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Clock className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Zegar NTP & Data</div>
-                <div className="ui-type-micro text-slate-400">Czas rzeczywisty z symulatora</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.clock')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.clockHint')}</div>
               </div>
             </button>
 
@@ -993,8 +995,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Gauge className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Wskaźnik / Gauge</div>
-                <div className="ui-type-micro text-slate-400">Wizualizuje LDR, ADC lub Temperaturę</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.gauge')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.gaugeHint')}</div>
               </div>
             </button>
 
@@ -1006,8 +1008,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Activity className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Pasek Postępu Czujnika</div>
-                <div className="ui-type-micro text-slate-400">Horyzontalne wypełnienie analogowe</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.progress')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.progressHint')}</div>
               </div>
             </button>
 
@@ -1019,8 +1021,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Activity className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Wykres Liniowy</div>
-                <div className="ui-type-micro text-slate-400">Historia pomiarów czujnika</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.sparkline')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.sparklineHint')}</div>
               </div>
             </button>
 
@@ -1032,8 +1034,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <CloudSun className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Widget Pogody</div>
-                <div className="ui-type-micro text-slate-400">Prognoza z ikoną i temperaturą</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.weather')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.weatherHint')}</div>
               </div>
             </button>
 
@@ -1045,8 +1047,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Cpu className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Monitor Zasobów PC</div>
-                <div className="ui-type-micro text-slate-400">CPU, RAM, GPU i Dysk na żywo</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.pc')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.pcHint')}</div>
               </div>
             </button>
 
@@ -1058,8 +1060,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <List className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Menu Nawigacyjne</div>
-                <div className="ui-type-micro text-slate-400">Lista pozycji dla przycisków lub enkodera</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.menu')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.menuHint')}</div>
               </div>
             </button>
 
@@ -1071,8 +1073,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <Wifi className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-xs font-medium text-slate-200">Status WiFi & Baterii</div>
-                <div className="ui-type-micro text-slate-400">Pasek baterii i ikona zasięgu</div>
+                <div className="text-xs font-medium text-slate-200">{t('editor.widget.status')}</div>
+                <div className="ui-type-micro text-slate-400">{t('editor.widget.statusHint')}</div>
               </div>
             </button>
           </div>
