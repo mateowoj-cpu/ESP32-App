@@ -32,6 +32,9 @@ assert(translate('en', 'usb.board.esp32_devkit_v1.name').includes('DevKit'), 'en
 assert(translate('en', 'nav.marketplace').toLowerCase().includes('marketplace'), 'en marketplace nav');
 assert(translate('pl', 'market.sandboxHint').toLowerCase().includes('sandbox'), 'pl market sandbox');
 assert(translate('en', 'market.importJson').toLowerCase().includes('import'), 'en market import');
+assert(translate('en', 'market.signed').toLowerCase().includes('sign'), 'en market signed');
+assert(translate('pl', 'flash.err.needPortBin').toLowerCase().includes('com'), 'pl flash need port');
+assert(translate('en', 'usb.identify.s3.f0').toLowerCase().includes('usb'), 'en identify s3');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

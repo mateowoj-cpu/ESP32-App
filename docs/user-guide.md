@@ -1,6 +1,6 @@
 # Przewodnik użytkownika — ESP32 Display Studio
 
-Krótki przewodnik po aplikacji **0.2.7**. Szczegóły techniczne (sterowniki, OTA, winget) są w dokumentach powiązanych.
+Krótki przewodnik po aplikacji **0.2.8**. Szczegóły techniczne (sterowniki, OTA, winget) są w dokumentach powiązanych.
 
 ## Dwa tryby uruchomienia
 

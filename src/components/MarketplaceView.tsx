@@ -20,6 +20,7 @@ import {
   exportWidgetPack,
   fetchMarketplaceCatalog,
   loadMarketplacePack,
+  loadTrustedPublishersFromJson,
   parseMarketplacePackJson,
   sandboxImportRules,
   sandboxImportWidgets,
@@ -63,6 +64,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
     setBusy(true);
     setError(null);
     try {
+      await loadTrustedPublishersFromJson();
       const { catalog: next, remote: isRemote } = await fetchMarketplaceCatalog();
       setCatalog(next);
       setRemote(isRemote);
@@ -314,6 +316,11 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
                   {tag}
                 </span>
               ))}
+              {entry.requireSignature && (
+                <span className="ui-type-micro px-1.5 py-0.5 rounded border border-emerald-800/60 text-emerald-400/90">
+                  {t('market.signed')}
+                </span>
+              )}
             </div>
             <button
               type="button"

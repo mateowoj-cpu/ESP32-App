@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.7** (Faza 14). Następna: [Faza 15](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.8** (Faza 15). Następna: [Faza 16+](./roadmap-next.md).
 
 Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 
@@ -11,7 +11,8 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 | [user-guide.md](./user-guide.md) | Użytkownik | Przeglądarka vs desktop, USB, Build/Flash/OTA, ustawienia |
 | [developer-setup.md](./developer-setup.md) | Contributor | Node/Rust, skrypty, smoke, CI |
 | [architecture.md](./architecture.md) | Contributor | Warstwy UI / platform / Tauri |
-| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–14 + plan 15+ |
+| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–15 + plan 16+ |
+| [marketplace-plugin-api.md](./marketplace-plugin-api.md) | Contributor | Manifest v2, podpisy, allowlista hostów |
 
 ## Desktop Windows
 
@@ -41,9 +42,10 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 
 | Dokument | Temat |
 |----------|--------|
-| [desktop-unix.md](./desktop-unix.md) | Serial/flash/OTA na Unix + CI AppImage/deb/dmg + multi-platform latest.json |
+| [desktop-unix.md](./desktop-unix.md) | Serial/flash/OTA na Unix + CI AppImage/deb/dmg + signed updater overlays |
 | [macos-notarize.md](./macos-notarize.md) | Opcjonalny codesign / notarize (sekrety człowieka) |
-| [telemetry.md](./telemetry.md) | Opt-in telemetria (domyślnie off, EN) |
+| [telemetry.md](./telemetry.md) | Opt-in telemetria + retencja / opt-out / collector ops |
+| [marketplace-plugin-api.md](./marketplace-plugin-api.md) | Plugin API marketplace (sandbox, podpisy) |
 
 ## Co nie jest „gotowe na sklep”
 
@@ -52,5 +54,6 @@ Te elementy są w repo jako **szablony / checklisty** — nie oznaczają live dy
 - Live merge do `microsoft/winget-pkgs` (draft CI OK; review człowieka)
 - Authenticode EV / reputacja SmartScreen (sekrety + podpis poza agentem)
 - Notaryzacja macOS / submit do store (docs + opcjonalne CI hooks; sekrety Apple u właściciela)
+- Live collector telemetrii + publisher private keys marketplace
 
 Powrót do [README głównego](../README.md).

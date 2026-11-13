@@ -1,6 +1,6 @@
 # Architektura — ESP32 Display Studio
 
-Przegląd warstw aplikacji w stanie **0.2.7** (po Fazach 0–14). Szczegóły wdrożeniowe: dokumenty tematyczne w tym katalogu.
+Przegląd warstw aplikacji w stanie **0.2.8** (po Fazach 0–15). Szczegóły wdrożeniowe: dokumenty tematyczne w tym katalogu.
 
 ## Stack
 
@@ -69,7 +69,7 @@ W Tauri `main.tsx` rejestruje adapter native przed renderem. Komendy Rust: `list
 
 Cache profilu płytki (`boardCache`) i sync community (`boardSync` ← `public/board-profiles/community.json`) przyspieszają kolejne flashowanie.
 
-Marketplace społeczności (`marketplace.ts` ← `public/marketplace/`) importuje wyłącznie JSON widgetów / reguł z walidacją schematu — bez `eval` / arbitrary code.
+Marketplace społeczności (`marketplace.ts` ← `public/marketplace/`) importuje wyłącznie JSON widgetów / reguł z walidacją schematu (v1/v2), opcjonalnym podpisem Ed25519 i allowlistą hostów — bez `eval` / arbitrary code ([marketplace-plugin-api.md](./marketplace-plugin-api.md)).
 
 ## Preferencje lokalne
 
@@ -87,11 +87,11 @@ Przechowywane w `localStorage` (bez konta użytkownika), m.in.:
 |-----|-------------------|
 | Windows NSIS/MSI + updater | `.github/workflows/windows-release.yml`, `tauri.conf.json` |
 | penv PlatformIO (opcjonalnie) | `windows-penv-artifact.yml` + `Stage-PlatformIoPenv.ps1` |
-| Linux / macOS | `desktop-unix-release.yml` + `tauri.linux.json` / `tauri.macos.json` |
+| Linux / macOS | `desktop-unix-release.yml` + `tauri.linux.json` / `tauri.macos.json` (+ `*.signed.json` gdy sekret) |
 | Draft winget | `winget-draft.yml` + `scripts/winget/prepare-draft-manifest.sh` |
 | Smoke | `smoke.yml` → `npm run smoke` |
 
-Updater Windows czyta `latest.json` / `latest-beta.json` z GitHub Releases. Nakładki Unix wyłączają updater artifacts (`createUpdaterArtifacts: false`) — zob. [desktop-unix.md](./desktop-unix.md).
+Updater Windows czyta `latest.json` / `latest-beta.json` z GitHub Releases. Nakładki Unix domyślnie mają `createUpdaterArtifacts: false`; signed overlays włączają artefakty gdy `TAURI_SIGNING_PRIVATE_KEY` — zob. [desktop-unix.md](./desktop-unix.md).
 
 ## Granice odpowiedzialności
 

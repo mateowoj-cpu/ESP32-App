@@ -201,7 +201,20 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         psramSizeMb: 8,
         macAddress: '78:E3:6D:A4:B2:1C',
         baudRate: 115200,
-        features: ['Wbudowany kontroler USB OTG', 'Wi-Fi 802.11 b/g/n', 'Bluetooth 5.0 BLE & Mesh', 'Akceleracja AI / DSP', 'Dotyk pojemnościowy do 14 pinów'],
+        featureKeys: [
+          'usb.identify.s3.f0',
+          'usb.identify.s3.f1',
+          'usb.identify.s3.f2',
+          'usb.identify.s3.f3',
+          'usb.identify.s3.f4',
+        ],
+        features: [
+          'Wbudowany kontroler USB OTG',
+          'Wi-Fi 802.11 b/g/n',
+          'Bluetooth 5.0 BLE & Mesh',
+          'Akceleracja AI / DSP',
+          'Dotyk pojemnościowy do 14 pinów',
+        ],
         rawBootLog: `ESP-ROM:esp32s3-20210327\nBuild:Mar 27 2021\nrst:0x1 (POWERON),boot:0x2b (SPI_FAST_FLASH_BOOT)\nSPIWP:0xee\nmode:DIO, clock div:1\nload:0x3fce3808,len:0x44c\nload:0x403c9700,len:0xbe4\nentry 0x403c98d4\nI (24) boot: Chip: ESP32-S3 (QFN56) rev.0, Flash: 16MB, PSRAM: 8MB\n[ESP32 Display Studio] Gotowy do pracy!`,
       };
     } else if (pidHex === '0x1002') {
@@ -218,7 +231,18 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         psramSizeMb: 0,
         macAddress: '54:43:B2:8F:C0:E1',
         baudRate: 115200,
-        features: ['Nowoczesny rdzeń open-source RISC-V', 'Wi-Fi 4 + BLE 5.0', 'Niski pobór energii (Ultra-Low Power)', 'Wbudowany konwerter USB JTAG/Serial'],
+        featureKeys: [
+          'usb.identify.c3.f0',
+          'usb.identify.c3.f1',
+          'usb.identify.c3.f2',
+          'usb.identify.c3.f3',
+        ],
+        features: [
+          'Nowoczesny rdzeń open-source RISC-V',
+          'Wi-Fi 4 + BLE 5.0',
+          'Niski pobór energii (Ultra-Low Power)',
+          'Wbudowany konwerter USB JTAG/Serial',
+        ],
         rawBootLog: `ESP-ROM:esp32c3-api1-20210207\nBuild:Feb  7 2021\nrst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)\nSPIWP:0xee\nmode:DIO, clock div:1\nload:0x3fcd6100,len:0x1b4\nload:0x403ce000,len:0x6b0\nentry 0x403ce000\nI (22) boot: Chip: ESP32-C3 (QFN32) rev.3, Flash: 4MB\n[ESP32 Display Studio] Gotowy do pracy!`,
       };
     } else if (pidHex === '0x1003') {
@@ -235,7 +259,18 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         psramSizeMb: 0,
         macAddress: '68:B6:B3:32:1A:F4',
         baudRate: 115200,
-        features: ['Wi-Fi 6 (802.11ax)', 'Bluetooth 5.3 Low Energy', 'IEEE 802.15.4 (Zigbee 3.0 & Thread)', 'Wsparcie protokołu Smart Home Matter'],
+        featureKeys: [
+          'usb.identify.c6.f0',
+          'usb.identify.c6.f1',
+          'usb.identify.c6.f2',
+          'usb.identify.c6.f3',
+        ],
+        features: [
+          'Wi-Fi 6 (802.11ax)',
+          'Bluetooth 5.3 Low Energy',
+          'IEEE 802.15.4 (Zigbee 3.0 & Thread)',
+          'Wsparcie protokołu Smart Home Matter',
+        ],
         rawBootLog: `ESP-ROM:esp32c6-20220919\nBuild:Sep 19 2022\nrst:0x1 (POWERON),boot:0xc\nChip: ESP32-C6 (QFN40) rev.0, Flash: 8MB\n[ESP32 Display Studio] Wi-Fi 6 + Matter gotowy!`,
       };
     } else if (pidHex === '0x0002') {
@@ -252,7 +287,18 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         psramSizeMb: 2,
         macAddress: '70:04:1D:55:E8:90',
         baudRate: 115200,
-        features: ['USB On-The-Go (OTG 1.1)', 'Wi-Fi 802.11 b/g/n', 'Pojemnościowy dotyk 14x GPIO', 'Interfejs LCD 8-bit równoległy'],
+        featureKeys: [
+          'usb.identify.s2.f0',
+          'usb.identify.s2.f1',
+          'usb.identify.s2.f2',
+          'usb.identify.s2.f3',
+        ],
+        features: [
+          'USB On-The-Go (OTG 1.1)',
+          'Wi-Fi 802.11 b/g/n',
+          'Pojemnościowy dotyk 14x GPIO',
+          'Interfejs LCD 8-bit równoległy',
+        ],
         rawBootLog: `ESP-ROM:esp32s2-rc4-20191025\nBuild:Oct 25 2019\nrst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)\nChip: ESP32-S2 rev.0, Flash: 4MB\n[ESP32 Display Studio] Gotowy!`,
       };
     }
@@ -273,7 +319,20 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
       psramSizeMb: 0,
       macAddress: '24:0A:C4:58:3B:A0',
       baudRate: 115200,
-      features: ['Dwurdzeniowy procesor 240MHz', 'Wi-Fi 802.11 b/g/n', 'Bluetooth Classic 4.2 + BLE', '10x pojemnościowe piny dotykowe Touch0-Touch9', 'Sprzętowe I2C, SPI, UART, PWM'],
+      featureKeys: [
+        'usb.identify.cp210x.f0',
+        'usb.identify.cp210x.f1',
+        'usb.identify.cp210x.f2',
+        'usb.identify.cp210x.f3',
+        'usb.identify.cp210x.f4',
+      ],
+      features: [
+        'Dwurdzeniowy procesor 240MHz',
+        'Wi-Fi 802.11 b/g/n',
+        'Bluetooth Classic 4.2 + BLE',
+        '10x pojemnościowe piny dotykowe Touch0-Touch9',
+        'Sprzętowe I2C, SPI, UART, PWM',
+      ],
       rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nconfigsip: 0, SPIWP:0xee\nclk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00\nmode:DIO, clock div:1\nload:0x3fff0030,len:1184\nload:0x40078000,len:13824\nho 0 tail 12 room 4\nload:0x40080400,len:3880\nentry 0x40080640\nI (45) boot: Chip: ESP32-D0WD-V3 (revision 3), Flash: 4MB\n[ESP32 Display Studio] Uruchamianie...`,
     };
   }
@@ -293,7 +352,16 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
       psramSizeMb: 0,
       macAddress: 'A4:CF:12:89:D4:50',
       baudRate: 115200,
-      features: ['Popularny moduł NodeMCU ESP32', 'Wi-Fi + BLE', 'Obsługa ekranów I2C OLED SSD1306 i LCD SPI'],
+      featureKeys: [
+        'usb.identify.ch340.f0',
+        'usb.identify.ch340.f1',
+        'usb.identify.ch340.f2',
+      ],
+      features: [
+        'Popularny moduł NodeMCU ESP32',
+        'Wi-Fi + BLE',
+        'Obsługa ekranów I2C OLED SSD1306 i LCD SPI',
+      ],
       rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nmode:DIO, clock div:1\nload:0x3fff0030,len:1184\nload:0x40078000,len:13824\nentry 0x40080640\nI (42) boot: ESP32 Chip Revision 1, Flash: 4MB\n[ESP32 Display Studio] Uruchamianie...`,
     };
   }
@@ -312,6 +380,11 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
     psramSizeMb: 0,
     macAddress: '3C:71:BF:10:20:30',
     baudRate: 115200,
+    featureKeys: [
+      'usb.identify.generic.f0',
+      'usb.identify.generic.f1',
+      'usb.identify.generic.f2',
+    ],
     features: ['Wi-Fi 802.11 b/g/n', 'Bluetooth / BLE', 'GPIO, ADC, DAC, I2C, SPI'],
     rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13\nChip: Generic ESP32\n[ESP32 Display Studio] Połączono przez port USB Serial`,
   };

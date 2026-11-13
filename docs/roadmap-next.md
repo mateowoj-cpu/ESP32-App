@@ -1,25 +1,30 @@
-# Kolejny krok po Fazie 14
+# Kolejny krok po Fazie 15
 
-Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 15+ jako ukończonych** bez merge’a funkcji.
+Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 16+ jako ukończonych** bez merge’a funkcji.
 
-## Stan po Fazie 14
+## Stan po Fazie 15
 
-- **Community marketplace** — katalog widgetów / reguł (`public/marketplace/`), import/export JSON z walidacją schematu, sandbox bez `eval` / arbitrary code (`src/platform/marketplace.ts`, UI `MarketplaceView`)
-- **EV code signing + SmartScreen** — rozszerzone checklisty [windows-smartscreen.md](./windows-smartscreen.md) / [windows-signing.md](./windows-signing.md) (sekrety człowieka; brak fałszywych certów w repo)
-- **Community board catalog** — więcej VID:PID / konserwatywne offsety flash w `public/board-profiles/community.json` (+ bundled mirror); źródła udokumentowane; wpisy PLACEHOLDER oznaczone
-- **Unix release polish** — [macos-notarize.md](./macos-notarize.md); AppImage smoke `workflow_dispatch` only; skrypt multi-platform `latest.json` gdy signed
-- Linia wersji **0.2.7**
-
-## Faza 15 (rekomendowana)
-
-1. **Plugin API marketplace** — manifest schema v2, podpis paczek community, remote pack fetch z allowlistą hostów
-2. **Live winget** — merge do `microsoft/winget-pkgs` po pierwszym signed `v0.2.7` (SHA już liczy CI draft)
-3. **Telemetry collector ops** — endpoint `VITE_TELEMETRY_ENDPOINT` + retencja / opt-out docs
-4. **Unix updater artifacts** — opcjonalne `createUpdaterArtifacts: true` na signed tagach + attach multi-platform `latest.json` z CI
+- **Plugin API marketplace** — manifest v2, Ed25519 podpisy paczek (data-only), allowlista hostów remote fetch (`src/platform/marketplace.ts`, [marketplace-plugin-api.md](./marketplace-plugin-api.md))
+- **Live winget prep** — szablon `0.2.8` + checklista merge do `microsoft/winget-pkgs` (SHA z CI draft; merge = human) ([windows-winget.md](./windows-winget.md))
+- **Telemetry ops** — `VITE_TELEMETRY_ENDPOINT`, retencja / opt-out / checklista collectora ([telemetry.md](./telemetry.md))
+- **Unix updater polish** — `tauri.*.signed.json` (`createUpdaterArtifacts: true` gdy sekret), job multi-platform `latest.json` bez wymyślanych signature
+- **i18n** — FlashHelper statusy + `identifyEsp32` feature keys (PL/EN)
+- Linia wersji **0.2.8**
 
 ## Faza 16+ (backlog)
 
-- Głębsze i18n pozostałych hardkodów (FlashHelper statusy PL, identifyEsp32 feature strings)
+- Głębsze i18n pozostałych hardkodów (`chipModel` / `architecture` / boot-log PL w `identifyEsp32`, tytuły FlashHelper)
 - Self-hosted Windows runner + EV token / cloud HSM w `windows-release.yml`
 - macOS notarize kroki w CI gdy sekrety Apple obecne (dziś docs-only hooks)
 - Board catalog: community PR flow + automatyczna walidacja offsetów vs esptool chip family
+- Live publisher keys w `public/marketplace/publishers.json` + signed community packs w katalogu
+- Live merge `winget-pkgs` + hosting collectora telemetrii (ops poza repo)
+
+## Human-only (nie blokuje Fazy 15 w kodzie)
+
+- Authenticode / EV + SmartScreen reputation
+- Apple notarize secrets
+- `WINGET_GITHUB_TOKEN` + merge PR w `microsoft/winget-pkgs`
+- `TAURI_SIGNING_PRIVATE_KEY` na signed Unix updater artifacts
+- Live `VITE_TELEMETRY_ENDPOINT` + retencja po stronie collectora
+- Marketplace publisher private keys (offline keygen)

@@ -467,6 +467,8 @@ export interface ConnectedEsp32Info {
   macAddress: string;
   baudRate: number;
   features: string[];
+  /** Optional i18n keys; UI should prefer these over raw `features` when present. */
+  featureKeys?: string[];
   rawBootLog?: string;
 }
 

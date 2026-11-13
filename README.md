@@ -1,13 +1,13 @@
 # ESP32 Display Studio
 
 [![Smoke](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml/badge.svg)](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml)
-[![Version](https://img.shields.io/badge/version-0.2.7-blue)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.2.8-blue)](./package.json)
 [![Tauri](https://img.shields.io/badge/desktop-Tauri%202-24C8DB)](./src-tauri/)
 [![i18n](https://img.shields.io/badge/i18n-PL%20%7C%20EN-informational)](./src/i18n/)
 
 **Wizualne studio UI OLED/LCD dla ESP32** — symulator sprzętowy, edytor ekranów, automatyzacje, wykrywanie USB (Web Serial / natywny COM), Build → Flash → OTA, agent PC oraz generator C++ (Arduino / PlatformIO).
 
-Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Wersja **0.2.7** (Fazy 0–14) · Następna: [Faza 15](./docs/roadmap-next.md)
+Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Wersja **0.2.8** (Fazy 0–15) · Następna: [Faza 16+](./docs/roadmap-next.md)
 
 > **EN (short):** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and (on desktop) flash over USB or OTA Wi‑Fi with a Tauri 2 shell.
 
@@ -153,7 +153,7 @@ APP_URL=http://localhost:3000
 # VITE_TELEMETRY_ENDPOINT=  # tylko build z opt-in telemetry (docs/telemetry.md)
 ```
 
-Sekrety Authenticode / updater / winget — wyłącznie GitHub Secrets lub lokalny sejf (zob. `.env.example` komentarze).
+Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secrets lub lokalny sejf (zob. `.env.example` komentarze).
 
 ## Status i roadmapa
 
@@ -164,8 +164,9 @@ Sekrety Authenticode / updater / winget — wyłącznie GitHub Secrets lub lokal
 | 9–11 | Sidecar PIO, OTA + mDNS, głębokie i18n, penv CI, winget path |
 | **12** | SmartScreen checklist, ZIP diagnostyki, board sync, Unix parity (`0.2.5`) |
 | **13** | CI AppImage/deb/dmg, opt-in telemetria, draft winget SHA, i18n pinout/USB (`0.2.6`) |
-| **14 (obecna)** | Marketplace (JSON sandbox), EV/SmartScreen docs, board catalog, Unix polish (`0.2.7`) |
-| **15 (następna)** | Plugin API marketplace, live winget, telemetry ops, signed Unix updater |
+| **14** | Marketplace (JSON sandbox), EV/SmartScreen docs, board catalog, Unix polish (`0.2.7`) |
+| **15 (obecna)** | Plugin API marketplace v2, live winget prep, telemetry ops, signed Unix updater (`0.2.8`) |
+| **16+** | Głębsze i18n, EV HSM CI, Apple notarize CI, board PR validation, live publishers |
 
 Szczegóły: [docs/roadmap-next.md](./docs/roadmap-next.md).
 

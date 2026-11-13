@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "note": "Ed25519 public keys only. Generate with scripts/marketplace/sign-pack.mjs --generate. Never commit private keys.",
+  "publishers": []
+}
