@@ -2,6 +2,7 @@
 //! Also exposes LAN mDNS discovery for ArduinoOTA / HTTP Update hosts.
 
 use std::collections::BTreeMap;
+use std::sync::Mutex;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -28,6 +29,107 @@ pub struct OtaResult {
     pub exit_code: Option<i32>,
     pub method: String,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<String>,
+}
+
+static OTA_CHILD_PID: Mutex<Option<u32>> = Mutex::new(None);
+
+fn set_ota_pid(pid: Option<u32>) {
+    if let Ok(mut guard) = OTA_CHILD_PID.lock() {
+        *guard = pid;
+    }
+}
+
+fn kill_pid(pid: u32) -> Result<(), String> {
+    if cfg!(windows) {
+        let status = Command::new("taskkill")
+            .args(["/PID", &pid.to_string(), "/T", "/F"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map_err(|e| format!("taskkill failed: {e}"))?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(format!("taskkill exit {:?}", status.code()))
+        }
+    } else {
+        let status = Command::new("kill")
+            .args(["-TERM", &pid.to_string()])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map_err(|e| format!("kill failed: {e}"))?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(format!("kill exit {:?}", status.code()))
+        }
+    }
+}
+
+fn classify_ota_error(message: &str, exit_code: Option<i32>) -> &'static str {
+    let lower = message.to_lowercase();
+    if lower.contains("cancel") || lower.contains("anulow") {
+        return "cancelled";
+    }
+    if lower.contains("timeout") || lower.contains("timed out") || lower.contains("przekroczy") {
+        return "timeout";
+    }
+    if lower.contains("password") || lower.contains("auth") || lower.contains("unauthorized")
+        || lower.contains("401") || lower.contains("hasło") || lower.contains("haslo")
+    {
+        return "auth";
+    }
+    if lower.contains("espota") && (lower.contains("nie znaleziono") || lower.contains("not found") || lower.contains("brak"))
+        || lower.contains("curl") && lower.contains("path")
+    {
+        return "tool";
+    }
+    if lower.contains("network") || lower.contains("connection") || lower.contains("timed")
+        || lower.contains("unreachable") || lower.contains("refused") || lower.contains("no route")
+        || exit_code == Some(7) || exit_code == Some(28)
+    {
+        return "network";
+    }
+    "generic"
+}
+
+fn ota_fail(method: &str, message: String, exit_code: Option<i32>) -> OtaResult {
+    let code = classify_ota_error(&message, exit_code).to_string();
+    OtaResult {
+        ok: false,
+        exit_code,
+        method: method.into(),
+        message,
+        error_code: Some(code),
+    }
+}
+
+fn ota_ok(method: &str, message: String, exit_code: Option<i32>) -> OtaResult {
+    OtaResult {
+        ok: true,
+        exit_code,
+        method: method.into(),
+        message,
+        error_code: None,
+    }
+}
+
+#[tauri::command]
+pub fn cancel_ota_firmware() -> Result<bool, String> {
+    let pid = OTA_CHILD_PID
+        .lock()
+        .map_err(|_| "OTA lock poisoned".to_string())?
+        .take();
+    match pid {
+        Some(pid) => {
+            kill_pid(pid)?;
+            Ok(true)
+        }
+        None => Ok(false),
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -365,6 +467,7 @@ pub fn flash_ota_firmware(
     password: Option<String>,
     firmware_path: String,
     method: Option<String>,
+    timeout_ms: Option<u64>,
 ) -> Result<OtaResult, String> {
     let host = host.trim().to_string();
     if host.is_empty() {
@@ -376,9 +479,10 @@ pub fn flash_ota_firmware(
     let firmware = validate_firmware_path(&firmware_path)?;
     let port = port.unwrap_or(3232);
     let method = method.unwrap_or_else(|| "espota".into()).to_lowercase();
+    let timeout = Duration::from_millis(timeout_ms.unwrap_or(180_000).clamp(5_000, 900_000));
 
     if method == "http" || method == "http-update" {
-        return flash_ota_http(&app, &host, port, &firmware);
+        return flash_ota_http(&app, &host, port, &firmware, timeout);
     }
 
     let (cmd, source) = resolve_espota_command(&app).ok_or_else(|| {
@@ -443,31 +547,71 @@ pub fn flash_ota_firmware(
         }
     });
 
-    let status = child.wait().map_err(|e| format!("espota wait failed: {e}"))?;
+    set_ota_pid(Some(child.id()));
+
+    let status = match wait_child_with_timeout(&mut child, timeout, &app, "espota") {
+        Ok(status) => status,
+        Err(message) => {
+            set_ota_pid(None);
+            let _ = t_out.join();
+            let _ = t_err.join();
+            emit_log(&app, message.clone());
+            return Ok(ota_fail("espota", message, None));
+        }
+    };
+    set_ota_pid(None);
     let _ = t_out.join();
     let _ = t_err.join();
     let code = status.code();
 
     if status.success() {
         emit_log(&app, "OTA (espota) zakończone sukcesem.".to_string());
-        Ok(OtaResult {
-            ok: true,
-            exit_code: code,
-            method: "espota".into(),
-            message: format!("Firmware wgrany OTA na {host}:{port}."),
-        })
+        Ok(ota_ok(
+            "espota",
+            format!("Firmware wgrany OTA na {host}:{port}."),
+            code,
+        ))
     } else {
         let message = format!(
             "espota zakończył się kodem {:?}. Sprawdź IP, hasło OTA i czy szkic ma ArduinoOTA.begin().",
             code
         );
         emit_log(&app, message.clone());
-        Ok(OtaResult {
-            ok: false,
-            exit_code: code,
-            method: "espota".into(),
-            message,
-        })
+        Ok(ota_fail("espota", message, code))
+    }
+}
+
+fn wait_child_with_timeout(
+    child: &mut std::process::Child,
+    timeout: Duration,
+    app: &AppHandle,
+    label: &str,
+) -> Result<std::process::ExitStatus, String> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => return Ok(status),
+            Ok(None) => {
+                if Instant::now() >= deadline {
+                    let pid = child.id();
+                    let _ = kill_pid(pid);
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    set_ota_pid(None);
+                    let message = format!("{label} timeout after {}s", timeout.as_secs());
+                    emit_log(app, message.clone());
+                    return Err(message);
+                }
+                // Cooperative cancel: PID cleared by cancel_ota_firmware after kill
+                if OTA_CHILD_PID.lock().ok().and_then(|g| *g).is_none() {
+                    let _ = child.kill();
+                    let status = child.wait().map_err(|e| format!("{label} wait after cancel: {e}"))?;
+                    return Ok(status);
+                }
+                thread::sleep(Duration::from_millis(120));
+            }
+            Err(e) => return Err(format!("{label} try_wait failed: {e}")),
+        }
     }
 }
 
@@ -476,6 +620,7 @@ fn flash_ota_http(
     host: &str,
     port: u16,
     firmware: &Path,
+    timeout: Duration,
 ) -> Result<OtaResult, String> {
     // Prefer curl (Windows 10+ / macOS / Linux). Endpoint matches generated sketch /update.
     let url = format!("http://{host}:{port}/update");
@@ -529,30 +674,35 @@ fn flash_ota_http(
         }
     });
 
-    let status = child.wait().map_err(|e| format!("curl wait failed: {e}"))?;
+    set_ota_pid(Some(child.id()));
+    let status = match wait_child_with_timeout(&mut child, timeout, app, "curl") {
+        Ok(status) => status,
+        Err(message) => {
+            set_ota_pid(None);
+            let _ = t_out.join();
+            let _ = t_err.join();
+            emit_log(app, message.clone());
+            return Ok(ota_fail("http", message, None));
+        }
+    };
+    set_ota_pid(None);
     let _ = t_out.join();
     let _ = t_err.join();
     let code = status.code();
 
     if status.success() {
         emit_log(app, "OTA (HTTP) zakończone sukcesem.".to_string());
-        Ok(OtaResult {
-            ok: true,
-            exit_code: code,
-            method: "http".into(),
-            message: format!("Firmware wgrany HTTP Update → {url}"),
-        })
+        Ok(ota_ok(
+            "http",
+            format!("Firmware wgrany HTTP Update → {url}"),
+            code,
+        ))
     } else {
         let message = format!(
             "HTTP Update nieudany (kod {:?}). Upewnij się, że szkic obsługuje POST /update na porcie {port}.",
             code
         );
         emit_log(app, message.clone());
-        Ok(OtaResult {
-            ok: false,
-            exit_code: code,
-            method: "http".into(),
-            message,
-        })
+        Ok(ota_fail("http", message, code))
     }
 }

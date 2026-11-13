@@ -1,4 +1,4 @@
-# Sidecar PlatformIO (Faza 9–10)
+# Sidecar PlatformIO (Faza 9–11)
 
 Build-from-Studio **nie wymaga** `pio` w PATH użytkownika, jeśli zainstalujesz offline **sidecar** albo spakujesz penv w signed installerze.
 
@@ -19,7 +19,7 @@ Wymaga Python 3 (zaznacz „Add to PATH” przy instalacji).
 
 ## Bundling penv w instalatorze (Faza 10)
 
-Pełny penv jest zbyt duży na git. Na maszynie release / w CI:
+Pełny penv jest zbyt duży na git. Na maszynie release / w CI (`windows-penv-artifact.yml` → artifact `platformio-penv-windows`):
 
 ```powershell
 powershell -File .\scripts\windows\Stage-PlatformIoPenv.ps1 -BuildIfMissing

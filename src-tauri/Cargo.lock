@@ -1039,7 +1039,7 @@ dependencies = [
 
 [[package]]
 name = "esp32-display-studio"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "log",
  "mdns-sd",

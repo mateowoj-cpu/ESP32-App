@@ -1,4 +1,4 @@
-# OTA firmware przez Wi‑Fi (Faza 9–10)
+# OTA firmware przez Wi‑Fi (Faza 9–11)
 
 Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB.
 
@@ -17,7 +17,9 @@ Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB.
 | Pole | Opis |
 |------|------|
 | **Szukaj mDNS** | Skan LAN: `_arduino._tcp` (ArduinoOTA) i `_http._tcp` (HTTP Update) |
-| Lista hostów | Wybór discovered urządzenia → IP + port |
+| Lista hostów | Wybór discovered urządzenia → IP + port (sort: preferencja mDNS projektu, IPv4) |
+| Ostatnie hosty | Zapamiętane udane OTA (localStorage) |
+| Timeout / Anuluj | Limit czasu uploadu + cancel in-flight espota/curl |
 | IP / `.local` | Ręczny adres, np. `192.168.1.50` lub `esp32-display.local` |
 | Port | `3232` (espota) lub port WebServer (`8080`) dla HTTP |
 | Hasło | musi zgadzać się z `OTA_PASSWORD` w szkicu |

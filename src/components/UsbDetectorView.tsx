@@ -640,7 +640,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             </div>
           )}
 
-          <FlashHelperPanel detectedChip={detectedChip} buildSources={buildSources} />
+          <FlashHelperPanel detectedChip={detectedChip} buildSources={buildSources} preferredMdnsName={system.mdnsName} />
 
           {/* Popular Boards Catalog */}
           <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">

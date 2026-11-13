@@ -1,25 +1,24 @@
-# Kolejny krok po Fazie 10
+# Kolejny krok po Fazie 11
 
-## Stan po Fazie 10
+## Stan po Fazie 11
 
-- Pełniejsze i18n PL/EN głębokich paneli (widgety edytora, szablony reguł, OTA/mDNS, Wi‑Fi/ustawienia, chrome symulatora)
-- Bundling penv PIO: `Stage-PlatformIoPenv.ps1` → `resources/sidecar/**/*` w signed installer (penv gitignored; bez sekretów w repo)
-- **mDNS discovery** OTA w LAN (`discover_ota_hosts` — `_arduino._tcp` / `_http._tcp`) + UI listy hostów
-- Przygotowanie publikacji winget: szablon YAML `0.2.2` + `packaging/winget/.../PR_BODY.md` (SHA256 / credentials tylko u człowieka)
-- Audit UI: kontrast hintów, `cursor-pointer` / touch targets, usunięcie purple glow slop w szablonach reguł, `aria-live` status OTA
-- Linia wersji **0.2.3** (winget pierwszego signed release może pozostać `v0.2.2` — uzupełnij SHA w manifeście)
+- **i18n treści** — cyber-pet timeline/presety/generator, Integrations (miasta, agent PC, powiadomienia, warunki pogodowe), pinout chrome + role GPIO przez słownik PL/EN
+- **winget-pkgs ścieżka live** — szablon `0.2.4` + zaktualizowane `PR_BODY.md` / `windows-winget.md` (SHA256 / Authenticode / PR do microsoft/winget-pkgs tylko u człowieka)
+- **CI artifact penv** — workflow `windows-penv-artifact.yml` (`Stage-PlatformIoPenv.ps1` → artifact, nie git)
+- **mDNS UX** — filtr/preferencja `mdnsName` projektu, rank IPv4, ostatnie hosty OTA (localStorage)
+- **Hardening OTA** — timeout UI, cancel in-flight (`cancel_ota_firmware`), mapowanie `errorCode` → i18n
+- Linia wersji **0.2.4**
 
-## Faza 11 (rekomendowana)
+## Faza 12 (rekomendowana)
 
-1. **Dokończenie i18n treści** — nazwy kroków timeline / presetów cyber-pet, komunikaty pinout/GPIO, IntegrationsView (miasta, agent PC) w 100% przez słownik
-2. **winget-pkgs live** — po Authenticode `v0.2.2`/`v0.2.3`: SHA256 → PR do microsoft/winget-pkgs (patrz `PR_BODY.md`)
-3. **CI artifact penv** — opcjonalny job Windows budujący i cache’ujący penv (artifact, nie git) pod `Stage-PlatformIoPenv.ps1`
-4. **mDNS UX** — filtr po `mdnsName` projektu, preferencja IPv4, zapamiętanie ostatnich hostów OTA
-5. **Hardening OTA** — timeout UI, cancel in-flight, lepsze mapowanie błędów espota/HTTP
+1. **Store / SmartScreen reputation** — po pierwszym signed winget: monitoring reputacji, ewentualny EV cert
+2. **Eksport diagnostyki ZIP** — opt-in lokalny log → spakowany bundle (flash/OTA/COM) do supportu
+3. **Board profiles online sync** — community presets / biblioteka płytek poza lokalnym cache
+4. **Linux/macOS desktop parity** — serial + OTA poza Windows-first (toolchain discovery, sidecar)
 
-## Faza 12+ (backlog)
+## Faza 13+ (backlog)
 
-- Store / SmartScreen reputation po pierwszym signed winget
-- Telemetria diagnostyczna opt-in (już jest lokalny log) → eksport ZIP
-- Board profiles online sync / community presets
-- Linux/macOS desktop parity (serial + OTA) poza Windows-first
+- Telemetria diagnostyczna opt-in (już jest lokalny log) → agregacja tylko za zgodą
+- Automatyczny draft PR do winget-pkgs z CI po signed tagu (nadal bez sekretów winget w repo; SHA z assetu)
+- Rozszerzenie i18n głębokich paneli pinout (modal przypisań) i katalogu płytek USB
+- Community marketplace widgetów / reguł automatyzacji
