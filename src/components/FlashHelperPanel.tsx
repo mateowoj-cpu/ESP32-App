@@ -223,12 +223,12 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   if (!isTauri) {
     return (
       <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
-        <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-400" />
+        <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+          <Zap className="ui-icon-sm text-amber-400" aria-hidden="true" />
           {t('flash.titleBrowser')}
         </h3>
         <p className="text-xs text-slate-400 leading-relaxed">{t('flash.browserHint')}</p>
-        <p className="text-[11px] font-mono text-slate-500">
+        <p className="ui-type-micro font-mono text-slate-500">
           pip install platformio && pio run · pip install esptool
         </p>
       </div>
@@ -238,8 +238,8 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   return (
     <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800">
-        <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-400" />
+        <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+          <Zap className="ui-icon-sm text-amber-400" aria-hidden="true" />
           {t('flash.title')}
         </h3>
         <button
@@ -248,12 +248,12 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800"
           title="Odśwież toolchain / porty"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="ui-icon-sm" aria-hidden="true" />
         </button>
       </div>
 
       <div
-        className={`text-[11px] font-mono px-2.5 py-1.5 rounded-lg border ${
+        className={`ui-type-micro font-mono px-2.5 py-1.5 rounded-lg border ${
           toolchain?.available
             ? 'text-emerald-300 bg-emerald-950/40 border-emerald-800/60'
             : 'text-amber-200 bg-amber-950/40 border-amber-800/60'
@@ -263,7 +263,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       </div>
 
       <div
-        className={`text-[11px] font-mono px-2.5 py-1.5 rounded-lg border ${
+        className={`ui-type-micro font-mono px-2.5 py-1.5 rounded-lg border ${
           esptool?.available
             ? 'text-emerald-300 bg-emerald-950/40 border-emerald-800/60'
             : 'text-amber-200 bg-amber-950/40 border-amber-800/60'
@@ -274,7 +274,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
 
       {!toolchain?.available && (
         <p className="text-xs text-slate-400 flex gap-2 items-start">
-          <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <AlertCircle className="ui-icon-sm text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
           {t('flash.installToolchain')}
         </p>
       )}
@@ -345,7 +345,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[11px] text-slate-400">{t('flash.firmware')}</span>
+        <span className="ui-type-micro text-slate-400">{t('flash.firmware')}</span>
         <div className="flex gap-2">
           <input
             value={firmwarePath}
@@ -358,12 +358,12 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             onClick={() => void handlePickFirmware()}
             className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs flex items-center gap-1.5"
           >
-            <FolderOpen className="w-3.5 h-3.5" />
+            <FolderOpen className="ui-icon-sm" aria-hidden="true" />
             {t('flash.pick')}
           </button>
         </div>
         {lastBuild?.projectDir && (
-          <p className="text-[10px] text-slate-500 font-mono truncate" title={lastBuild.projectDir}>
+          <p className="ui-type-micro text-slate-500 font-mono truncate" title={lastBuild.projectDir}>
             Projekt: {lastBuild.projectDir}
           </p>
         )}
@@ -376,7 +376,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           onClick={() => void handleBuild()}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-100 border border-slate-700 font-semibold rounded-xl text-xs transition-colors"
         >
-          <Hammer className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
+          <Hammer className={`ui-icon-sm ${busy ? 'animate-pulse' : ''}`} aria-hidden="true" />
           {t('flash.build')}
         </button>
         <button
@@ -385,7 +385,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           onClick={() => void handleFlash()}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-40 text-amber-200 border border-amber-500/40 font-semibold rounded-xl text-xs transition-colors"
         >
-          <Zap className="w-4 h-4" />
+          <Zap className="ui-icon-sm" aria-hidden="true" />
           {t('flash.flash')}
         </button>
         <button
@@ -394,7 +394,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           onClick={() => void handleBuildAndFlash()}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold rounded-xl text-xs transition-colors"
         >
-          <Play className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
+          <Play className={`ui-icon-sm ${busy ? 'animate-pulse' : ''}`} aria-hidden="true" />
           {t('flash.buildFlash')}
         </button>
       </div>
@@ -404,26 +404,26 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           {status.toLowerCase().includes('zbudowano') ||
           status.toLowerCase().includes('wgrany') ||
           status.toLowerCase().includes('sukces') ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="ui-icon-sm text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <AlertCircle className="ui-icon-sm text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
           )}
           <span>{status}</span>
         </div>
       )}
 
       <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-48 overflow-y-auto">
-        <div className="flex items-center gap-1.5 text-[10px] uppercase font-mono text-slate-500 mb-2">
-          <Terminal className="w-3 h-3" />
+        <div className="flex items-center gap-1.5 ui-type-micro uppercase font-mono text-slate-500 mb-2">
+          <Terminal className="ui-icon-sm" aria-hidden="true" />
           {t('flash.log')}
         </div>
         {logs.length === 0 ? (
-          <p className="text-[11px] text-slate-600 font-mono">{t('flash.noLogs')}</p>
+          <p className="ui-type-micro text-slate-600 font-mono">{t('flash.noLogs')}</p>
         ) : (
           logs.map((line, i) => (
             <div
               key={`${i}-${line.slice(0, 16)}`}
-              className="text-[11px] font-mono text-slate-300 whitespace-pre-wrap"
+              className="ui-type-micro font-mono text-slate-300 whitespace-pre-wrap"
             >
               {line}
             </div>

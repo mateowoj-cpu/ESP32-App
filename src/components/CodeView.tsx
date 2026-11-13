@@ -98,21 +98,21 @@ export const CodeView: React.FC<CodeViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
-              <Code className="w-6 h-6" />
+              <Code className="ui-icon-lg" aria-hidden="true" />
             </div>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base font-bold text-white tracking-tight">
+                <h2 className="ui-type-title text-white tracking-tight">
                   {t('code.title')}
                 </h2>
-                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold">
+                <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold">
                   Arduino IDE 1.8 & 2.x
                 </span>
-                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   {lineCount} {t('common.lines')} · ~{approxSizeKb} KB
                 </span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+              <p className="ui-type-caption text-slate-300 leading-relaxed max-w-prose">
                 {t('code.desc')} ({display.model.toUpperCase()})
               </p>
             </div>
@@ -126,16 +126,16 @@ export const CodeView: React.FC<CodeViewProps> = ({
                 value={sketchName}
                 onChange={(e) => setSketchName(e.target.value)}
                 placeholder="esp32_display_studio"
-                className="bg-transparent text-xs font-mono text-cyan-300 focus:outline-none px-2 w-36"
+                className="bg-transparent text-xs font-mono text-cyan-300 focus:outline-none ui-focus-ring px-2 w-36"
               />
               <span className="text-slate-500 text-xs font-mono select-none">.ino</span>
             </div>
 
             <button
               onClick={() => handleDownloadIno()}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 min-h-10 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl ui-type-caption transition-transform active:scale-[0.98] ui-focus-ring"
             >
-              <Download className="w-4 h-4 stroke-[2.5]" />
+              <Download className="ui-icon-sm stroke-[2.5]" aria-hidden="true" />
               <span>{t('code.download')}</span>
             </button>
           </div>
@@ -147,7 +147,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
         <div className="p-4 bg-emerald-950/40 border border-emerald-500/40 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fadeIn">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-              <Check className="w-4 h-4" />
+              <Check className="ui-icon-sm" aria-hidden="true" />
             </div>
             <div className="text-xs">
               <p className="font-bold text-emerald-300">
@@ -176,7 +176,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               activeTab === 'ino' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Code className="w-4 h-4" />
+            <Code className="ui-icon-sm" aria-hidden="true" />
             <span>{t('code.tabIno')} ({cleanSketchName}.ino)</span>
           </button>
           <button
@@ -185,7 +185,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               activeTab === 'platformio' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="ui-icon-sm" aria-hidden="true" />
             <span>{t('code.tabPio')}</span>
           </button>
           <button
@@ -194,7 +194,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               activeTab === 'pinout' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Cpu className="w-4 h-4" />
+            <Cpu className="ui-icon-sm" aria-hidden="true" />
             <span>{t('code.tabPinout')}</span>
           </button>
           <button
@@ -203,7 +203,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               activeTab === 'guide' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="ui-icon-sm" aria-hidden="true" />
             <span>{t('code.tabGuide')}</span>
           </button>
         </div>
@@ -213,7 +213,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             onClick={() => handleCopy(activeTab === 'ino' ? cppCode : platformIoCode)}
             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-colors"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" /> : <Copy className="ui-icon-sm" aria-hidden="true" />}
             <span>{copied ? 'Skopiowano!' : 'Kopiuj Kod'}</span>
           </button>
 
@@ -222,7 +222,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               onClick={() => handleDownloadIno()}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-sm"
             >
-              <Download className="w-4 h-4" />
+              <Download className="ui-icon-sm" aria-hidden="true" />
               <span>Pobierz {cleanSketchName}.ino</span>
             </button>
           ) : (
@@ -230,7 +230,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               onClick={handleDownloadPlatformIo}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-sm"
             >
-              <Download className="w-4 h-4" />
+              <Download className="ui-icon-sm" aria-hidden="true" />
               <span>Pobierz platformio.ini</span>
             </button>
           )}
@@ -268,7 +268,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-6">
           <div className="pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-cyan-400" />
+              <Cpu className="ui-icon-sm text-cyan-400" aria-hidden="true" />
               Schemat Podłączenia Fizycznych Elementów do Płytki ESP32
             </h3>
             <p className="text-xs text-slate-400 mt-1">
@@ -279,7 +279,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-mono uppercase text-[11px]">
+                <tr className="border-b border-slate-800 text-slate-400 font-mono uppercase ui-type-micro">
                   <th className="py-2.5 px-3">Moduł / Element</th>
                   <th className="py-2.5 px-3">Pin Modułu</th>
                   <th className="py-2.5 px-3">Pin ESP32</th>
@@ -380,7 +380,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-5">
           <div className="pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <BookOpen className="ui-icon-sm text-cyan-400" aria-hidden="true" />
               Instrukcja Wgrania Programu Krok po Kroku
             </h3>
             <p className="text-xs text-slate-400 mt-1">

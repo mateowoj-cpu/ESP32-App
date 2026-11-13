@@ -796,8 +796,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             onClick={handleAddScreen}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium"
             title="Dodaj nowy pusty ekran"
-          >
-            <Plus className="w-4 h-4" />
+           aria-label="Dodaj nowy pusty ekran">
+            <Plus className="ui-icon-sm" aria-hidden="true" />
             <span>Nowy ekran</span>
           </button>
         </div>
@@ -813,7 +813,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             }`}
             title="Pokaż/ukryj podręczny panel symulatora czujników"
           >
-            <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
+            <SlidersHorizontal className="ui-icon-sm text-cyan-400" aria-hidden="true" />
             <span>Telemetria Live {showLiveSimDock ? 'ON' : 'OFF'}</span>
           </button>
 
@@ -821,8 +821,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             onClick={handleDuplicateScreen}
             className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors"
             title="Duplikuj obecny ekran"
-          >
-            <Copy className="w-4 h-4" />
+           aria-label="Duplikuj obecny ekran">
+            <Copy className="ui-icon-sm" aria-hidden="true" />
             <span className="hidden sm:inline">Klonuj</span>
           </button>
           {screens.length > 1 && (
@@ -830,8 +830,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               onClick={handleDeleteScreen}
               className="p-2 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 rounded-lg text-xs transition-colors"
               title="Usuń obecny ekran"
-            >
-              <Trash2 className="w-4 h-4" />
+             aria-label="Usuń obecny ekran">
+              <Trash2 className="ui-icon-sm" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -841,9 +841,9 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
       {showLiveSimDock && simState && setSimState && (
         <div className="p-3 bg-slate-900/90 border border-cyan-800/40 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs font-mono shadow-md">
           <div className="flex items-center gap-2">
-            <RadioTower className="w-4 h-4 text-cyan-400 animate-pulse" />
+            <RadioTower className="ui-icon-sm text-cyan-400 animate-pulse" aria-hidden="true" />
             <span className="text-slate-200 font-bold">Podręczna Telemetria Symulatora:</span>
-            <span className="text-[10px] text-slate-400 hidden sm:inline">(Zmień wartość, aby sprawdzić reakcję elementów graficznych na żywo)</span>
+            <span className="ui-type-micro text-slate-400 hidden sm:inline">(Zmień wartość, aby sprawdzić reakcję elementów graficznych na żywo)</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
@@ -856,13 +856,13 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
               }`}
             >
-              <Zap className="w-4 h-4 text-rose-400 shrink-0" />
+              <Zap className="ui-icon-sm text-rose-400 shrink-0" aria-hidden="true" />
               <span>PIR (GPIO 14): {simState.pirActive ? 'RUCH' : 'Cisza'}</span>
             </button>
 
             {/* Ambient Lux Slider */}
             <div className="flex items-center gap-2 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800 text-xs">
-              <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+              <Sun className="ui-icon-sm text-amber-400 shrink-0" aria-hidden="true" />
               <span className="text-slate-400">LDR:</span>
               <span className="text-amber-300 font-bold w-12">{simState.ambientLux} lx</span>
               <input
@@ -881,7 +881,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
             {/* Temperature Slider */}
             <div className="flex items-center gap-2 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800 text-xs">
-              <Thermometer className="w-4 h-4 text-cyan-400 shrink-0" />
+              <Thermometer className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
               <span className="text-slate-400">DHT:</span>
               <span className="text-cyan-300 font-bold w-12">{simState.temperature.toFixed(1)}°C</span>
               <input
@@ -925,7 +925,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   : 'bg-slate-950 text-slate-400 border-slate-800'
               }`}
             >
-              <Cable className="w-4 h-4 text-cyan-400 shrink-0" />
+              <Cable className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
               <span>USB-C: {simState.usbConnected ? 'WPIĘTY' : 'ODŁĄCZONY'}</span>
             </button>
           </div>
@@ -940,7 +940,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">
               Paleta Elementów
             </h3>
-            <span className="text-[10px] text-slate-500">Kliknij aby dodać</span>
+            <span className="ui-type-micro text-slate-500">Kliknij aby dodać</span>
           </div>
 
           <div className="grid grid-cols-1 gap-2">
@@ -949,11 +949,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-cyan-950/40 border border-slate-800 hover:border-cyan-700/60 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20">
-                <Eye className="w-4 h-4" />
+                <Eye className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Cyber-Zwierzak (Oczy)</div>
-                <div className="text-[10px] text-slate-400">Reaguje na ruch PIR i czujniki światła</div>
+                <div className="ui-type-micro text-slate-400">Reaguje na ruch PIR i czujniki światła</div>
               </div>
             </button>
 
@@ -962,11 +962,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-slate-800 text-slate-300 group-hover:text-white">
-                <Type className="w-4 h-4" />
+                <Type className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Tekst / Czujnik Live</div>
-                <div className="text-[10px] text-slate-400">Bindowanie z pirActive, lux, temp, pot</div>
+                <div className="ui-type-micro text-slate-400">Bindowanie z pirActive, lux, temp, pot</div>
               </div>
             </button>
 
@@ -975,11 +975,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-                <Clock className="w-4 h-4" />
+                <Clock className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Zegar NTP & Data</div>
-                <div className="text-[10px] text-slate-400">Czas rzeczywisty z symulatora</div>
+                <div className="ui-type-micro text-slate-400">Czas rzeczywisty z symulatora</div>
               </div>
             </button>
 
@@ -988,11 +988,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                <Gauge className="w-4 h-4" />
+                <Gauge className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Wskaźnik / Gauge</div>
-                <div className="text-[10px] text-slate-400">Wizualizuje LDR, ADC lub Temperaturę</div>
+                <div className="ui-type-micro text-slate-400">Wizualizuje LDR, ADC lub Temperaturę</div>
               </div>
             </button>
 
@@ -1001,11 +1001,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
-                <Activity className="w-4 h-4" />
+                <Activity className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Pasek Postępu Czujnika</div>
-                <div className="text-[10px] text-slate-400">Horyzontalne wypełnienie analogowe</div>
+                <div className="ui-type-micro text-slate-400">Horyzontalne wypełnienie analogowe</div>
               </div>
             </button>
 
@@ -1014,11 +1014,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
-                <Activity className="w-4 h-4" />
+                <Activity className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Wykres Liniowy</div>
-                <div className="text-[10px] text-slate-400">Historia pomiarów czujnika</div>
+                <div className="ui-type-micro text-slate-400">Historia pomiarów czujnika</div>
               </div>
             </button>
 
@@ -1027,11 +1027,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-                <CloudSun className="w-4 h-4" />
+                <CloudSun className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Widget Pogody</div>
-                <div className="text-[10px] text-slate-400">Prognoza z ikoną i temperaturą</div>
+                <div className="ui-type-micro text-slate-400">Prognoza z ikoną i temperaturą</div>
               </div>
             </button>
 
@@ -1040,11 +1040,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
-                <Cpu className="w-4 h-4" />
+                <Cpu className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Monitor Zasobów PC</div>
-                <div className="text-[10px] text-slate-400">CPU, RAM, GPU i Dysk na żywo</div>
+                <div className="ui-type-micro text-slate-400">CPU, RAM, GPU i Dysk na żywo</div>
               </div>
             </button>
 
@@ -1053,11 +1053,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-slate-800 text-slate-300">
-                <List className="w-4 h-4" />
+                <List className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Menu Nawigacyjne</div>
-                <div className="text-[10px] text-slate-400">Lista pozycji dla przycisków lub enkodera</div>
+                <div className="ui-type-micro text-slate-400">Lista pozycji dla przycisków lub enkodera</div>
               </div>
             </button>
 
@@ -1066,11 +1066,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               className="flex items-center gap-3 p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-left transition-all group"
             >
               <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                <Wifi className="w-4 h-4" />
+                <Wifi className="ui-icon-sm" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-200">Status WiFi & Baterii</div>
-                <div className="text-[10px] text-slate-400">Pasek baterii i ikona zasięgu</div>
+                <div className="ui-type-micro text-slate-400">Pasek baterii i ikona zasięgu</div>
               </div>
             </button>
           </div>
@@ -1096,36 +1096,36 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       className="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400 font-mono transition-colors"
                       title="Wyśrodkuj w poziomie (Center X)"
                     >
-                      <AlignCenter className="w-4 h-4" />
+                      <AlignCenter className="ui-icon-sm" aria-hidden="true" />
                     </button>
                     <button
                       onClick={() => handleAlign('centerY')}
                       className="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400 font-mono transition-colors"
                       title="Wyśrodkuj w pionie (Center Y)"
                     >
-                      <Maximize2 className="w-4 h-4 rotate-45" />
+                      <Maximize2 className="ui-icon-sm rotate-45" aria-hidden="true" />
                     </button>
                     <div className="w-px h-3 bg-slate-800 mx-0.5" />
                     <button
                       onClick={handleDuplicateWidget}
                       className="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
                       title="Duplikuj element"
-                    >
-                      <Copy className="w-4 h-4" />
+                     aria-label="Duplikuj element">
+                      <Copy className="ui-icon-sm" aria-hidden="true" />
                     </button>
                     <button
                       onClick={handleDeleteWidget}
                       className="p-1.5 hover:bg-rose-950/60 rounded text-slate-400 hover:text-rose-400 transition-colors"
                       title="Usuń element"
-                    >
-                      <Trash2 className="w-4 h-4" />
+                     aria-label="Usuń element">
+                      <Trash2 className="ui-icon-sm" aria-hidden="true" />
                     </button>
                   </div>
                 )}
 
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 text-[11px]">Siatka:</span>
-                  <div className="flex items-center gap-0.5 bg-slate-950 p-0.5 rounded border border-slate-800 text-[10px] font-mono">
+                  <span className="text-slate-400 ui-type-micro">Siatka:</span>
+                  <div className="flex items-center gap-0.5 bg-slate-950 p-0.5 rounded border border-slate-800 ui-type-micro font-mono">
                     {[1, 2, 4, 8].map(s => (
                       <button
                         key={s}
@@ -1214,7 +1214,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       }`}
                     >
                       {/* Widget Content Preview with Live Sensor Visualization */}
-                      <div className="w-full h-full p-1 overflow-hidden pointer-events-none text-cyan-300 font-mono text-[9px]">
+                      <div className="w-full h-full p-1 overflow-hidden pointer-events-none text-cyan-300 font-mono ui-type-micro">
                         {w.type === 'cyber_pet' && (
                           <div className="flex items-center justify-around h-full">
                             <div className={`w-1/3 h-3/4 rounded-full flex items-center justify-center transition-all ${
@@ -1244,13 +1244,13 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                         )}
 
                         {w.type === 'clock' && (
-                          <div className="font-bold text-[11px] leading-tight">
+                          <div className="font-bold ui-type-micro leading-tight">
                             {simState?.simulatedTime || '12:34:56'}
                           </div>
                         )}
 
                         {w.type === 'gauge' && (
-                          <div className="border border-cyan-400 h-full rounded p-0.5 flex items-center justify-between text-[8px] bg-slate-950/60">
+                          <div className="border border-cyan-400 h-full rounded p-0.5 flex items-center justify-between ui-type-micro bg-slate-950/60">
                             <span className="truncate max-w-[60%]">{w.label || w.binding || 'GAUGE'}</span>
                             <span className="font-bold text-cyan-200">{sensorData.text}</span>
                           </div>
@@ -1282,20 +1282,20 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                         {w.type === 'weather' && (
                           <div className="flex items-center gap-1">
-                            <span className="text-[11px]">☀️</span>
+                            <span className="ui-type-micro">☀️</span>
                             <span>{simState ? `${simState.temperature.toFixed(1)}°C` : '18.5°C'}</span>
                           </div>
                         )}
 
                         {w.type === 'pc_monitor' && (
-                          <div className="text-[8px] leading-tight">
+                          <div className="ui-type-micro leading-tight">
                             <div>CPU: 42% RAM: 68%</div>
                             <div>GPU: 35% DYSK: 64%</div>
                           </div>
                         )}
 
                         {w.type === 'menu' && (
-                          <div className="text-[8px] leading-tight">
+                          <div className="ui-type-micro leading-tight">
                             <div className="font-bold underline">{w.menuTitle}</div>
                             <div>&gt; 1. WiFi</div>
                             <div>&nbsp;&nbsp;2. Jasność</div>
@@ -1303,7 +1303,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                         )}
 
                         {w.type === 'battery_wifi' && (
-                          <div className="flex items-center gap-1 text-[8px]">
+                          <div className="flex items-center gap-1 ui-type-micro">
                             <span>[85%]</span>
                             <span>WiFi</span>
                           </div>
@@ -1319,13 +1319,13 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       )}
 
                       {/* Sequence Order Badge */}
-                      <div className="absolute top-0.5 left-0.5 px-1 bg-slate-900/90 border border-cyan-500/60 text-[8px] font-mono text-cyan-300 font-bold rounded pointer-events-none">
+                      <div className="absolute top-0.5 left-0.5 px-1 bg-slate-900/90 border border-cyan-500/60 ui-type-micro font-mono text-cyan-300 font-bold rounded pointer-events-none">
                         #{w.sequenceOrder ?? 1}
                       </div>
 
                       {/* Coordinate indicator when selected or dragged */}
                       {isSelected && (
-                        <div className="absolute -top-6 left-0 px-1.5 py-0.5 bg-cyan-400 text-slate-950 font-mono text-[9px] font-bold rounded shadow-md pointer-events-none whitespace-nowrap z-30">
+                        <div className="absolute -top-6 left-0 px-1.5 py-0.5 bg-cyan-400 text-slate-950 font-mono ui-type-micro font-bold rounded shadow-md pointer-events-none whitespace-nowrap z-30">
                           X:{w.x} Y:{w.y} ({w.width}x{w.height})
                         </div>
                       )}
@@ -1345,7 +1345,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             </div>
 
             {/* Instruction strip */}
-            <div className="mt-3 text-[11px] font-mono text-slate-400 flex flex-wrap items-center justify-between w-full px-2">
+            <div className="mt-3 ui-type-micro font-mono text-slate-400 flex flex-wrap items-center justify-between w-full px-2">
               <div className="flex items-center gap-2">
                 <span className="text-cyan-400">●</span>
                 <span>Przeciągaj elementy myszką po ekranie (snap {gridSnap}px)</span>
@@ -1363,7 +1363,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             {/* Timeline Control Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-cyan-400" />
+                <Film className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                 <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
                   Oś Czasu i Sekwencja Animacji
                 </h3>
@@ -1379,7 +1379,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md'
                   }`}
                 >
-                  {isPlayingTimeline ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                  {isPlayingTimeline ? <Pause className="ui-icon-sm fill-current" aria-hidden="true" /> : <Play className="ui-icon-sm fill-current" aria-hidden="true" />}
                   <span>{isPlayingTimeline ? 'Pauza' : 'Odtwórz animację'}</span>
                 </button>
 
@@ -1391,10 +1391,10 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors"
                   title="Od początku (Reset czasu)"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="ui-icon-sm" aria-hidden="true" />
                 </button>
 
-                <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[10px] font-mono">
+                <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800 ui-type-micro font-mono">
                   {[0.5, 1, 2].map(speed => (
                     <button
                       key={speed}
@@ -1410,8 +1410,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   onClick={handleAutoStaggerTiming}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800/50 rounded-lg text-xs transition-colors font-medium"
                   title="Automatycznie ustaw opóźnienia krok po kroku (+250ms)"
-                >
-                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                 aria-label="Automatycznie ustaw opóźnienia krok po kroku (+250ms)">
+                  <Sparkles className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   <span className="hidden sm:inline">Kaskada +250ms</span>
                 </button>
               </div>
@@ -1421,7 +1421,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             <div className="flex flex-col gap-1.5 bg-slate-950 p-3 rounded-xl border border-slate-800">
               <div className="flex items-center justify-between text-xs font-mono">
                 <div className="flex items-center gap-2">
-                  <Timer className="w-4 h-4 text-cyan-400" />
+                  <Timer className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   <span className="text-slate-300">Aktualny czas odtworzenia:</span>
                   <span className="text-cyan-400 font-bold">{(timelineTimeMs / 1000).toFixed(2)}s</span>
                 </div>
@@ -1443,7 +1443,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               />
 
               {/* Millisecond ticks */}
-              <div className="flex justify-between text-[9px] font-mono text-slate-500 px-0.5">
+              <div className="flex justify-between ui-type-micro font-mono text-slate-500 px-0.5">
                 <span>0.0s (Start)</span>
                 <span>0.5s</span>
                 <span>1.0s</span>
@@ -1475,25 +1475,25 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   >
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 bg-slate-800 text-cyan-400 font-mono font-bold text-[10px] rounded">
+                        <span className="px-1.5 py-0.5 bg-slate-800 text-cyan-400 font-mono font-bold ui-type-micro rounded">
                           #{widget.sequenceOrder ?? 1}
                         </span>
                         <span className="font-medium text-slate-200 truncate max-w-[130px]">
                           {widget.label || widget.type}
                         </span>
                         {widget.binding && widget.binding !== 'none' && (
-                          <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/60 px-1 py-0.5 rounded border border-emerald-800/60">
+                          <span className="ui-type-micro font-mono text-emerald-400 bg-emerald-950/60 px-1 py-0.5 rounded border border-emerald-800/60">
                             {widget.binding}
                           </span>
                         )}
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                        <span className="ui-type-micro font-mono text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
                           {widget.animationType || 'fade_in'}
                         </span>
                       </div>
 
                       {/* Reorder and Timing pills */}
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-slate-400">
+                        <span className="ui-type-micro font-mono text-slate-400">
                           {delay}ms → {end}ms
                         </span>
                         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
@@ -1502,14 +1502,14 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                             className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400"
                             title="Przesuń wyżej w kolejności"
                           >
-                            <ArrowUp className="w-4 h-4" />
+                            <ArrowUp className="ui-icon-sm" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => handleMoveSequenceOrder(widget.id, 'down')}
                             className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400"
                             title="Przesuń niżej w kolejności"
                           >
-                            <ArrowDown className="w-4 h-4" />
+                            <ArrowDown className="ui-icon-sm" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
@@ -1542,7 +1542,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
         <div className="lg:col-span-3 flex flex-col gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-2">
-              <Settings2 className="w-4 h-4 text-cyan-400" />
+              <Settings2 className="ui-icon-sm text-cyan-400" aria-hidden="true" />
               Właściwości Elementu
             </h3>
             {selectedWidget && (
@@ -1550,8 +1550,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 onClick={handleDeleteWidget}
                 className="p-1.5 hover:bg-rose-950/60 rounded text-rose-400 hover:text-rose-200 transition-colors"
                 title="Usuń ten element"
-              >
-                <Trash2 className="w-4 h-4" />
+               aria-label="Usuń ten element">
+                <Trash2 className="ui-icon-sm" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -1559,7 +1559,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
           {selectedWidget ? (
             <div className="flex flex-col gap-4 text-xs">
               {/* Type Badge */}
-              <div className="flex items-center justify-between p-2 bg-slate-950 rounded-lg border border-slate-800 font-mono text-[11px]">
+              <div className="flex items-center justify-between p-2 bg-slate-950 rounded-lg border border-slate-800 font-mono ui-type-micro">
                 <span className="text-slate-400">Typ:</span>
                 <span className="text-cyan-400 font-bold uppercase">{selectedWidget.type}</span>
               </div>
@@ -1567,7 +1567,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               {/* Coordinates Steppers */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1 p-2 bg-slate-950 rounded-lg border border-slate-800">
-                  <span className="text-[10px] font-mono text-slate-400">Pozycja X (px)</span>
+                  <span className="ui-type-micro font-mono text-slate-400">Pozycja X (px)</span>
                   <input
                     type="number"
                     value={selectedWidget.x}
@@ -1579,7 +1579,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   />
                 </div>
                 <div className="flex flex-col gap-1 p-2 bg-slate-950 rounded-lg border border-slate-800">
-                  <span className="text-[10px] font-mono text-slate-400">Pozycja Y (px)</span>
+                  <span className="ui-type-micro font-mono text-slate-400">Pozycja Y (px)</span>
                   <input
                     type="number"
                     value={selectedWidget.y}
@@ -1591,7 +1591,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   />
                 </div>
                 <div className="flex flex-col gap-1 p-2 bg-slate-950 rounded-lg border border-slate-800">
-                  <span className="text-[10px] font-mono text-slate-400">Szerokość W (px)</span>
+                  <span className="ui-type-micro font-mono text-slate-400">Szerokość W (px)</span>
                   <input
                     type="number"
                     value={selectedWidget.width}
@@ -1603,7 +1603,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   />
                 </div>
                 <div className="flex flex-col gap-1 p-2 bg-slate-950 rounded-lg border border-slate-800">
-                  <span className="text-[10px] font-mono text-slate-400">Wysokość H (px)</span>
+                  <span className="ui-type-micro font-mono text-slate-400">Wysokość H (px)</span>
                   <input
                     type="number"
                     value={selectedWidget.height}
@@ -1620,7 +1620,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               <div className="flex flex-col gap-3 p-3 bg-slate-950 rounded-xl border border-emerald-800/50 shadow-inner">
                 <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
                   <div className="flex items-center gap-2 text-emerald-300 font-semibold text-xs font-mono">
-                    <Radio className="w-4 h-4 text-emerald-400" />
+                    <Radio className="ui-icon-sm text-emerald-400" aria-hidden="true" />
                     <span>Czujnik Sprzętowy ESP32</span>
                   </div>
                   {selectedWidget.binding && selectedWidget.binding !== 'none' ? (
@@ -1636,7 +1636,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                 {/* Sensor Selector Dropdown */}
                 <div>
-                  <label className="text-[10px] text-slate-400">Przypisz czujnik lub wejście do tego elementu:</label>
+                  <label className="ui-type-micro text-slate-400">Przypisz czujnik lub wejście do tego elementu:</label>
                   <select
                     value={selectedWidget.binding || 'none'}
                     onChange={e => {
@@ -1685,7 +1685,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                 {/* Live Readout Pill */}
                 {selectedWidget.binding && selectedWidget.binding !== 'none' && (
-                  <div className="p-2 bg-slate-900/90 rounded-lg border border-emerald-800/60 flex items-center justify-between text-[11px] font-mono">
+                  <div className="p-2 bg-slate-900/90 rounded-lg border border-emerald-800/60 flex items-center justify-between ui-type-micro font-mono">
                     <span className="text-slate-400">Aktualny odczyt:</span>
                     <span className="text-emerald-300 font-bold flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -1698,7 +1698,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 {(selectedWidget.binding === 'pirActive' || selectedWidget.binding === 'pir' || selectedWidget.binding === 'usbConnected') && (
                   <div className="flex flex-col gap-2 pt-1 border-t border-slate-800">
                     <div>
-                      <label className="text-[10px] text-slate-400">Tekst gdy stan aktywny (HIGH):</label>
+                      <label className="ui-type-micro text-slate-400">Tekst gdy stan aktywny (HIGH):</label>
                       <input
                         type="text"
                         value={selectedWidget.sensorActiveLabel || ''}
@@ -1708,7 +1708,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400">Tekst gdy stan nieaktywny (LOW):</label>
+                      <label className="ui-type-micro text-slate-400">Tekst gdy stan nieaktywny (LOW):</label>
                       <input
                         type="text"
                         value={selectedWidget.sensorInactiveLabel || ''}
@@ -1723,7 +1723,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 {(selectedWidget.binding === 'ambientLux' || selectedWidget.binding === 'lux' || selectedWidget.binding === 'potAdc' || selectedWidget.binding === 'pot' || selectedWidget.binding === 'temperature' || selectedWidget.binding === 'temp') && (
                   <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
                     <div>
-                      <label className="text-[10px] text-slate-400">Min skali:</label>
+                      <label className="ui-type-micro text-slate-400">Min skali:</label>
                       <input
                         type="number"
                         value={selectedWidget.minVal ?? 0}
@@ -1732,7 +1732,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400">Max skali:</label>
+                      <label className="ui-type-micro text-slate-400">Max skali:</label>
                       <input
                         type="number"
                         value={selectedWidget.maxVal ?? (selectedWidget.binding === 'potAdc' ? 4095 : 1000)}
@@ -1741,7 +1741,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="text-[10px] text-slate-400">Jednostka pomiarowa:</label>
+                      <label className="ui-type-micro text-slate-400">Jednostka pomiarowa:</label>
                       <input
                         type="text"
                         value={selectedWidget.unit || ''}
@@ -1758,7 +1758,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               <div className="flex flex-col gap-3 p-3 bg-slate-950 rounded-xl border border-cyan-800/40 shadow-inner">
                 <div className="flex items-center justify-between pb-1.5 border-b border-slate-800">
                   <div className="flex items-center gap-2 text-cyan-300 font-semibold text-xs font-mono">
-                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                    <Sparkles className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                     <span>Animacja & Sekwencja</span>
                   </div>
                   <span className="px-2 py-0.5 bg-cyan-950 text-cyan-400 font-mono text-xs rounded border border-cyan-800 font-medium">
@@ -1778,7 +1778,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs flex items-center justify-center gap-1.5 font-medium transition-colors"
                       title="Pokaż wcześniej w sekwencji"
                     >
-                      <ArrowUp className="w-4 h-4" />
+                      <ArrowUp className="ui-icon-sm" aria-hidden="true" />
                       <span>Wcześniej</span>
                     </button>
                     <button
@@ -1786,7 +1786,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs flex items-center justify-center gap-1.5 font-medium transition-colors"
                       title="Pokaż później w sekwencji"
                     >
-                      <ArrowDown className="w-4 h-4" />
+                      <ArrowDown className="ui-icon-sm" aria-hidden="true" />
                       <span>Później</span>
                     </button>
                   </div>
@@ -1794,7 +1794,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                 {/* Animation Type */}
                 <div>
-                  <label className="text-[10px] text-slate-400">Styl wejścia animacji:</label>
+                  <label className="ui-type-micro text-slate-400">Styl wejścia animacji:</label>
                   <select
                     value={selectedWidget.animationType || 'fade_in'}
                     onChange={e => updateSelectedWidget({ animationType: e.target.value as WidgetAnimationType })}
@@ -1813,7 +1813,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                 {/* Delay (Opóźnienie) */}
                 <div className="flex flex-col gap-1">
-                  <div className="flex justify-between text-[10px]">
+                  <div className="flex justify-between ui-type-micro">
                     <span className="text-slate-400">Czas opóźnienia rozpoczęcia:</span>
                     <span className="font-mono text-cyan-400 font-bold">
                       {selectedWidget.animationDelayMs ?? 0} ms ({((selectedWidget.animationDelayMs ?? 0) / 1000).toFixed(2)}s)
@@ -1832,7 +1832,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                 {/* Duration (Czas trwania) */}
                 <div className="flex flex-col gap-1">
-                  <div className="flex justify-between text-[10px]">
+                  <div className="flex justify-between ui-type-micro">
                     <span className="text-slate-400">Czas trwania animacji:</span>
                     <span className="font-mono text-cyan-400 font-bold">
                       {selectedWidget.animationDurationMs ?? 500} ms ({((selectedWidget.animationDurationMs ?? 500) / 1000).toFixed(2)}s)
@@ -1851,7 +1851,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
                 {/* Loop Effect */}
                 <div>
-                  <label className="text-[10px] text-slate-400">Efekt pętli po wejściu:</label>
+                  <label className="ui-type-micro text-slate-400">Efekt pętli po wejściu:</label>
                   <select
                     value={selectedWidget.animationLoop || 'none'}
                     onChange={e => updateSelectedWidget({ animationLoop: e.target.value as WidgetAnimationLoop })}
@@ -1870,7 +1870,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                 <div className="flex flex-col gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
                   <span className="font-semibold text-slate-300">Styl i Nastrój Zwierzaka</span>
                   <div>
-                    <label className="text-[10px] text-slate-400">Domyślny nastrój:</label>
+                    <label className="ui-type-micro text-slate-400">Domyślny nastrój:</label>
                     <select
                       value={selectedWidget.petMood || 'neutral'}
                       onChange={e => updateSelectedWidget({ petMood: e.target.value as PetMood })}
@@ -1885,7 +1885,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] text-slate-400">Kształt oczu:</label>
+                    <label className="ui-type-micro text-slate-400">Kształt oczu:</label>
                     <select
                       value={selectedWidget.petEyeStyle || 'robot_capsule'}
                       onChange={e => updateSelectedWidget({ petEyeStyle: e.target.value as PetEyeStyle })}
@@ -1904,7 +1904,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               {selectedWidget.type === 'text' && (
                 <div className="flex flex-col gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
                   <div>
-                    <label className="text-[10px] text-slate-400">Własny tekst (gdy bez czujnika):</label>
+                    <label className="ui-type-micro text-slate-400">Własny tekst (gdy bez czujnika):</label>
                     <input
                       type="text"
                       value={selectedWidget.label || ''}
@@ -1914,7 +1914,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-slate-400">Krój czcionki:</label>
+                    <label className="ui-type-micro text-slate-400">Krój czcionki:</label>
                     <select
                       value={selectedWidget.font || 'u8g2_8x13'}
                       onChange={e => updateSelectedWidget({ font: e.target.value as WidgetFont })}
@@ -1934,8 +1934,8 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               {selectedWidget.type === 'clock' && (
                 <div className="flex flex-col gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-300">Format godziny:</span>
-                    <div className="flex items-center gap-1 p-0.5 bg-slate-900 rounded border border-slate-800 text-[10px] font-mono">
+                    <span className="ui-type-micro text-slate-300">Format godziny:</span>
+                    <div className="flex items-center gap-1 p-0.5 bg-slate-900 rounded border border-slate-800 ui-type-micro font-mono">
                       <button
                         type="button"
                         onClick={() => updateSelectedWidget({ clockFormat: '24h' })}
@@ -1962,7 +1962,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-300">Pokaż sekundy (:SS):</span>
+                    <span className="ui-type-micro text-slate-300">Pokaż sekundy (:SS):</span>
                     <input
                       type="checkbox"
                       checked={selectedWidget.showSeconds ?? true}
@@ -1972,7 +1972,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-300">Pokaż datę kalendarzową:</span>
+                    <span className="ui-type-micro text-slate-300">Pokaż datę kalendarzową:</span>
                     <input
                       type="checkbox"
                       checked={selectedWidget.showDate ?? false}
@@ -1987,7 +1987,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               {selectedWidget.type === 'gauge' && (
                 <div className="flex flex-col gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
                   <div>
-                    <label className="text-[10px] text-slate-400">Tytuł wskaźnika:</label>
+                    <label className="ui-type-micro text-slate-400">Tytuł wskaźnika:</label>
                     <input
                       type="text"
                       value={selectedWidget.label || ''}
@@ -2000,7 +2000,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             </div>
           ) : (
             <div className="py-12 flex flex-col items-center justify-center text-center text-slate-500 gap-2">
-              <Sliders className="w-6 h-6 text-slate-600" />
+              <Sliders className="ui-icon-lg text-slate-600" aria-hidden="true" />
               <p className="text-xs">Zaznacz lub przeciągnij element na ekranie, aby przypisać czujniki sprzętowe lub edytować parametry.</p>
             </div>
           )}

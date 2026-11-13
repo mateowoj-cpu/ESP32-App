@@ -76,11 +76,11 @@ export const DesktopSettingsPanel: React.FC = () => {
   return (
     <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">
       <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-        <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
-          <MonitorSmartphone className="w-4 h-4 text-cyan-400" />
+        <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
+          <MonitorSmartphone className="ui-icon-sm text-cyan-400" aria-hidden="true" />
           {t('desktop.title')}
         </h3>
-        <span className="text-[10px] font-mono text-cyan-400">v0.2.1</span>
+        <span className="ui-type-micro font-mono text-cyan-400">v0.2.1</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -135,7 +135,7 @@ export const DesktopSettingsPanel: React.FC = () => {
             onClick={() => {
               void import('../platform/diagnostics').then(m => m.openDiagnosticsFolder());
             }}
-            className="self-start text-[11px] text-cyan-400 hover:text-cyan-300"
+            className="self-start ui-type-micro text-cyan-400 hover:text-cyan-300"
           >
             {t('desktop.diagnosticsOpen')}
           </button>
@@ -143,7 +143,7 @@ export const DesktopSettingsPanel: React.FC = () => {
       </div>
 
       {!isTauri ? (
-        <p className="text-[11px] text-slate-500 leading-relaxed">{t('desktop.hint')}</p>
+        <p className="ui-type-micro text-slate-500 leading-relaxed">{t('desktop.hint')}</p>
       ) : (
         <>
           <label className="flex items-center justify-between gap-3 text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5">
@@ -172,14 +172,14 @@ export const DesktopSettingsPanel: React.FC = () => {
               <input
                 value={agentHost}
                 onChange={e => setAgentHost(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-mono text-slate-100"
+                className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 ui-type-micro font-mono text-slate-100"
                 placeholder="192.168.1.150"
               />
               <input
                 type="number"
                 value={agentPort}
                 onChange={e => setAgentPort(Number(e.target.value) || 8080)}
-                className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-mono text-slate-100"
+                className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 ui-type-micro font-mono text-slate-100"
               />
             </div>
           </div>
@@ -188,14 +188,14 @@ export const DesktopSettingsPanel: React.FC = () => {
             type="button"
             disabled={busy}
             onClick={() => void refresh()}
-            className="inline-flex items-center justify-center gap-1.5 self-start px-2.5 py-1.5 rounded-lg text-[11px] bg-slate-800 border border-slate-700 text-slate-200"
+            className="inline-flex items-center justify-center gap-1.5 self-start px-2.5 py-1.5 rounded-lg ui-type-micro bg-slate-800 border border-slate-700 text-slate-200"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${busy ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`ui-icon-sm ${busy ? 'animate-spin' : ''}`} aria-hidden="true" />
             {t('desktop.refresh')}
           </button>
 
-          {message && <p className="text-[11px] font-mono text-amber-300">{message}</p>}
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          {message && <p className="ui-type-micro font-mono text-amber-300">{message}</p>}
+          <p className="ui-type-micro text-slate-500 leading-relaxed">
             {status?.hint || t('desktop.hint')}
           </p>
         </>

@@ -255,7 +255,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg text-cyan-400">
-            <Radio className="w-4 h-4 animate-pulse" />
+            <Radio className="ui-icon-sm animate-pulse" aria-hidden="true" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
@@ -309,8 +309,8 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
             onClick={handleResetAllOverrides}
             className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-mono transition-colors border border-slate-700 font-medium"
             title="Resetuj wszystkie wymuszone stany pinów"
-          >
-            <RotateCcw className="w-4 h-4" />
+           aria-label="Resetuj wszystkie wymuszone stany pinów">
+            <RotateCcw className="ui-icon-sm" aria-hidden="true" />
             <span>Reset Stanów</span>
           </button>
         </div>
@@ -318,7 +318,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
 
       {lastActionLog && (
         <div className="px-3.5 py-2 bg-cyan-950/40 border border-cyan-800/60 rounded-lg text-xs font-mono text-cyan-300 flex items-center gap-2.5">
-          <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+          <Sparkles className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
           <span>{lastActionLog}</span>
         </div>
       )}
@@ -332,7 +332,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
               <span className="w-2 h-2 rounded-full bg-cyan-400" />
               Lewa Szyna Pinów ESP32 (Header J1)
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">ADC1 / RTC / Touch / PIR</span>
+            <span className="ui-type-micro text-slate-500 font-mono">ADC1 / RTC / Touch / PIR</span>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -349,7 +349,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
               <span className="w-2 h-2 rounded-full bg-amber-400" />
               Prawa Szyna Pinów ESP32 (Header J2)
             </span>
-            <span className="text-[10px] text-slate-500 font-mono">I2C / SPI / BOOT / UART</span>
+            <span className="ui-type-micro text-slate-500 font-mono">I2C / SPI / BOOT / UART</span>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -362,7 +362,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
 
       {/* Legend & Help Banner */}
       <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs">
-        <div className="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
+        <div className="flex items-center gap-4 text-slate-400 font-mono ui-type-micro">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
             <strong className="text-slate-200">HIGH (3.3V)</strong>
@@ -381,7 +381,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
           </span>
         </div>
 
-        <div className="text-[11px] text-slate-500 font-mono">
+        <div className="ui-type-micro text-slate-500 font-mono">
           *Piny GPIO 34, 35, 36, 39 są wyłącznie pinami wejściowymi (Input-Only) w procesorach ESP32.
         </div>
       </div>
@@ -430,7 +430,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
                 {role}
               </span>
               {isOverridden && (
-                <span className="text-[10px] bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono px-1.5 py-0.5 rounded font-medium">
+                <span className="ui-type-micro bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono px-1.5 py-0.5 rounded font-medium">
                   FORCED
                 </span>
               )}
@@ -466,7 +466,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
             className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-300 border border-slate-700 rounded transition-colors active:scale-95"
             title="Wyślij chwilowy impuls zmiany stanu (180ms)"
           >
-            <Zap className="w-4 h-4" />
+            <Zap className="ui-icon-sm" aria-hidden="true" />
           </button>
         </div>
       </div>

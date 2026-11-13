@@ -200,12 +200,12 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-            <Cpu className="w-5 h-5" />
+            <Cpu className="ui-icon-md" aria-hidden="true" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <span>Wizualna Mapa Pinów ESP32 & Przypisywanie Funkcji</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 Live Code Sync
               </span>
             </h3>
@@ -218,13 +218,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
         {/* Filter Pills and Search */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs">
-            <Search className="w-4 h-4 text-slate-500 mr-2" />
+            <Search className="ui-icon-sm text-slate-500 mr-2" aria-hidden="true" />
             <input
               type="text"
               placeholder="Szukaj pinu (np. GPIO21, I2C, PWM)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none placeholder:text-slate-600 text-xs w-48 font-mono"
+              className="bg-transparent text-slate-200 focus:outline-none ui-focus-ring placeholder:text-slate-600 text-xs w-48 font-mono"
             />
           </div>
 
@@ -285,10 +285,10 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
       {lastAssignedMsg && (
         <div className="px-4 py-2.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-xs font-mono text-emerald-300 flex items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="ui-icon-sm text-emerald-400 shrink-0" aria-hidden="true" />
             <span>{lastAssignedMsg}</span>
           </div>
-          <span className="text-[10px] text-emerald-400/80 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+          <span className="ui-type-micro text-emerald-400/80 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
             Arduino C++ Gotowy
           </span>
         </div>
@@ -308,7 +308,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
                 Szyna Lewa (Header J1)
               </span>
-              <span className="text-[10px] text-slate-500">Piny 1-15</span>
+              <span className="ui-type-micro text-slate-500">Piny 1-15</span>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -325,7 +325,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <div className="w-full flex flex-col items-center">
               <div className="w-36 h-9 border-2 border-amber-600/70 bg-amber-950/20 rounded-md relative flex items-center justify-center overflow-hidden">
                 <div className="w-full h-full bg-[repeating-linear-gradient(90deg,#d97706,#d97706_4px,transparent_4px,transparent_8px)] opacity-50" />
-                <span className="absolute text-[9px] font-mono text-amber-400/90 font-bold uppercase tracking-widest">
+                <span className="absolute ui-type-micro font-mono text-amber-400/90 font-bold uppercase tracking-widest">
                   2.4GHz Antenna
                 </span>
               </div>
@@ -333,32 +333,32 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
 
             {/* Middle: Tensilica ESP-WROOM-32 Metal Shield */}
             <div className="w-56 h-64 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-700 border-2 border-slate-600 rounded-xl p-4 flex flex-col items-center justify-between shadow-inner relative">
-              <div className="flex items-center justify-between w-full text-[9px] font-mono text-slate-400">
+              <div className="flex items-center justify-between w-full ui-type-micro font-mono text-slate-400">
                 <span>ESPRESSIF</span>
                 <span>FCC ID: 2AC7Z</span>
               </div>
 
               <div className="flex flex-col items-center text-center my-auto">
                 <div className="w-12 h-12 rounded-lg bg-slate-900/60 border border-slate-600 flex items-center justify-center text-cyan-400 mb-2">
-                  <Cpu className="w-7 h-7" />
+                  <Cpu className="w-7 h-7" aria-hidden="true" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-100 font-mono tracking-wider">
                   ESP-WROOM-32
                 </h4>
-                <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                <p className="ui-type-micro text-slate-400 font-mono mt-0.5">
                   Dual-Core Xtensa LX6
                 </p>
                 <div className="flex items-center gap-1.5 mt-2">
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800">
+                  <span className="px-1.5 py-0.5 rounded ui-type-micro font-mono bg-cyan-950 text-cyan-400 border border-cyan-800">
                     240 MHz
                   </span>
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800">
+                  <span className="px-1.5 py-0.5 rounded ui-type-micro font-mono bg-emerald-950 text-emerald-400 border border-emerald-800">
                     Wi-Fi + BLE
                   </span>
                 </div>
               </div>
 
-              <div className="w-full text-center text-[8px] font-mono text-slate-500 uppercase tracking-widest border-t border-slate-600/50 pt-1">
+              <div className="w-full text-center ui-type-micro font-mono text-slate-500 uppercase tracking-widest border-t border-slate-600/50 pt-1">
                 Tensilica 32-bit Architecture
               </div>
             </div>
@@ -367,35 +367,35 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <div className="w-full flex items-center justify-between px-3">
               {/* Reset EN button */}
               <div className="flex flex-col items-center gap-1">
-                <div className="w-6 h-6 rounded bg-slate-800 border border-slate-600 flex items-center justify-center text-[8px] font-mono text-slate-300 shadow active:scale-95 cursor-pointer">
+                <div className="w-6 h-6 rounded bg-slate-800 border border-slate-600 flex items-center justify-center ui-type-micro font-mono text-slate-300 shadow active:scale-95 cursor-pointer">
                   EN
                 </div>
-                <span className="text-[9px] font-mono text-slate-500">RESET</span>
+                <span className="ui-type-micro font-mono text-slate-500">RESET</span>
               </div>
 
               {/* Status LEDs */}
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-center gap-0.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]" title="Power 3.3V LED" />
-                  <span className="text-[8px] font-mono text-slate-500">PWR</span>
+                  <span className="ui-type-micro font-mono text-slate-500">PWR</span>
                 </div>
                 <div className="flex flex-col items-center gap-0.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4] animate-pulse" title="GPIO 2 Built-in Status LED" />
-                  <span className="text-[8px] font-mono text-slate-500">IO2</span>
+                  <span className="ui-type-micro font-mono text-slate-500">IO2</span>
                 </div>
               </div>
 
               {/* BOOT button */}
               <div className="flex flex-col items-center gap-1">
-                <div className="w-6 h-6 rounded bg-slate-800 border border-slate-600 flex items-center justify-center text-[8px] font-mono text-slate-300 shadow active:scale-95 cursor-pointer">
+                <div className="w-6 h-6 rounded bg-slate-800 border border-slate-600 flex items-center justify-center ui-type-micro font-mono text-slate-300 shadow active:scale-95 cursor-pointer">
                   IO0
                 </div>
-                <span className="text-[9px] font-mono text-slate-500">BOOT</span>
+                <span className="ui-type-micro font-mono text-slate-500">BOOT</span>
               </div>
             </div>
 
             {/* Bottom: Micro-USB / USB-C Connector */}
-            <div className="w-20 h-7 bg-slate-800 border-2 border-slate-600 rounded-t-lg flex items-center justify-center text-[9px] font-mono text-slate-400 shadow-inner">
+            <div className="w-20 h-7 bg-slate-800 border-2 border-slate-600 rounded-t-lg flex items-center justify-center ui-type-micro font-mono text-slate-400 shadow-inner">
               <span>USB UART</span>
             </div>
           </div>
@@ -407,7 +407,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                 Szyna Prawa (Header J2)
               </span>
-              <span className="text-[10px] text-slate-500">Piny 16-30</span>
+              <span className="ui-type-micro text-slate-500">Piny 16-30</span>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -427,13 +427,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               onClick={() => setSelectedPin(null)}
               className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="ui-icon-sm" aria-hidden="true" />
             </button>
 
             {/* Modal Header */}
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-                <Sliders className="w-6 h-6" />
+                <Sliders className="ui-icon-lg" aria-hidden="true" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -441,12 +441,12 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     Konfiguracja Pinu {selectedPin.label}
                   </h3>
                   {selectedPin.isInputOnly && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950 text-rose-300 border border-rose-800">
+                    <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-rose-950 text-rose-300 border border-rose-800">
                       Tylko Wejście (Input Only)
                     </span>
                   )}
                   {selectedPin.isStrapping && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-300 border border-amber-800">
+                    <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-amber-950 text-amber-300 border border-amber-800">
                       Strapping Pin
                     </span>
                   )}
@@ -460,7 +460,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             {/* Hardware Limitations Notice for Input-Only pins */}
             {selectedPin.isInputOnly && (
               <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl flex items-start gap-2.5 text-xs text-rose-300 leading-relaxed">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <AlertTriangle className="ui-icon-sm shrink-0 text-rose-400 mt-0.5" aria-hidden="true" />
                 <span>
                   <strong>Ograniczenie sprzętowe ESP32:</strong> Piny GPIO 34, 35, 36 (VP) oraz 39 (VN) nie posiadają wewnętrznych rezystorów pull-up/pull-down ani tranzystorów wyjściowych. Mogą działać wyłącznie jako wejścia analogowe ADC1 lub cyfrowe wejścia czujników (nie mogą być wyjściami PWM ani sterować ekranami).
                 </span>
@@ -472,7 +472,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               
               {/* Category: I2C (Display & Sensors) */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-mono uppercase text-cyan-400 font-semibold tracking-wider">
+                <span className="ui-type-micro font-mono uppercase text-cyan-400 font-semibold tracking-wider">
                   Magistrala I2C (Ekran OLED / Czujniki)
                 </span>
                 <div className="grid grid-cols-2 gap-2">
@@ -492,9 +492,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">I2C SDA (Dane)</div>
-                      <div className="text-[10px] text-slate-400">Domyślnie GPIO 21</div>
+                      <div className="ui-type-micro text-slate-400">Domyślnie GPIO 21</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'I2C_SDA' && <Check className="w-4 h-4 text-cyan-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'I2C_SDA' && <Check className="ui-icon-sm text-cyan-400" aria-hidden="true" />}
                   </button>
 
                   <button
@@ -513,16 +513,16 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">I2C SCL (Zegar)</div>
-                      <div className="text-[10px] text-slate-400">Domyślnie GPIO 22</div>
+                      <div className="ui-type-micro text-slate-400">Domyślnie GPIO 22</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'I2C_SCL' && <Check className="w-4 h-4 text-cyan-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'I2C_SCL' && <Check className="ui-icon-sm text-cyan-400" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
 
               {/* Category: PWM (Buzzer, Backlight, Servo) */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-mono uppercase text-amber-400 font-semibold tracking-wider">
+                <span className="ui-type-micro font-mono uppercase text-amber-400 font-semibold tracking-wider">
                   Generatory PWM (LEDC Hardware)
                 </span>
                 <div className="grid grid-cols-2 gap-2">
@@ -542,9 +542,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">PWM Buzzer (Dźwięk)</div>
-                      <div className="text-[10px] text-slate-400">Sygnalizator piezo, tony</div>
+                      <div className="ui-type-micro text-slate-400">Sygnalizator piezo, tony</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BUZZER' && <Check className="w-4 h-4 text-amber-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BUZZER' && <Check className="ui-icon-sm text-amber-400" aria-hidden="true" />}
                   </button>
 
                   <button
@@ -563,16 +563,16 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">PWM Podświetlenie</div>
-                      <div className="text-[10px] text-slate-400">Regulacja jasności ekranu</div>
+                      <div className="ui-type-micro text-slate-400">Regulacja jasności ekranu</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BACKLIGHT' && <Check className="w-4 h-4 text-amber-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BACKLIGHT' && <Check className="ui-icon-sm text-amber-400" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
 
               {/* Category: Sensors & ADC Inputs */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-mono uppercase text-emerald-400 font-semibold tracking-wider">
+                <span className="ui-type-micro font-mono uppercase text-emerald-400 font-semibold tracking-wider">
                   Sensory & Wejścia Analogowe/Cyfrowe
                 </span>
                 <div className="grid grid-cols-2 gap-2">
@@ -589,9 +589,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">Czujnik Ruchu PIR</div>
-                      <div className="text-[10px] text-slate-400">Wejście cyfrowe HIGH/LOW</div>
+                      <div className="ui-type-micro text-slate-400">Wejście cyfrowe HIGH/LOW</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_PIR' && <Check className="w-4 h-4 text-emerald-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_PIR' && <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />}
                   </button>
 
                   <button
@@ -607,9 +607,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">Fotorezystor LDR</div>
-                      <div className="text-[10px] text-slate-400">Pomiar jasności ADC</div>
+                      <div className="ui-type-micro text-slate-400">Pomiar jasności ADC</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'ADC_LDR' && <Check className="w-4 h-4 text-yellow-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'ADC_LDR' && <Check className="ui-icon-sm text-yellow-400" aria-hidden="true" />}
                   </button>
 
                   <button
@@ -625,9 +625,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">Potencjometr ADC</div>
-                      <div className="text-[10px] text-slate-400">Wejście analogowe 0-4095</div>
+                      <div className="ui-type-micro text-slate-400">Wejście analogowe 0-4095</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'ADC_POT' && <Check className="w-4 h-4 text-yellow-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'ADC_POT' && <Check className="ui-icon-sm text-yellow-400" aria-hidden="true" />}
                   </button>
 
                   <button
@@ -643,16 +643,16 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">Przycisk USER 1</div>
-                      <div className="text-[10px] text-slate-400">Input Pullup (Aktywny LOW)</div>
+                      <div className="ui-type-micro text-slate-400">Input Pullup (Aktywny LOW)</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_BUTTON' && <Check className="w-4 h-4 text-teal-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_BUTTON' && <Check className="ui-icon-sm text-teal-400" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
 
               {/* Category: Touchscreen Pins */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-mono uppercase text-rose-400 font-semibold tracking-wider">
+                <span className="ui-type-micro font-mono uppercase text-rose-400 font-semibold tracking-wider">
                   Panel Dotykowy (CST816S / FT6236 / XPT2046)
                 </span>
                 <div className="grid grid-cols-2 gap-2">
@@ -669,9 +669,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">Touch INT (IRQ)</div>
-                      <div className="text-[10px] text-slate-400">Przerwanie dotknięcia ekranu</div>
+                      <div className="ui-type-micro text-slate-400">Przerwanie dotknięcia ekranu</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'TOUCH_INT' && <Check className="w-4 h-4 text-rose-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'TOUCH_INT' && <Check className="ui-icon-sm text-rose-400" aria-hidden="true" />}
                   </button>
 
                   <button
@@ -690,16 +690,16 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   >
                     <div>
                       <div className="font-bold">Touch RST (Reset)</div>
-                      <div className="text-[10px] text-slate-400">Linia resetu dotyku</div>
+                      <div className="ui-type-micro text-slate-400">Linia resetu dotyku</div>
                     </div>
-                    {getPinCurrentFunction(selectedPin.pin).func === 'TOUCH_RST' && <Check className="w-4 h-4 text-rose-400" />}
+                    {getPinCurrentFunction(selectedPin.pin).func === 'TOUCH_RST' && <Check className="ui-icon-sm text-rose-400" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
 
               {/* Category: SPI (LCD ST7789 / ILI9341) */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-mono uppercase text-indigo-400 font-semibold tracking-wider">
+                <span className="ui-type-micro font-mono uppercase text-indigo-400 font-semibold tracking-wider">
                   Magistrala SPI (Ekrany Kolorowe TFT LCD)
                 </span>
                 <div className="grid grid-cols-2 gap-2">
@@ -816,7 +816,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                 {p.label}
               </span>
               {p.isInputOnly && (
-                <span className="text-[10px] font-mono px-1 rounded bg-rose-950/70 text-rose-400 border border-rose-900/50">
+                <span className="ui-type-micro font-mono px-1 rounded bg-rose-950/70 text-rose-400 border border-rose-900/50">
                   IN
                 </span>
               )}
@@ -832,7 +832,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
           <span className={`px-2 py-0.5 rounded text-xs font-mono font-medium border ${current.color}`}>
             {current.badge}
           </span>
-          <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 transition-colors" />
+          <ArrowRight className="ui-icon-sm text-slate-500 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
         </div>
       </button>
     );

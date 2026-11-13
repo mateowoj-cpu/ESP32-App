@@ -2,85 +2,339 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+  UI/UX Pro Max tokens — typography, icons, spacing, focus, motion.
+  Dense desktop-tool density (8–32px spacing), modular type scale 12/14/16/18/24/32.
+*/
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-pixel: "Press Start 2P", monospace;
+
+  /* Type scale (rem) — skill: 12 14 16 18 24 32 */
+  --text-ui-micro: 0.75rem; /* 12 */
+  --text-ui-caption: 0.875rem; /* 14 */
+  --text-ui-body: 1rem; /* 16 */
+  --text-ui-title: 1.125rem; /* 18 */
+  --text-ui-heading: 1.5rem; /* 24 */
+  --text-ui-display: 2rem; /* 32 */
+
+  --leading-ui-tight: 1.25;
+  --leading-ui-body: 1.5;
+  --leading-ui-relaxed: 1.625;
+
+  /* Icon tokens — skill: consistent icon-sm / icon-md / icon-lg */
+  --size-icon-sm: 1rem; /* 16 */
+  --size-icon-md: 1.25rem; /* 20 */
+  --size-icon-lg: 1.5rem; /* 24 */
+  --size-icon-xl: 2rem; /* 32 */
+
+  /* Spacing rhythm — 4/8dp (dense dashboard) */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem; /* 16 */
+  --space-5: 1.25rem; /* 20 */
+  --space-6: 1.5rem; /* 24 */
+  --space-8: 2rem; /* 32 */
+
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 40;
+  --z-overlay: 50;
+  --z-modal: 60;
+
+  --header-height: 3.75rem;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @layer base {
   html {
-    font-size: 15px;
-    transition: font-size 0.2s ease-in-out;
+    font-size: 16px; /* skill: readable-font-size ≥16px body */
+    transition: font-size var(--duration-base) var(--ease-out);
+    scroll-padding-top: calc(var(--header-height) + var(--space-2));
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   html[data-ui-scale="normal"] {
-    font-size: 15px;
+    font-size: 16px;
   }
 
-  /* Noticeable 20% scale-up for comfort reading */
+  /* Noticeable scale-up for comfort reading */
   html[data-ui-scale="large"] {
     font-size: 18px;
   }
 
-  /* High-accessibility 46% scale-up */
+  /* High-accessibility scale-up */
   html[data-ui-scale="xlarge"] {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    line-height: 1.5;
+    font-family: var(--font-sans);
+    font-size: var(--text-ui-body);
+    line-height: var(--leading-ui-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
   }
-  
-  input, select, textarea {
+
+  input,
+  select,
+  textarea,
+  button {
     font-family: inherit;
   }
 
-  /* Lucide icon standardization and responsive scaling */
+  /* Visible keyboard focus — skill: never remove outline without replacement */
+  :focus-visible {
+    outline: 2px solid rgb(34 211 238 / 0.85);
+    outline-offset: 2px;
+  }
+
+  /* Lucide icon standardization */
   svg.lucide {
     display: inline-block;
     vertical-align: middle;
     flex-shrink: 0;
-    transition: transform 0.2s ease-in-out;
+    width: var(--size-icon-md);
+    height: var(--size-icon-md);
+    stroke-width: 1.75;
   }
 
-  /* Ensure all small icons have at least 1rem size */
-  .w-3, .w-3\.5 {
-    width: 1rem !important;
-  }
-  .h-3, .h-3\.5 {
-    height: 1rem !important;
-  }
-
-  /* Scale icons smoothly along with font accessibility setting */
-  html[data-ui-scale="large"] svg.lucide {
-    transform: scale(1.15);
+  /* Explicit size utilities still win for hierarchy */
+  svg.lucide.ui-icon-sm,
+  .ui-icon-sm > svg.lucide {
+    width: var(--size-icon-sm);
+    height: var(--size-icon-sm);
   }
 
-  html[data-ui-scale="xlarge"] svg.lucide {
-    transform: scale(1.32);
+  svg.lucide.ui-icon-md,
+  .ui-icon-md > svg.lucide {
+    width: var(--size-icon-md);
+    height: var(--size-icon-md);
   }
 
-  /* Guarantee that arbitrary pixel text utility classes also scale */
-  html[data-ui-scale="large"] [class*="text-[8px]"] { font-size: 10px !important; }
-  html[data-ui-scale="large"] [class*="text-[9px]"] { font-size: 11.5px !important; }
-  html[data-ui-scale="large"] [class*="text-[10px]"] { font-size: 12.5px !important; }
-  html[data-ui-scale="large"] [class*="text-[11px]"] { font-size: 13.5px !important; }
-  html[data-ui-scale="large"] [class*="text-[12px]"] { font-size: 15px !important; }
-  html[data-ui-scale="large"] [class*="text-[13px]"] { font-size: 16px !important; }
-  html[data-ui-scale="large"] [class*="text-[14px]"] { font-size: 17px !important; }
+  svg.lucide.ui-icon-lg,
+  .ui-icon-lg > svg.lucide {
+    width: var(--size-icon-lg);
+    height: var(--size-icon-lg);
+  }
 
-  html[data-ui-scale="xlarge"] [class*="text-[8px]"] { font-size: 12px !important; }
-  html[data-ui-scale="xlarge"] [class*="text-[9px]"] { font-size: 13.5px !important; }
-  html[data-ui-scale="xlarge"] [class*="text-[10px]"] { font-size: 15px !important; }
-  html[data-ui-scale="xlarge"] [class*="text-[11px]"] { font-size: 16.5px !important; }
-  html[data-ui-scale="xlarge"] [class*="text-[12px]"] { font-size: 18px !important; }
-  html[data-ui-scale="xlarge"] [class*="text-[13px]"] { font-size: 19.5px !important; }
-  html[data-ui-scale="xlarge"] [class*="text-[14px]"] { font-size: 21px !important; }
+  svg.lucide.ui-icon-xl,
+  .ui-icon-xl > svg.lucide {
+    width: var(--size-icon-xl);
+    height: var(--size-icon-xl);
+  }
 
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  /* Floor: never render interactive icons below 16px */
+  .w-3,
+  .w-3\.5 {
+    width: var(--size-icon-sm) !important;
+  }
+  .h-3,
+  .h-3\.5 {
+    height: var(--size-icon-sm) !important;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 
   .font-pixel {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--font-pixel);
+  }
+
+  /* Long tokens / paths wrap instead of forcing horizontal scroll */
+  .ui-token,
+  .font-mono.break-all,
+  code.ui-token {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@layer components {
+  .ui-type-micro {
+    font-size: var(--text-ui-micro);
+    line-height: var(--leading-ui-tight);
+  }
+
+  .ui-type-caption {
+    font-size: var(--text-ui-caption);
+    line-height: var(--leading-ui-body);
+  }
+
+  .ui-type-body {
+    font-size: var(--text-ui-body);
+    line-height: var(--leading-ui-body);
+  }
+
+  .ui-type-title {
+    font-size: var(--text-ui-title);
+    line-height: var(--leading-ui-tight);
+    font-weight: 600;
+  }
+
+  .ui-type-heading {
+    font-size: var(--text-ui-heading);
+    line-height: var(--leading-ui-tight);
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .ui-type-label {
+    font-size: var(--text-ui-micro);
+    line-height: var(--leading-ui-tight);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .ui-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .ui-section-gap {
+    gap: var(--space-6);
+  }
+
+  .ui-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .ui-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .ui-panel {
+    border: 1px solid rgb(30 41 59);
+    background: rgb(15 23 42 / 0.85);
+    border-radius: 0.75rem;
+    padding: var(--space-4);
+  }
+
+  .ui-touch {
+    min-height: 2.75rem; /* ~44px touch target */
+    min-width: 2.75rem;
+  }
+
+  .ui-focus-ring {
+    outline: none;
+  }
+
+  .ui-focus-ring:focus-visible {
+    outline: 2px solid rgb(34 211 238 / 0.85);
+    outline-offset: 2px;
+  }
+
+  .ui-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: var(--space-2);
+    border-radius: 0.5rem;
+    transition: background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-skip-link {
+    position: absolute;
+    left: var(--space-4);
+    top: 0;
+    z-index: calc(var(--z-modal) + 1);
+    transform: translateY(-120%);
+    border-radius: 0.5rem;
+    background: rgb(6 182 212);
+    color: rgb(2 6 23);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-ui-caption);
+    font-weight: 700;
+  }
+
+  .ui-skip-link:focus {
+    transform: translateY(var(--space-2));
+  }
+
+  .ui-nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.5rem;
+    padding: var(--space-2) var(--space-3);
+    border-radius: 0.75rem;
+    border: 1px solid transparent;
+    font-size: var(--text-ui-caption);
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-nav-item[aria-current="page"] {
+    background: rgb(6 182 212 / 0.15);
+    color: rgb(103 232 249);
+    border-color: rgb(6 182 212 / 0.4);
+  }
+
+  .ui-status-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: rgb(52 211 153);
+  }
+}
+
+/* Map legacy arbitrary micro type to the modular floor (≥12px) */
+@layer utilities {
+  .text-\[8px\],
+  .text-\[9px\],
+  .text-\[10px\],
+  .text-\[11px\] {
+    font-size: var(--text-ui-micro) !important;
+    line-height: var(--leading-ui-tight);
+  }
+
+  .text-\[12px\],
+  .text-\[13px\] {
+    font-size: var(--text-ui-micro) !important;
+    line-height: var(--leading-ui-tight);
+  }
+
+  .text-\[14px\] {
+    font-size: var(--text-ui-caption) !important;
+    line-height: var(--leading-ui-body);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html[data-ui-scale="large"] svg.lucide,
+  html[data-ui-scale="xlarge"] svg.lucide {
+    transform: none;
   }
 }
 
@@ -106,7 +360,7 @@
 /* OLED pixel simulation raster effect */
 .pixel-matrix-grid {
   background-size: 4px 4px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0.3) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 1px, transparent 1px);
 }
