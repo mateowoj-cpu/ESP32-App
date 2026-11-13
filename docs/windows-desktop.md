@@ -1,6 +1,7 @@
-# Desktop polish (Faza 6) — tray, autostart, i18n, kanały
+# Desktop polish — tray, autostart, i18n, kanały
 
-Wersja aplikacji: **0.2.0**
+Wprowadzone w **Fazie 6**; nadal aktualne w linii **0.2.6**.  
+Ustawienia: **Ustawienia → Desktop**. Indeks: [README.md](./README.md).
 
 ## Tray
 
@@ -34,9 +35,10 @@ PL / EN — chrome nawigacji, update banner, panel Desktop. Preferencja w `local
 
 Przełącznik w **Ustawienia → Desktop**. CI tagów `v*-beta*` powinien publikować `latest-beta.json`.
 
-## Release `v0.2.0` (checklista)
+## Release (checklista)
 
 1. Ustaw sekrety: `TAURI_SIGNING_PRIVATE_KEY`, opcjonalnie Authenticode
-2. Tag `v0.2.0` → workflow `windows-release.yml`
-3. Zweryfikuj `latest.json` + podpis updatera
-4. Smoke: Update z 0.1.x → 0.2.0
+2. Tag `v*` (np. `v0.2.6`) → workflow `windows-release.yml`
+3. Zweryfikuj `latest.json` (+ `latest-beta.json` dla tagów beta) oraz podpis updatera
+4. Smoke: Update ze starszej instalacji linii 0.2.x → nowy tag
+5. Opcjonalnie: draft winget — [windows-winget.md](./windows-winget.md)
