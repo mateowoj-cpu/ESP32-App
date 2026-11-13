@@ -25,7 +25,7 @@ import {
   isWindowsDriverTipDismissed,
   looksLikeWindowsHost,
 } from '../platform/windowsDrivers';
-import { FlashHelperPanel } from './FlashHelperPanel';
+import { FlashHelperPanel, type SketchBuildSources } from './FlashHelperPanel';
 import { 
   Usb, 
   Cpu, 
@@ -48,6 +48,7 @@ interface UsbDetectorViewProps {
   setDisplay: React.Dispatch<React.SetStateAction<DisplayConfig>>;
   system: SystemConfig;
   setSystem: React.Dispatch<React.SetStateAction<SystemConfig>>;
+  buildSources?: () => SketchBuildSources;
 }
 
 function formatClockTimestamp(date = new Date()): string {
@@ -74,6 +75,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   setDisplay,
   system,
   setSystem,
+  buildSources,
 }) => {
   const serialAdapter = getSerialAdapter();
   const [isDetecting, setIsDetecting] = useState(false);
@@ -636,7 +638,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             </div>
           )}
 
-          <FlashHelperPanel detectedChip={detectedChip} />
+          <FlashHelperPanel detectedChip={detectedChip} buildSources={buildSources} />
 
           {/* Popular Boards Catalog */}
           <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">

@@ -23,7 +23,11 @@ import { SettingsView } from './components/SettingsView';
 import { CodeView } from './components/CodeView';
 import { UsbDetectorView } from './components/UsbDetectorView';
 import { ConnectedEsp32Info } from './types';
-import { generateArduinoCppCode } from './utils/codeGenerator';
+import {
+  generateArduinoCppCode,
+  generatePlatformIoIni,
+  resolvePioBoardProfile,
+} from './utils/codeGenerator';
 import type { UpdateCheckResult } from './platform/updater';
 import type { OpenFilePayload } from './platform/flash';
 import { useLocale } from './i18n/LocaleContext';
@@ -787,6 +791,23 @@ export default function App() {
             setDisplay={setDisplayConfig}
             system={systemConfig}
             setSystem={setSystemConfig}
+            buildSources={() => {
+              const boardProfile = resolvePioBoardProfile(
+                detectedChip?.chipFamily || detectedChip?.chipModel,
+              );
+              return {
+                sketchSource: generateArduinoCppCode(
+                  displayConfig,
+                  systemConfig,
+                  apiConfig,
+                  screens,
+                  automations,
+                ),
+                platformioIni: generatePlatformIoIni(displayConfig, boardProfile),
+                boardProfile,
+                sketchName: 'esp32_display_studio',
+              };
+            }}
           />
         )}
 

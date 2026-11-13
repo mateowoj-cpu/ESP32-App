@@ -13,9 +13,9 @@ Sterownik COM: [windows-drivers.md](./windows-drivers.md).
 
 ## Przepływ
 
-1. Zaprojektuj UI w Studio → pobierz `.ino` / PlatformIO.
-2. Zbuduj firmware w Arduino IDE 2 / PlatformIO → plik `.bin`.
-3. W Studio: **USB → Flash helper** → wybierz COM, chip, `.bin` → **Wgraj**.
+1. Zaprojektuj UI w Studio.
+2. **Opcja A (Faza 7):** **USB → Build → Flash** (PlatformIO/arduino-cli w PATH) — zob. [windows-build-flash.md](./windows-build-flash.md).
+3. **Opcja B:** zbuduj `.bin` w Arduino IDE / PlatformIO ręcznie, potem **Flash** w Studio.
 
 Komenda (odpowiednik CLI):
 

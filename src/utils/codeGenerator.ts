@@ -753,13 +753,44 @@ void setupWebServer() {
 `;
 }
 
-export function generatePlatformIoIni(display: DisplayConfig): string {
+export type PioBoardProfile = 'esp32' | 'esp32s2' | 'esp32s3' | 'esp32c3' | 'esp32c6';
+
+export function resolvePioBoardProfile(chipFamilyOrModel?: string | null): PioBoardProfile {
+  const raw = (chipFamilyOrModel || '').toLowerCase();
+  if (raw.includes('c6')) return 'esp32c6';
+  if (raw.includes('c3')) return 'esp32c3';
+  if (raw.includes('s3')) return 'esp32s3';
+  if (raw.includes('s2')) return 'esp32s2';
+  return 'esp32';
+}
+
+export function pioBoardId(profile: PioBoardProfile): { env: string; board: string } {
+  switch (profile) {
+    case 'esp32s3':
+      return { env: 'esp32s3', board: 'esp32-s3-devkitc-1' };
+    case 'esp32c3':
+      return { env: 'esp32c3', board: 'esp32-c3-devkitm-1' };
+    case 'esp32s2':
+      return { env: 'esp32s2', board: 'esp32-s2-saola-1' };
+    case 'esp32c6':
+      return { env: 'esp32c6', board: 'esp32-c6-devkitc-1' };
+    default:
+      return { env: 'esp32dev', board: 'esp32dev' };
+  }
+}
+
+export function generatePlatformIoIni(
+  display: DisplayConfig,
+  boardProfile: PioBoardProfile = 'esp32',
+): string {
+  const { env, board } = pioBoardId(boardProfile);
   return `; ==============================================================================
 ;  PLATFORMIO CONFIGURATION (platformio.ini)
+;  Display: ${display.model} · board profile: ${boardProfile}
 ; ==============================================================================
-[env:esp32dev]
+[env:${env}]
 platform = espressif32
-board = esp32dev
+board = ${board}
 framework = arduino
 monitor_speed = 115200
 upload_speed = 921600

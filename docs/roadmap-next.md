@@ -1,23 +1,20 @@
-# Kolejny krok po Fazie 6
+# Kolejny krok po Fazie 7
 
-## Stan po Fazie 6
+## Stan po Fazie 7
 
-- Tray + close-to-tray, autostart Studio / agenta PC
-- i18n PL/EN (chrome + panel Desktop)
-- Kanały update stable / beta
-- Bump wersji **0.2.0** (gotowość do podpisanego releasu)
-- GPU: NVIDIA + best-effort Windows `typeperf` (AMD/Intel)
-- Wcześniej: Serial, NSIS/MSI, agent `.exe`, flash, deep link, smoke CI
+- Build-from-Studio: PlatformIO / arduino-cli → `.bin` → esptool
+- UI: Build / Flash / Build+Flash w widoku USB
+- Profile płytki z wykrytego ESP32
+- Wcześniej: Serial, installer, agent PC, updater, tray, i18n, deep link, smoke CI
 
-## Faza 7 (rekomendowana) — Build-from-Studio
+## Faza 8 (rekomendowana) — Product polish & dystrybucja
 
-1. Integracja **PlatformIO CLI** / `arduino-cli` (wykryj w PATH)
-2. Kompilacja wygenerowanego `.ino` → `.bin` z poziomu Studio
-3. Jeden przepływ: **Generate → Build → Flash** (esptool)
-4. Opcjonalnie cache toolchain / board profile z wykrytego ESP32
+1. **Pełne tłumaczenie** pozostałych widoków (nie tylko chrome)
+2. **winget / signed public release** `v0.2.x` z Authenticode + updater E2E
+3. **Opt-in diagnostyka** flash/COM (logi do pliku, bez telemetrii chmurowej)
+4. **Board presets cache** — zapamiętaj ostatni udany env PIO / offset flash per VID:PID
 
-## Faza 8 (później)
+## Faza 9 (opcjonalna)
 
-- Pełne tłumaczenie pozostałych widoków
-- Publiczny signed store / winget
-- Telemetria diagnostyczna (opt-in) dla flash/COM
+- Wbudowany / sidecare’owany PlatformIO Core (offline installer)
+- OTA update firmware przez Wi‑Fi z Studio

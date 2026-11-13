@@ -44,6 +44,9 @@ jobs:
       - name: i18n unit tests
         run: npm run test:i18n
 
+      - name: PIO board mapping tests
+        run: npm run test:pio-board
+
       - name: Production build
         run: npm run build
 
