@@ -46,6 +46,12 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useLocale } from '../i18n/LocaleContext';
+import {
+  buildDefaultTimeline,
+  buildPresetTimeline,
+  generateCustomTimeline,
+  type PetPresetKey,
+} from '../utils/petTimeline';
 
 interface AutomationStudioProps {
   automations: AutomationRule[];
@@ -92,22 +98,6 @@ const TEMP_PRESETS = [
   { label: '35°C', value: 35 },
 ];
 
-// Domyślny 3-minutowy (180s) zrównoważony timeline zachowań robota
-const DEFAULT_TIMELINE_STEPS: PetTimelineStep[] = [
-  { id: 'step_1', behavior: 'sleep', name: 'Głęboki sen (Zzz)', durationSec: 25, description: 'Robot śpi z zamkniętymi oczami i unoszącym się Zzz' },
-  { id: 'step_2', behavior: 'yawn', name: 'Ziewnięcie poranne', durationSec: 10, description: 'Powolne otwarcie oczu i szerokie ziewnięcie' },
-  { id: 'step_3', behavior: 'blink', name: 'Mruganie i rozbudzanie', durationSec: 10, description: 'Szybkie serie mrugnięć rozjaśniających matrycę' },
-  { id: 'step_4', behavior: 'look_around', name: 'Rozglądanie się (Skaner)', durationSec: 25, description: 'Płynne wahadłowe wędrowanie wzrokiem po otoczeniu' },
-  { id: 'step_5', behavior: 'look_left', name: 'Zerkanie w lewo', durationSec: 15, description: 'Skupienie wzroku na lewej krawędzi obudowy' },
-  { id: 'step_6', behavior: 'look_right', name: 'Zerkanie w prawo', durationSec: 15, description: 'Weryfikacja prawej strony pomieszczenia' },
-  { id: 'step_7', behavior: 'look_up', name: 'Patrzenie do góry', durationSec: 20, description: 'Oczy skierowane w górę (np. ku sufitowi / użytkownikowi)' },
-  { id: 'step_8', behavior: 'surprised', name: 'Zaskoczenie O_O', durationSec: 10, description: 'Wielkie rozszerzone źrenice po wykryciu obiektu' },
-  { id: 'step_9', behavior: 'crazy', name: 'Zaczyna wariować!', durationSec: 15, description: 'Ekscytacja, wibrujące oczy, skaczące źrenice' },
-  { id: 'step_10', behavior: 'dizzy', name: 'Zakręcenie / Wirowanie', durationSec: 10, description: 'Oczy wirujące w koło po szaleńczym tańcu' },
-  { id: 'step_11', behavior: 'happy', name: 'Uśmiech ^_^', durationSec: 15, description: 'Radosne wygięte łuki i zadowolenie ze spotkania' },
-  { id: 'step_12', behavior: 'neutral', name: 'Czuwanie w gotowości', durationSec: 10, description: 'Stabilne spojrzenie kapsułowe, oczekiwanie na komendy' },
-];
-
 export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   automations,
   setAutomations,
@@ -121,7 +111,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
 
   // New rule form state
-  const [newName, setNewName] = useState<string>('Nowa automatyzacja');
+  const [newName, setNewName] = useState<string>(() => t('auto.newRuleDefault'));
   const [newTriggerType, setNewTriggerType] = useState<TriggerType>('pir_motion');
   const [newTriggerPin, setNewTriggerPin] = useState<number>(14);
   const [newTriggerThreshold, setNewTriggerThreshold] = useState<number>(20);
@@ -134,7 +124,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   // ==============================================================================
   //  STAN DLA OSI CZASU I GENERATORA ZACHOWAŃ CYBER-ZWIERZAKA
   // ==============================================================================
-  const [timelineSteps, setTimelineSteps] = useState<PetTimelineStep[]>(DEFAULT_TIMELINE_STEPS);
+  const [timelineSteps, setTimelineSteps] = useState<PetTimelineStep[]>(() => buildDefaultTimeline(t));
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [currentTimeSec, setCurrentTimeSec] = useState<number>(0);
@@ -146,8 +136,8 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   // Formularz dodawania nowego kroku
   const [newStepBehavior, setNewStepBehavior] = useState<PetBehaviorType>('look_around');
   const [newStepDuration, setNewStepDuration] = useState<number>(20);
-  const [newStepName, setNewStepName] = useState<string>('Płynne rozglądanie się');
-  const [newStepDesc, setNewStepDesc] = useState<string>('Oczy wodzą w lewo i prawo');
+  const [newStepName, setNewStepName] = useState<string>(() => t('auto.newStepDefaultName'));
+  const [newStepDesc, setNewStepDesc] = useState<string>(() => t('auto.newStepDefaultDesc'));
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -568,124 +558,14 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   //  METODY OSI CZASU
   // ==============================================================================
   const handleApplyPreset = (presetKey: string) => {
-    let steps: PetTimelineStep[] = [];
-
-    if (presetKey === 'morning_wake') {
-      steps = [
-        { id: `step_${Date.now()}_1`, behavior: 'sleep', name: 'Głęboki sen nocy', durationSec: 35, description: 'Robot regeneruje baterie, Zzz' },
-        { id: `step_${Date.now()}_2`, behavior: 'yawn', name: 'Wielkie ziewnięcie', durationSec: 15, description: 'Otwarcie ust i rozciąganie serwomechanizmów' },
-        { id: `step_${Date.now()}_3`, behavior: 'blink', name: 'Mruganie na powitanie', durationSec: 15, description: 'Trzykrotne mrugnięcie' },
-        { id: `step_${Date.now()}_4`, behavior: 'look_around', name: 'Rozglądanie się', durationSec: 30, description: 'Skanowanie poziome pokoju' },
-        { id: `step_${Date.now()}_5`, behavior: 'look_up', name: 'Spoglądanie ku światłu', durationSec: 25, description: 'Oczy skierowane w górę na lampę/okno' },
-        { id: `step_${Date.now()}_6`, behavior: 'happy', name: 'Radość z nowego dnia', durationSec: 30, description: 'Uśmiechnięte oczy ^_^' },
-        { id: `step_${Date.now()}_7`, behavior: 'neutral', name: 'Gotowość do pracy', durationSec: 30, description: 'Czuwanie w trybie asystenta' }
-      ];
-    } else if (presetKey === 'curious_explorer') {
-      steps = [
-        { id: `step_${Date.now()}_1`, behavior: 'neutral', name: 'Spokojna obserwacja', durationSec: 30, description: 'Oczekiwanie na bodziec' },
-        { id: `step_${Date.now()}_2`, behavior: 'look_around', name: 'Szczegółowe skanowanie', durationSec: 45, description: 'Płynny ruch gałek ocznych w lewo i prawo' },
-        { id: `step_${Date.now()}_3`, behavior: 'look_left', name: 'Fokus na lewy obiekt', durationSec: 30, description: 'Zauważenie ruchu po lewej stronie' },
-        { id: `step_${Date.now()}_4`, behavior: 'look_right', name: 'Fokus na prawy obiekt', durationSec: 30, description: 'Weryfikacja drugiego obiektu' },
-        { id: `step_${Date.now()}_5`, behavior: 'look_up', name: 'Spojrzenie na twarz człowieka', durationSec: 35, description: 'Podniesienie wzroku ku użytkownikowi' },
-        { id: `step_${Date.now()}_6`, behavior: 'surprised', name: 'Wielkie zaskoczenie O_O', durationSec: 20, description: 'Rozszerzone źrenice robota' },
-        { id: `step_${Date.now()}_7`, behavior: 'crazy', name: 'Ekscytacja odkryciem!', durationSec: 30, description: 'Zaczyna wariować ze szczęścia, skaczące oczy' },
-        { id: `step_${Date.now()}_8`, behavior: 'dizzy', name: 'Wirujące oczy', durationSec: 25, description: 'Obrót źrenic dookoła po intensywnym tańcu' },
-        { id: `step_${Date.now()}_9`, behavior: 'yawn', name: 'Zmęczenie po badaniach', durationSec: 25, description: 'Powolne ziewnięcie' },
-        { id: `step_${Date.now()}_10`, behavior: 'sleep', name: 'Krótka drzemka regeneracyjna', durationSec: 30, description: 'Odpoczynek przed kolejną misją' }
-      ];
-    } else if (presetKey === 'evening_sleep') {
-      steps = [
-        { id: `step_${Date.now()}_1`, behavior: 'neutral', name: 'Spokojny wieczór', durationSec: 40, description: 'Przygaszone czuwanie robota' },
-        { id: `step_${Date.now()}_2`, behavior: 'look_around', name: 'Leniwe rozglądanie się', durationSec: 35, description: 'Powolne ruchy wzroku' },
-        { id: `step_${Date.now()}_3`, behavior: 'yawn', name: 'Pierwsze ziewnięcie', durationSec: 25, description: 'Głębokie ziewnięcie wieczorne' },
-        { id: `step_${Date.now()}_4`, behavior: 'look_left', name: 'Ospałe spojrzenie w bok', durationSec: 25, description: 'Spadek poziomu energii' },
-        { id: `step_${Date.now()}_5`, behavior: 'yawn', name: 'Drugie potężne ziewnięcie', durationSec: 25, description: 'Przygotowanie do uśpienia' },
-        { id: `step_${Date.now()}_6`, behavior: 'blink', name: 'Ciężkie opadające powieki', durationSec: 30, description: 'Wolne, ciężkie mrugnięcia' },
-        { id: `step_${Date.now()}_7`, behavior: 'sleep', name: 'Zapadnięcie w głęboki sen Zzz', durationSec: 60, description: 'Uśpienie procesora, animowane Zzz' }
-      ];
-    } else if (presetKey === 'crazy_party') {
-      steps = [
-        { id: `step_${Date.now()}_1`, behavior: 'neutral', name: 'Odliczanie do imprezy', durationSec: 15, description: 'Cisza przed burzą' },
-        { id: `step_${Date.now()}_2`, behavior: 'surprised', name: 'Aktywacja Party Mode!', durationSec: 15, description: 'Oczy O_O w rytm muzyki' },
-        { id: `step_${Date.now()}_3`, behavior: 'crazy', name: 'ZACZYNA TOTALNIE WARIOWAĆ!', durationSec: 35, description: 'Wibrujące oczy, skoki i błyski neonowe' },
-        { id: `step_${Date.now()}_4`, behavior: 'dizzy', name: 'Wirujące hipnotyczne źrenice', durationSec: 25, description: 'Kosmiczny obrót 360 stopni' },
-        { id: `step_${Date.now()}_5`, behavior: 'look_around', name: 'Błyskawiczny skan parkietu', durationSec: 15, description: 'Ruch z prędkością światła' },
-        { id: `step_${Date.now()}_6`, behavior: 'happy', name: 'Super uśmiech robotyczny ^_^', durationSec: 15, description: 'Finałowy zadowolony grymas' }
-      ];
-    }
-
+    const steps = buildPresetTimeline(presetKey as PetPresetKey, t);
     setTimelineSteps(steps);
     setCurrentTimeSec(0);
     setIsPlaying(true);
   };
 
   const handleGenerateCustomTimeline = () => {
-    const targetTotalSec = generatorMinutes * 60;
-    const generated: PetTimelineStep[] = [];
-    let currentTotal = 0;
-    let stepIndex = 1;
-
-    const poolByPersonality: Record<string, { mood: PetBehaviorType; name: string; desc: string; durMin: number; durMax: number }[]> = {
-      balanced: [
-        { mood: 'neutral', name: 'Czuwanie neutralne', desc: 'Gotowość do pracy', durMin: 15, durMax: 30 },
-        { mood: 'look_around', name: 'Rozglądanie się', desc: 'Płynne wodzenie wzrokiem', durMin: 20, durMax: 40 },
-        { mood: 'look_left', name: 'Zerkanie w lewo', desc: 'Sprawdzenie lewej strony', durMin: 10, durMax: 20 },
-        { mood: 'look_right', name: 'Zerkanie w prawo', desc: 'Sprawdzenie prawej strony', durMin: 10, durMax: 20 },
-        { mood: 'look_up', name: 'Patrzenie w górę', desc: 'Oczy ku sufitowi', durMin: 15, durMax: 25 },
-        { mood: 'blink', name: 'Mruganie', desc: 'Nawilżanie matrycy OLED', durMin: 10, durMax: 15 },
-        { mood: 'happy', name: 'Uśmiech ^_^', desc: 'Zadowolenie', durMin: 15, durMax: 25 },
-        { mood: 'yawn', name: 'Ziewnięcie', desc: 'Krótki spadek energii', durMin: 10, durMax: 20 },
-        { mood: 'sleep', name: 'Krótki sen Zzz', desc: 'Drzemka mikroprocesora', durMin: 20, durMax: 40 },
-      ],
-      crazy: [
-        { mood: 'crazy', name: 'Zwierzak wariuje!', desc: 'Ekscytacja i chaos', durMin: 15, durMax: 35 },
-        { mood: 'dizzy', name: 'Zakręcone wirujące oczy', desc: 'Wirowanie źrenic w koło', durMin: 15, durMax: 25 },
-        { mood: 'look_around', name: 'Szybkie rozglądanie się', desc: 'Błyskawiczne ruchy', durMin: 15, durMax: 25 },
-        { mood: 'surprised', name: 'Wielkie oczy O_O', desc: 'Szok i zdziwienie', durMin: 10, durMax: 20 },
-        { mood: 'happy', name: 'Dziki uśmiech robota', desc: 'Pełna euforia', durMin: 15, durMax: 25 },
-        { mood: 'look_up', name: 'Wystrzał wzroku w górę', desc: 'Wypatrywanie fajerwerków', durMin: 10, durMax: 20 }
-      ],
-      sleepy: [
-        { mood: 'sleep', name: 'Głęboki sen Zzz', desc: 'Cichy relaks z chrapaniem', durMin: 30, durMax: 60 },
-        { mood: 'yawn', name: 'Wielkie ziewnięcie', desc: 'Otwarta buźka robota', durMin: 15, durMax: 30 },
-        { mood: 'blink', name: 'Powolne mrugnięcie', desc: 'Opadające powieki', durMin: 10, durMax: 20 },
-        { mood: 'look_around', name: 'Zaspane rozglądanie się', desc: 'Leniwy ruch wzroku', durMin: 20, durMax: 35 },
-        { mood: 'look_up', name: 'Patrzenie w sufit z łóżka', desc: 'Rozmyślanie o gwiazdach', durMin: 15, durMax: 25 }
-      ],
-      curious: [
-        { mood: 'look_around', name: 'Rozglądanie się po pokoju', desc: 'Skanowanie 180 stopni', durMin: 25, durMax: 45 },
-        { mood: 'look_left', name: 'Ciekawe zerkanie w lewo', desc: 'Co tam stoi na biurku?', durMin: 15, durMax: 30 },
-        { mood: 'look_right', name: 'Ciekawe zerkanie w prawo', desc: 'Ktoś właśnie podszedł?', durMin: 15, durMax: 30 },
-        { mood: 'look_up', name: 'Badanie sufitu i światła', desc: 'Pomiar luksów otoczenia', durMin: 20, durMax: 35 },
-        { mood: 'surprised', name: 'Zaskoczenie nowym obiektem', desc: 'Powiększone źrenice', durMin: 10, durMax: 20 },
-        { mood: 'happy', name: 'Satysfakcja z odkrycia', desc: 'Uśmiech małego robota', durMin: 15, durMax: 25 },
-        { mood: 'neutral', name: 'Analiza danych z sensorów', desc: 'Chwila skupienia', durMin: 15, durMax: 30 }
-      ]
-    };
-
-    const pool = poolByPersonality[generatorPersonality] || poolByPersonality.balanced;
-
-    while (currentTotal < targetTotalSec) {
-      const template = pool[Math.floor(Math.random() * pool.length)];
-      const remainingSec = targetTotalSec - currentTotal;
-      let dur = Math.floor(Math.random() * (template.durMax - template.durMin + 1)) + template.durMin;
-
-      if (dur > remainingSec || remainingSec < 15) {
-        dur = remainingSec;
-      }
-
-      generated.push({
-        id: `gen_step_${stepIndex}_${Date.now()}`,
-        behavior: template.mood,
-        name: template.name,
-        durationSec: dur,
-        description: template.desc
-      });
-
-      currentTotal += dur;
-      stepIndex++;
-    }
-
+    const generated = generateCustomTimeline(generatorMinutes, generatorPersonality, t);
     setTimelineSteps(generated);
     setCurrentTimeSec(0);
     setIsPlaying(true);
@@ -1672,12 +1552,12 @@ void updatePetTimeline() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
                       <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
-                      Poranne Przebudzenie
+                      {t('auto.preset.morning.title')}
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">3 min</span>
                   </div>
                   <span className="text-xs text-slate-400 mt-1 line-clamp-2">
-                    Sen $\rightarrow$ ziewanie $\rightarrow$ mruganie $\rightarrow$ rozglądanie się $\rightarrow$ patrzenie w górę $\rightarrow$ radość.
+                    {t('auto.preset.morning.blurb')}
                   </span>
                 </button>
 
@@ -1688,12 +1568,12 @@ void updatePetTimeline() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
                       <Compass className="ui-icon-sm text-teal-400" aria-hidden="true" />
-                      Ciekawski Robot
+                      {t('auto.preset.curious.title')}
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">5 min</span>
                   </div>
                   <span className="text-xs text-slate-400 mt-1 line-clamp-2">
-                    Rozglądanie $\rightarrow$ zerkanie w lewo/prawo $\rightarrow$ w górę $\rightarrow$ wariuje $\rightarrow$ wirujące oczy $\rightarrow$ ziewnięcie.
+                    {t('auto.preset.curious.blurb')}
                   </span>
                 </button>
 
@@ -1704,12 +1584,12 @@ void updatePetTimeline() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
                       <Moon className="ui-icon-sm text-purple-400" aria-hidden="true" />
-                      Wieczorne Zasypianie
+                      {t('auto.preset.evening.title')}
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">4 min</span>
                   </div>
                   <span className="text-xs text-slate-400 mt-1 line-clamp-2">
-                    Czuwanie $\rightarrow$ ziewanie $\rightarrow$ ciężkie powieki $\rightarrow$ drugie ziewnięcie $\rightarrow$ głęboki sen z Zzz.
+                    {t('auto.preset.evening.blurb')}
                   </span>
                 </button>
 
@@ -1720,12 +1600,12 @@ void updatePetTimeline() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 flex items-center gap-2">
                       <Flame className="ui-icon-sm text-rose-400" aria-hidden="true" />
-                      Pełne Szaleństwo!
+                      {t('auto.preset.party.title')}
                     </span>
                     <span className="text-xs font-mono text-cyan-400 font-bold px-2 py-0.5 bg-cyan-950/60 rounded">2 min</span>
                   </div>
                   <span className="text-xs text-slate-400 mt-1 line-clamp-2">
-                    Zaskoczenie $\rightarrow$ zaczyna wariować $\rightarrow$ wirówka źrenic $\rightarrow$ błyskawiczny skan $\rightarrow$ uśmiech.
+                    {t('auto.preset.party.blurb')}
                   </span>
                 </button>
               </div>

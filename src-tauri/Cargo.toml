@@ -1,6 +1,6 @@
 [package]
 name = "esp32-display-studio"
-version = "0.2.3"
+version = "0.2.4"
 description = "ESP32 Display Studio — desktop shell with native serial (COM) support"
 authors = ["ESP32 Display Studio"]
 license = ""

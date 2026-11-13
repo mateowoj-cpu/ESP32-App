@@ -33,6 +33,8 @@ import {
 import { generatePythonPcAgentScript } from '../utils/codeGenerator';
 import type { PcAgentInfo } from '../platform/pcAgent';
 import { useLocale } from '../i18n/LocaleContext';
+import { POPULAR_CITIES } from '../data/popularCities';
+export { POPULAR_CITIES };
 
 interface IntegrationsViewProps {
   apiConfig: ApiIntegrationsConfig;
@@ -40,27 +42,6 @@ interface IntegrationsViewProps {
   simState: HardwareSimState;
   setSimState: React.Dispatch<React.SetStateAction<HardwareSimState>>;
 }
-
-export const POPULAR_CITIES: Record<string, { lat: number; lon: number; country: string; label: string }> = {
-  'Dortmund': { lat: 51.5136, lon: 7.4653, country: 'DE', label: 'Dortmund (Niemcy)' },
-  'Warszawa': { lat: 52.2297, lon: 21.0122, country: 'PL', label: 'Warszawa (Polska)' },
-  'Kraków': { lat: 50.0647, lon: 19.9450, country: 'PL', label: 'Kraków (Polska)' },
-  'Wrocław': { lat: 51.1079, lon: 17.0385, country: 'PL', label: 'Wrocław (Polska)' },
-  'Gdańsk': { lat: 54.3520, lon: 18.6466, country: 'PL', label: 'Gdańsk (Polska)' },
-  'Poznań': { lat: 52.4064, lon: 16.9252, country: 'PL', label: 'Poznań (Polska)' },
-  'Katowice': { lat: 50.2649, lon: 19.0238, country: 'PL', label: 'Katowice (Polska)' },
-  'Berlin': { lat: 52.5200, lon: 13.4050, country: 'DE', label: 'Berlin (Niemcy)' },
-  'Monachium': { lat: 48.1351, lon: 11.5820, country: 'DE', label: 'Monachium (Niemcy)' },
-  'Kolonia': { lat: 50.9375, lon: 6.9603, country: 'DE', label: 'Kolonia / Köln (Niemcy)' },
-  'Frankfurt': { lat: 50.1109, lon: 8.6821, country: 'DE', label: 'Frankfurt (Niemcy)' },
-  'Hamburg': { lat: 53.5511, lon: 9.9937, country: 'DE', label: 'Hamburg (Niemcy)' },
-  'Londyn': { lat: 51.5074, lon: -0.1278, country: 'GB', label: 'Londyn (Wlk. Brytania)' },
-  'Paryż': { lat: 48.8566, lon: 2.3522, country: 'FR', label: 'Paryż (Francja)' },
-  'Wiedeń': { lat: 48.2082, lon: 16.3738, country: 'AT', label: 'Wiedeń (Austria)' },
-  'Praga': { lat: 50.0755, lon: 14.4378, country: 'CZ', label: 'Praga (Czechy)' },
-  'Nowy Jork': { lat: 40.7128, lon: -74.0060, country: 'US', label: 'Nowy Jork (USA)' },
-  'Tokio': { lat: 35.6762, lon: 139.6503, country: 'JP', label: 'Tokio (Japonia)' },
-};
 
 export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
   apiConfig,
@@ -79,8 +60,8 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
 
   // Notification input
-  const [notifTitle, setNotifTitle] = useState('Nowa wiadomość');
-  const [notifMessage, setNotifMessage] = useState('Ktoś dzwoni do drzwi wejściowych!');
+  const [notifTitle, setNotifTitle] = useState(() => t('integ.notifDefaultTitle'));
+  const [notifMessage, setNotifMessage] = useState(() => t('integ.notifDefaultBody'));
 
   // PC agent (Tauri desktop)
   const [esp32Host, setEsp32Host] = useState('192.168.1.150');
@@ -124,7 +105,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         setSearchResults([]);
       }
     } catch (err) {
-      console.error('Błąd wyszukiwania miasta:', err);
+      console.error(t('integ.err.citySearch'), err);
     } finally {
       setIsSearchingCity(false);
     }
@@ -190,13 +171,13 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
       let humidity = 60;
       let windSpeed = 12;
       let pressure = 1013;
-      let condition = 'Słonecznie';
+      let condition = t('integ.wx.sunny');
       let icon: 'sun' | 'cloud' | 'rain' | 'snow' | 'thunder' = 'sun';
 
       if (provider === 'wttr-in') {
         // Free wttr.in API (directly by city name, e.g. Dortmund)
         const res = await fetch(`https://wttr.in/${encodeURIComponent(cityName)}?format=j1`);
-        if (!res.ok) throw new Error('Błąd połączenia z bezpłatnym wttr.in');
+        if (!res.ok) throw new Error(t('integ.err.wttr'));
         const data = await res.json();
         const current = data.current_condition?.[0];
         if (current) {
@@ -204,7 +185,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
           humidity = parseInt(current.humidity, 10);
           windSpeed = parseInt(current.windspeedKmph, 10);
           pressure = parseInt(current.pressure, 10);
-          const desc = current.weatherDesc?.[0]?.value || 'Pogodnie';
+          const desc = current.weatherDesc?.[0]?.value || t('integ.wx.fair');
           condition = desc;
           const lower = desc.toLowerCase();
           if (lower.includes('rain') || lower.includes('deszcz')) icon = 'rain';
@@ -216,7 +197,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
       } else if (provider === 'openweathermap') {
         const key = apiKey || apiConfig.weather.apiKey;
         if (!key) {
-          throw new Error('OpenWeatherMap wymaga bezpłatnego klucza API (lub przełącz na darmowe Open-Meteo / wttr.in)');
+          throw new Error(t('integ.err.owmKey'));
         }
         const res = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&units=metric&appid=${key}`
@@ -227,7 +208,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         humidity = data.main.humidity;
         pressure = data.main.pressure;
         windSpeed = Math.round((data.wind?.speed || 0) * 3.6);
-        condition = data.weather?.[0]?.description || 'Pogodnie';
+        condition = data.weather?.[0]?.description || t('integ.wx.fair');
         const main = data.weather?.[0]?.main?.toLowerCase() || '';
         if (main.includes('rain')) icon = 'rain';
         else if (main.includes('cloud')) icon = 'cloud';
@@ -237,7 +218,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
       } else if (provider === 'custom') {
         const targetUrl = customUrl || apiConfig.weather.customEndpoint || `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
         const res = await fetch(targetUrl);
-        if (!res.ok) throw new Error('Błąd połączenia z własnym adresem URL');
+        if (!res.ok) throw new Error(t('integ.err.custom'));
         const data = await res.json();
         if (data.current_weather) {
           temperature = data.current_weather.temperature;
@@ -250,18 +231,18 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relativehumidity_2m,surface_pressure`
         );
-        if (!res.ok) throw new Error('Błąd połączenia z Open-Meteo');
+        if (!res.ok) throw new Error(t('integ.err.openMeteo'));
         const data = await res.json();
         const current = data.current_weather;
         temperature = current.temperature;
         windSpeed = current.windspeed;
         const code = current.weathercode;
-        if (code === 0) { condition = 'Czyste niebo (Słonecznie)'; icon = 'sun'; }
-        else if (code <= 3) { condition = 'Częściowe zachmurzenie'; icon = 'cloud'; }
-        else if (code >= 51 && code <= 67) { condition = 'Opady deszczu'; icon = 'rain'; }
-        else if (code >= 71 && code <= 77) { condition = 'Opady śniegu'; icon = 'snow'; }
-        else if (code >= 95) { condition = 'Burza z piorunami'; icon = 'thunder'; }
-        else { condition = 'Pochmurno'; icon = 'cloud'; }
+        if (code === 0) { condition = t('integ.wx.clear'); icon = 'sun'; }
+        else if (code <= 3) { condition = t('integ.wx.partly'); icon = 'cloud'; }
+        else if (code >= 51 && code <= 67) { condition = t('integ.wx.rain'); icon = 'rain'; }
+        else if (code >= 71 && code <= 77) { condition = t('integ.wx.snow'); icon = 'snow'; }
+        else if (code >= 95) { condition = t('integ.wx.thunder'); icon = 'thunder'; }
+        else { condition = t('integ.wx.cloudy'); icon = 'cloud'; }
 
         if (data.hourly && data.hourly.relativehumidity_2m && data.hourly.relativehumidity_2m.length > 0) {
           humidity = data.hourly.relativehumidity_2m[0];
@@ -304,7 +285,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
       setWeatherFetchStatus(`Pomyślnie zaktualizowano (${cityName}): ${temperature.toFixed(1)}°C, ${condition}!`);
     } catch (err: any) {
-      setWeatherFetchStatus(`Błąd: ${err.message || 'Nie udało się pobrać danych'}`);
+      setWeatherFetchStatus(`Błąd: ${err.message || t('integ.err.fetch')}`);
     } finally {
       setIsFetchingWeather(false);
     }
@@ -345,7 +326,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
     setSimState(prev => ({
       ...prev,
       isDisplayAwake: true,
-      lastTriggerFired: 'Powiadomienie',
+      lastTriggerFired: t('integ.notifTrigger'),
     }));
   };
 
@@ -396,7 +377,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
       const { stopPcAgent, getPcAgentInfo } = await import('../platform/pcAgent');
       await stopPcAgent();
       setPcAgentInfo(await getPcAgentInfo());
-      setPcAgentMessage('Agent PC zatrzymany.');
+      setPcAgentMessage(t('integ.agentStopped'));
     } catch (err) {
       setPcAgentMessage(err instanceof Error ? err.message : String(err));
     } finally {
@@ -423,14 +404,14 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800'
                   : 'text-cyan-400 bg-cyan-950/60 border-cyan-800'
               }`}>
-                {currentProvider === 'open-meteo' || currentProvider === 'wttr-in' ? '100% BEZ KLUCZA' : 'DARMOWY PLAN'}
+                {currentProvider === 'open-meteo' || currentProvider === 'wttr-in' ? t('integ.badge.nokey') : t('integ.badge.free')}
               </span>
             </div>
 
             {/* Provider Selector Tabs */}
             <div>
               <label className="ui-type-micro font-mono text-slate-400 block mb-1.5">
-                Dostawca bezpłatnego API pogodowego:
+                {t('integ.providerLabel')}
               </label>
               <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 ui-type-micro font-mono">
                 <button
@@ -477,7 +458,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                   }`}
                 >
-                  <span>Własny REST</span>
+                  <span>{t('integ.provider.custom')}</span>
                   {currentProvider === 'custom' && <Check className="ui-icon-sm" aria-hidden="true" />}
                 </button>
               </div>
@@ -486,18 +467,18 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             {/* City Preset Selection with Dortmund */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-slate-400">Wybierz miasto z listy:</label>
-                <span className="ui-type-micro text-amber-400 font-mono">Dortmund & Europa</span>
+                <label className="text-xs text-slate-400">{t('integ.cityPick')}</label>
+                <span className="ui-type-micro text-amber-400 font-mono">{t('integ.cityRegion')}</span>
               </div>
               <select
                 value={POPULAR_CITIES[apiConfig.weather.city] ? apiConfig.weather.city : ''}
                 onChange={e => handleSelectPresetCity(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:ring-1 focus:ring-amber-400 font-medium"
               >
-                <option value="" disabled>-- Wybierz miasto lub wyszukaj poniżej --</option>
+                <option value="" disabled>{t('integ.cityPlaceholder')}</option>
                 {Object.entries(POPULAR_CITIES).map(([key, item]) => (
                   <option key={key} value={key}>
-                    {item.label}
+                    {t(item.labelKey)}
                   </option>
                 ))}
               </select>
@@ -506,14 +487,14 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             {/* Online City Geocoding Search Input */}
             <div className="relative">
               <label className="ui-type-micro text-slate-400 block mb-1">
-                Wyszukaj dowolne miasto na świecie (Online Geocoding):
+                {t('integ.citySearch')}
               </label>
               <div className="flex items-center gap-1.5">
                 <div className="relative flex-1">
                   <input
                     type="text"
                     value={citySearchQuery}
-                    placeholder="Wpisz np. Dortmund, Essen, Zakopane, Rzym..."
+                    placeholder={t('integ.citySearchPh')}
                     onChange={e => {
                       setCitySearchQuery(e.target.value);
                       if (e.target.value.length >= 2) {
@@ -537,7 +518,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                   disabled={isSearchingCity}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition-colors"
                 >
-                  {isSearchingCity ? <RefreshCw className="ui-icon-sm animate-spin" aria-hidden="true" /> : 'Szukaj'}
+                  {isSearchingCity ? <RefreshCw className="ui-icon-sm animate-spin" aria-hidden="true" /> : t('integ.search')}
                 </button>
               </div>
 
@@ -570,7 +551,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-mono text-slate-300 flex items-center gap-1.5">
                     <Key className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                    Klucz OpenWeatherMap API:
+                    {t('integ.owmKey')}
                   </label>
                   <a
                     href="https://openweathermap.org/api"
@@ -578,14 +559,14 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     rel="noreferrer"
                     className="text-xs text-cyan-400 hover:underline flex items-center gap-1"
                   >
-                    <span>Darmowe konto</span>
+                    <span>{t('integ.owmFree')}</span>
                     <ExternalLink className="ui-icon-sm" aria-hidden="true" />
                   </a>
                 </div>
                 <input
                   type="password"
                   value={apiConfig.weather.apiKey || ''}
-                  placeholder="Wklej darmowy klucz API (np. abc123xyz...)"
+                  placeholder={t('integ.owmPh')}
                   onChange={e => setApiConfig(prev => ({
                     ...prev,
                     weather: { ...prev.weather, apiKey: e.target.value },
@@ -597,7 +578,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
             {currentProvider === 'custom' && (
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex flex-col gap-2">
-                <label className="text-xs font-mono text-slate-300">Własny adres URL JSON:</label>
+                <label className="text-xs font-mono text-slate-300">{t('integ.customUrl')}</label>
                 <input
                   type="text"
                   value={apiConfig.weather.customEndpoint || ''}
@@ -639,7 +620,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 </div>
                 <div className="text-right text-xs font-mono text-slate-400">
                   <div className="text-emerald-400 font-semibold">{currentProvider.toUpperCase()}</div>
-                  <div className="ui-type-micro text-slate-500 mt-0.5">Aktualizacja: {apiConfig.weather.data.lastUpdated}</div>
+                  <div className="ui-type-micro text-slate-500 mt-0.5">{t('integ.updated')} {apiConfig.weather.data.lastUpdated}</div>
                 </div>
               </div>
 
@@ -651,7 +632,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 </div>
                 <div className="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
                   <Droplets className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
-                  <span>{apiConfig.weather.data.humidity}% wilg.</span>
+                  <span>{apiConfig.weather.data.humidity}% {t('integ.humidity')}</span>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
                   <Gauge className="ui-icon-sm text-amber-400 shrink-0" aria-hidden="true" />
@@ -662,7 +643,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
             {/* Refresh interval on ESP32 */}
             <div className="flex items-center justify-between text-xs bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-              <span className="text-slate-400">Odświeżanie na ESP32:</span>
+              <span className="text-slate-400">{t('integ.refreshEsp')}</span>
               <select
                 value={apiConfig.weather.refreshIntervalMin}
                 onChange={e => setApiConfig(prev => ({
@@ -671,10 +652,10 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 }))}
                 className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs font-mono"
               >
-                <option value={5}>Co 5 minut</option>
-                <option value={15}>Co 15 minut</option>
-                <option value={30}>Co 30 minut</option>
-                <option value={60}>Co 1 godzinę</option>
+                <option value={5}>{t('integ.every5')}</option>
+                <option value={15}>{t('integ.every15')}</option>
+                <option value={30}>{t('integ.every30')}</option>
+                <option value={60}>{t('integ.every60')}</option>
               </select>
             </div>
 
@@ -691,7 +672,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md"
           >
             <RefreshCw className={`ui-icon-sm ${isFetchingWeather ? 'animate-spin' : ''}`} aria-hidden="true" />
-            <span>Pobierz Dane Live ({apiConfig.weather.city}) do Symulatora</span>
+            <span>{t('integ.fetchLive').replace('{city}', apiConfig.weather.city)}</span>
           </button>
         </div>
 
@@ -709,11 +690,11 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             </div>
 
             <p className="text-xs text-slate-400">
-              ESP32 uruchamia wbudowany lekki serwer HTTP REST (<code>/api/pc-stats</code>). Agent na PC przesyła parametry CPU, RAM, GPU i dysku.
+              {t('integ.pcHint')}
             </p>
 
             <div className="flex flex-col gap-2">
-              <label className="ui-type-micro text-slate-400">Adres IP ESP32 (LAN):</label>
+              <label className="ui-type-micro text-slate-400">{t('integ.espIp')}</label>
               <input
                 type="text"
                 value={esp32Host}
@@ -722,20 +703,20 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono"
               />
               <p className="ui-type-micro text-slate-500 leading-relaxed">
-                Firewall Windows: zezwól na ruch HTTP z <code>esp32-pc-agent.exe</code> do tego IP.
+                {t('integ.firewallHint')}
               </p>
             </div>
 
             {isTauriHost && (
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-2 ui-type-micro">
-                  <span className="text-slate-400">Agent .exe (Tauri)</span>
+                  <span className="text-slate-400">{t('integ.agentLabel')}</span>
                   <span className={`font-mono ${pcAgentInfo?.running ? 'text-emerald-400' : 'text-slate-500'}`}>
-                    {pcAgentInfo?.running ? 'DZIAŁA' : pcAgentInfo?.available ? 'GOTOWY' : 'BRAK .EXE'}
+                    {pcAgentInfo?.running ? t('integ.agentRunning') : pcAgentInfo?.available ? t('integ.agentReady') : t('integ.agentMissing')}
                   </span>
                 </div>
                 <p className="ui-type-micro text-slate-500 leading-relaxed">
-                  {pcAgentInfo?.hint || 'Sprawdzanie zasobów aplikacji…'}
+                  {pcAgentInfo?.hint || t('integ.agentChecking')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -745,7 +726,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ui-type-micro font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 disabled:opacity-40"
                   >
                     <Play className="ui-icon-sm" aria-hidden="true" />
-                    Start
+                    {t('integ.agentStart')}
                   </button>
                   <button
                     type="button"
@@ -754,7 +735,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ui-type-micro font-semibold bg-slate-800 text-slate-200 border border-slate-700 disabled:opacity-40"
                   >
                     <Square className="ui-icon-sm" aria-hidden="true" />
-                    Stop
+                    {t('integ.agentStop')}
                   </button>
                   <button
                     type="button"
@@ -763,7 +744,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ui-type-micro font-medium bg-slate-900 text-slate-300 border border-slate-800"
                   >
                     <RefreshCw className={`ui-icon-sm ${pcAgentBusy ? 'animate-spin' : ''}`} aria-hidden="true" />
-                    Odśwież
+                    {t('integ.agentRefresh')}
                   </button>
                 </div>
                 {pcAgentMessage && (
@@ -776,7 +757,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Użycie CPU:</span>
+                  <span className="text-slate-400">{t('integ.cpu')}</span>
                   <span className="font-mono text-cyan-400 font-bold">{apiConfig.pcMonitor.data.cpuUsage}%</span>
                 </div>
                 <input
@@ -800,7 +781,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Użycie RAM:</span>
+                  <span className="text-slate-400">{t('integ.ram')}</span>
                   <span className="font-mono text-cyan-400 font-bold">{apiConfig.pcMonitor.data.ramUsage}%</span>
                 </div>
                 <input
@@ -824,7 +805,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Użycie GPU:</span>
+                  <span className="text-slate-400">{t('integ.gpu')}</span>
                   <span className="font-mono text-cyan-400 font-bold">{apiConfig.pcMonitor.data.gpuUsage}%</span>
                 </div>
                 <input
@@ -848,7 +829,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
 
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Zajętość Dysku (HDD/SSD):</span>
+                  <span className="text-slate-400">{t('integ.disk')}</span>
                   <span className="font-mono text-cyan-400 font-bold">{apiConfig.pcMonitor.data.diskUsage ?? 64}%</span>
                 </div>
                 <input
@@ -878,7 +859,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition-colors"
             >
               <Download className="ui-icon-sm" aria-hidden="true" />
-              <span>Pobierz Agenta PC (.py)</span>
+              <span>{t('integ.downloadPy')}</span>
             </button>
             <a
               href="https://github.com/mateowoj-cpu/ESP32-App/releases/latest"
@@ -887,7 +868,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-medium transition-colors"
             >
               <ExternalLink className="ui-icon-sm" aria-hidden="true" />
-              <span>Pobierz esp32-pc-agent.exe (Releases)</span>
+              <span>{t('integ.downloadExe')}</span>
             </a>
           </div>
         </div>
@@ -906,12 +887,12 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             </div>
 
             <p className="text-xs text-slate-400">
-              Wysyłaj komunikaty na ekran ESP32 przez HTTP POST (<code>/api/notify</code>) ze smartfona, Home Assistant lub webhooków!
+              {t('integ.notifyHint')}
             </p>
 
             <div className="flex flex-col gap-2">
               <div>
-                <label className="ui-type-micro text-slate-400">Tytuł powiadomienia:</label>
+                <label className="ui-type-micro text-slate-400">{t('integ.notifTitle')}</label>
                 <input
                   type="text"
                   value={notifTitle}
@@ -921,7 +902,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
               </div>
 
               <div>
-                <label className="ui-type-micro text-slate-400">Treść wiadomości:</label>
+                <label className="ui-type-micro text-slate-400">{t('integ.notifBody')}</label>
                 <textarea
                   value={notifMessage}
                   onChange={e => setNotifMessage(e.target.value)}
@@ -932,8 +913,8 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             </div>
 
             <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 ui-type-micro">
-              <span className="text-slate-400">Czas wyświetlania banera:</span>
-              <strong className="text-emerald-400 ml-1 font-mono">{apiConfig.notifications.displayDurationSec} sekund</strong>
+              <span className="text-slate-400">{t('integ.bannerDuration')}</span>
+              <strong className="text-emerald-400 ml-1 font-mono">{apiConfig.notifications.displayDurationSec} {t('integ.seconds')}</strong>
             </div>
           </div>
 
@@ -942,7 +923,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             className="flex items-center justify-center gap-2 w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-md"
           >
             <Send className="ui-icon-sm" aria-hidden="true" />
-            <span>Wyślij Testowe Powiadomienie na Ekran</span>
+            <span>{t('integ.sendTest')}</span>
           </button>
         </div>
       </div>

@@ -19,6 +19,10 @@ assert(translate('en', 'ota.discover').toLowerCase().includes('mdns'), 'en ota d
 assert(translate('pl', 'ota.discover').toLowerCase().includes('mdns'), 'pl ota discover');
 assert(translate('en', 'settings.mdnsName').toLowerCase().includes('mdns'), 'en mdns settings');
 assert(translate('en', 'auto.ruleCreator').toLowerCase().includes('rule'), 'en rule creator');
+assert(translate('en', 'pet.step.happy.name').toLowerCase().includes('smile'), 'en pet step');
+assert(translate('pl', 'integ.city.dortmund').toLowerCase().includes('dortmund'), 'pl city');
+assert(translate('en', 'pinout.title').toLowerCase().includes('pin'), 'en pinout');
+assert(translate('en', 'ota.cancel').toLowerCase().includes('cancel'), 'en ota cancel');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

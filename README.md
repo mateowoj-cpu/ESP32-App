@@ -187,8 +187,9 @@ APP_URL=http://localhost:3000
 - **Faza 7:** Build-from-Studio (PlatformIO/`arduino-cli` → `.bin` → flash)
 - **Faza 8:** i18n PL/EN, winget template, diagnostyka, board cache (`0.2.1`)
 - **Faza 9:** sidecar PlatformIO, OTA Wi‑Fi, chrome i18n głębokich paneli, winget `0.2.2`
-- **Faza 10 (obecna):** głębokie i18n paneli, bundling penv (stage script), mDNS OTA discovery, winget PR template — [docs/roadmap-next.md](./docs/roadmap-next.md)
-- **Faza 11 (następna):** dokończenie i18n treści, live winget-pkgs, CI penv artifact, mDNS UX
+- **Faza 10:** głębokie i18n paneli, bundling penv (stage script), mDNS OTA discovery, winget PR template
+- **Faza 11 (obecna):** i18n treści (pet/Integrations/pinout), winget `0.2.4` path, CI penv artifact, mDNS UX + OTA hardening (`0.2.4`) — [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 12 (następna):** SmartScreen reputation, eksport diagnostyki ZIP, board sync, Linux/macOS parity
 
 ## Licencja
 

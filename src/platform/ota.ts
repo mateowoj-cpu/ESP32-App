@@ -15,6 +15,7 @@ export interface OtaResult {
   exitCode?: number | null;
   method: string;
   message: string;
+  errorCode?: string | null;
 }
 
 export interface DiscoveredOtaHost {
@@ -36,6 +37,8 @@ export async function flashOtaFirmware(opts: {
   password?: string;
   firmwarePath: string;
   method?: OtaMethod;
+  /** Soft wall-clock timeout for espota/curl (default 180s). */
+  timeoutMs?: number;
 }): Promise<OtaResult> {
   return invoke<OtaResult>('flash_ota_firmware', {
     host: opts.host,
@@ -43,7 +46,13 @@ export async function flashOtaFirmware(opts: {
     password: opts.password ?? '',
     firmwarePath: opts.firmwarePath,
     method: opts.method ?? 'espota',
+    timeoutMs: opts.timeoutMs ?? 180_000,
   });
+}
+
+/** Kill in-flight espota/curl OTA child if any. */
+export async function cancelOtaFirmware(): Promise<boolean> {
+  return invoke<boolean>('cancel_ota_firmware');
 }
 
 /** Browse LAN for `_arduino._tcp` / `_http._tcp` (desktop Tauri only). */
@@ -55,4 +64,35 @@ export async function listenOtaLog(onLine: (line: string) => void): Promise<Unli
   return listen<string>('ota-log', event => {
     onLine(event.payload);
   });
+}
+
+/** Map Rust errorCode / message → i18n key for UI status. */
+export function mapOtaErrorMessage(
+  t: (key: string) => string,
+  result: Pick<OtaResult, 'message' | 'errorCode' | 'ok'>,
+): string {
+  if (result.ok) return result.message;
+  switch (result.errorCode) {
+    case 'auth':
+      return t('ota.err.auth');
+    case 'network':
+      return t('ota.err.network');
+    case 'tool':
+      return t('ota.err.tool');
+    case 'timeout':
+      return t('ota.timedOut');
+    case 'cancelled':
+      return t('ota.cancelled');
+    case 'generic':
+      return t('ota.err.generic');
+    default: {
+      const lower = (result.message || '').toLowerCase();
+      if (lower.includes('timeout')) return t('ota.timedOut');
+      if (lower.includes('cancel') || lower.includes('anulow')) return t('ota.cancelled');
+      if (lower.includes('password') || lower.includes('auth') || lower.includes('hasł')) {
+        return t('ota.err.auth');
+      }
+      return result.message || t('ota.err.generic');
+    }
+  }
 }

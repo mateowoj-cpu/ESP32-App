@@ -23,6 +23,7 @@ import {
   Layers,
   ArrowRight
 } from 'lucide-react';
+import { useLocale } from '../i18n/LocaleContext';
 
 interface Esp32PinoutMapProps {
   display: DisplayConfig;
@@ -51,34 +52,34 @@ export interface PhysicalPinInfo {
 // 30-pin NodeMCU ESP32-WROOM-32 physical layout
 export const ESP32_PHYSICAL_PINS: PhysicalPinInfo[] = [
   // Left Header (J1) - Top to Bottom
-  { pin: 36, label: 'VP (GPIO36)', side: 'left', pinIndex: 3, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'Sensor Światła LDR (ADC1_0)' },
-  { pin: 39, label: 'VN (GPIO39)', side: 'left', pinIndex: 4, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'Wolne Wejście Analogowe (ADC1_3)' },
-  { pin: 34, label: 'GPIO34', side: 'left', pinIndex: 5, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'Potencjometr (ADC1_6)' },
-  { pin: 35, label: 'GPIO35', side: 'left', pinIndex: 6, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'Przycisk USER 1 (Input)' },
-  { pin: 32, label: 'GPIO32', side: 'left', pinIndex: 7, isAdc1: true, supportsTouch: true, supportsPwm: true, supportsI2c: true, defaultRole: 'Touch SCL / RTC IO9' },
-  { pin: 33, label: 'GPIO33', side: 'left', pinIndex: 8, isAdc1: true, supportsTouch: true, supportsPwm: true, supportsI2c: true, defaultRole: 'Touch SDA / RTC IO8' },
-  { pin: 25, label: 'GPIO25', side: 'left', pinIndex: 9, isAdc2: true, supportsPwm: true, defaultRole: 'Touch RST / DAC1' },
-  { pin: 26, label: 'GPIO26', side: 'left', pinIndex: 10, isAdc2: true, supportsPwm: true, defaultRole: 'DAC2 / Audio Out' },
-  { pin: 27, label: 'GPIO27', side: 'left', pinIndex: 11, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'Touch INT / Przerwanie' },
-  { pin: 14, label: 'GPIO14', side: 'left', pinIndex: 12, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'Czujnik Ruchu PIR' },
-  { pin: 12, label: 'GPIO12', side: 'left', pinIndex: 13, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'Wolny GPIO / Touch 5' },
-  { pin: 13, label: 'GPIO13', side: 'left', pinIndex: 14, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'Wolny GPIO / Touch 4' },
+  { pin: 36, label: 'VP (GPIO36)', side: 'left', pinIndex: 3, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'pinout.role.36' },
+  { pin: 39, label: 'VN (GPIO39)', side: 'left', pinIndex: 4, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'pinout.role.39' },
+  { pin: 34, label: 'GPIO34', side: 'left', pinIndex: 5, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'pinout.role.34' },
+  { pin: 35, label: 'GPIO35', side: 'left', pinIndex: 6, isInputOnly: true, isAdc1: true, supportsPwm: false, defaultRole: 'pinout.role.35' },
+  { pin: 32, label: 'GPIO32', side: 'left', pinIndex: 7, isAdc1: true, supportsTouch: true, supportsPwm: true, supportsI2c: true, defaultRole: 'pinout.role.32' },
+  { pin: 33, label: 'GPIO33', side: 'left', pinIndex: 8, isAdc1: true, supportsTouch: true, supportsPwm: true, supportsI2c: true, defaultRole: 'pinout.role.33' },
+  { pin: 25, label: 'GPIO25', side: 'left', pinIndex: 9, isAdc2: true, supportsPwm: true, defaultRole: 'pinout.role.25' },
+  { pin: 26, label: 'GPIO26', side: 'left', pinIndex: 10, isAdc2: true, supportsPwm: true, defaultRole: 'pinout.role.26' },
+  { pin: 27, label: 'GPIO27', side: 'left', pinIndex: 11, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'pinout.role.27' },
+  { pin: 14, label: 'GPIO14', side: 'left', pinIndex: 12, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.14' },
+  { pin: 12, label: 'GPIO12', side: 'left', pinIndex: 13, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.12' },
+  { pin: 13, label: 'GPIO13', side: 'left', pinIndex: 14, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.13' },
 
   // Right Header (J2) - Top to Bottom
-  { pin: 23, label: 'GPIO23', side: 'right', pinIndex: 5, supportsPwm: true, supportsSpi: true, defaultRole: 'SPI MOSI / Wyświetlacz LCD' },
-  { pin: 22, label: 'GPIO22', side: 'right', pinIndex: 6, supportsPwm: true, supportsI2c: true, defaultRole: 'I2C SCL (Ekran OLED)' },
-  { pin: 1,  label: 'TX0 (GPIO1)', side: 'right', pinIndex: 7, defaultRole: 'Serial Debug TX' },
-  { pin: 3,  label: 'RX0 (GPIO3)', side: 'right', pinIndex: 8, defaultRole: 'Serial Debug RX' },
-  { pin: 21, label: 'GPIO21', side: 'right', pinIndex: 9, supportsPwm: true, supportsI2c: true, defaultRole: 'I2C SDA (Ekran OLED)' },
-  { pin: 19, label: 'GPIO19', side: 'right', pinIndex: 10, supportsPwm: true, supportsSpi: true, defaultRole: 'SPI MISO' },
-  { pin: 18, label: 'GPIO18', side: 'right', pinIndex: 11, supportsPwm: true, supportsSpi: true, defaultRole: 'PWM Buzzer / SPI SCK' },
-  { pin: 5,  label: 'GPIO5',  side: 'right', pinIndex: 12, isStrapping: true, supportsPwm: true, supportsSpi: true, defaultRole: 'SPI CS / Chip Select' },
-  { pin: 17, label: 'GPIO17', side: 'right', pinIndex: 13, supportsPwm: true, defaultRole: 'OLED RST / UART2 TX' },
-  { pin: 16, label: 'GPIO16', side: 'right', pinIndex: 14, supportsPwm: true, defaultRole: 'OLED DC / UART2 RX' },
-  { pin: 4,  label: 'GPIO4',  side: 'right', pinIndex: 15, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'PWM Podświetlenie Ekranu' },
-  { pin: 0,  label: 'GPIO0',  side: 'right', pinIndex: 16, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'Przycisk BOOT (Fabryczny)' },
-  { pin: 2,  label: 'GPIO2',  side: 'right', pinIndex: 17, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'Wbudowana Dioda LED (Status)' },
-  { pin: 15, label: 'GPIO15', side: 'right', pinIndex: 18, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'Wolny GPIO / Touch 3' },
+  { pin: 23, label: 'GPIO23', side: 'right', pinIndex: 5, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.23' },
+  { pin: 22, label: 'GPIO22', side: 'right', pinIndex: 6, supportsPwm: true, supportsI2c: true, defaultRole: 'pinout.role.22' },
+  { pin: 1,  label: 'TX0 (GPIO1)', side: 'right', pinIndex: 7, defaultRole: 'pinout.role.1' },
+  { pin: 3,  label: 'RX0 (GPIO3)', side: 'right', pinIndex: 8, defaultRole: 'pinout.role.3' },
+  { pin: 21, label: 'GPIO21', side: 'right', pinIndex: 9, supportsPwm: true, supportsI2c: true, defaultRole: 'pinout.role.21' },
+  { pin: 19, label: 'GPIO19', side: 'right', pinIndex: 10, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.19' },
+  { pin: 18, label: 'GPIO18', side: 'right', pinIndex: 11, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.18' },
+  { pin: 5,  label: 'GPIO5',  side: 'right', pinIndex: 12, isStrapping: true, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.5' },
+  { pin: 17, label: 'GPIO17', side: 'right', pinIndex: 13, supportsPwm: true, defaultRole: 'pinout.role.17' },
+  { pin: 16, label: 'GPIO16', side: 'right', pinIndex: 14, supportsPwm: true, defaultRole: 'pinout.role.16' },
+  { pin: 4,  label: 'GPIO4',  side: 'right', pinIndex: 15, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'pinout.role.4' },
+  { pin: 0,  label: 'GPIO0',  side: 'right', pinIndex: 16, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'pinout.role.0' },
+  { pin: 2,  label: 'GPIO2',  side: 'right', pinIndex: 17, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, defaultRole: 'pinout.role.2' },
+  { pin: 15, label: 'GPIO15', side: 'right', pinIndex: 18, isStrapping: true, isAdc2: true, supportsTouch: true, supportsPwm: true, supportsSpi: true, defaultRole: 'pinout.role.15' },
 ];
 
 export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
@@ -88,6 +89,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
   setSystem,
   onPinAssigned,
 }) => {
+  const { t } = useLocale();
   const [selectedPin, setSelectedPin] = useState<PhysicalPinInfo | null>(null);
   const [filterPeripheral, setFilterPeripheral] = useState<'all' | 'i2c' | 'spi' | 'pwm' | 'adc' | 'touch'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,14 +98,14 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
   // Determine current active function assigned to a pin
   const getPinCurrentFunction = (pin: number): { func: PinFunction; label: string; color: string; badge: string } => {
     // 1. Check Display Config assignments
-    if (pin === display.sdaPin) return { func: 'I2C_SDA', label: 'I2C SDA (Ekran)', color: 'border-cyan-500 bg-cyan-950/60 text-cyan-300', badge: 'I2C SDA' };
-    if (pin === display.sclPin) return { func: 'I2C_SCL', label: 'I2C SCL (Ekran)', color: 'border-cyan-500 bg-cyan-950/60 text-cyan-300', badge: 'I2C SCL' };
-    if (pin === display.mosiPin && display.bus === 'spi') return { func: 'SPI_MOSI', label: 'SPI MOSI (Ekran)', color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI MOSI' };
-    if (pin === display.sckPin && display.bus === 'spi') return { func: 'SPI_SCK', label: 'SPI SCK (Ekran)', color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI SCK' };
-    if (pin === display.csPin && display.bus === 'spi') return { func: 'SPI_CS', label: 'SPI CS (Ekran)', color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI CS' };
-    if (pin === display.dcPin) return { func: 'OLED_DC', label: 'OLED DC (Data/Cmd)', color: 'border-purple-500 bg-purple-950/60 text-purple-300', badge: 'OLED DC' };
-    if (pin === display.rstPin) return { func: 'OLED_RST', label: 'OLED RST (Reset)', color: 'border-purple-500 bg-purple-950/60 text-purple-300', badge: 'OLED RST' };
-    if (pin === display.backlightPin) return { func: 'PWM_BACKLIGHT', label: 'PWM Podświetlenie', color: 'border-amber-500 bg-amber-950/60 text-amber-300', badge: 'PWM BL' };
+    if (pin === display.sdaPin) return { func: 'I2C_SDA', label: t('pinout.fn.i2cSda'), color: 'border-cyan-500 bg-cyan-950/60 text-cyan-300', badge: 'I2C SDA' };
+    if (pin === display.sclPin) return { func: 'I2C_SCL', label: t('pinout.fn.i2cScl'), color: 'border-cyan-500 bg-cyan-950/60 text-cyan-300', badge: 'I2C SCL' };
+    if (pin === display.mosiPin && display.bus === 'spi') return { func: 'SPI_MOSI', label: t('pinout.fn.spiMosi'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI MOSI' };
+    if (pin === display.sckPin && display.bus === 'spi') return { func: 'SPI_SCK', label: t('pinout.fn.spiSck'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI SCK' };
+    if (pin === display.csPin && display.bus === 'spi') return { func: 'SPI_CS', label: t('pinout.fn.spiCs'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI CS' };
+    if (pin === display.dcPin) return { func: 'OLED_DC', label: t('pinout.fn.oledDc'), color: 'border-purple-500 bg-purple-950/60 text-purple-300', badge: 'OLED DC' };
+    if (pin === display.rstPin) return { func: 'OLED_RST', label: t('pinout.fn.oledRst'), color: 'border-purple-500 bg-purple-950/60 text-purple-300', badge: 'OLED RST' };
+    if (pin === display.backlightPin) return { func: 'PWM_BACKLIGHT', label: t('pinout.fn.pwmBl'), color: 'border-amber-500 bg-amber-950/60 text-amber-300', badge: 'PWM BL' };
 
     // 2. Check Touch Config assignments
     if (display.touchEnabled) {
@@ -114,13 +116,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
     }
 
     // 3. Check System Config assignments
-    if (pin === (system.pirPin ?? 14)) return { func: 'INPUT_PIR', label: 'Czujnik Ruchu PIR', color: 'border-emerald-500 bg-emerald-950/60 text-emerald-300', badge: 'PIR MOTION' };
-    if (pin === (system.ldrPin ?? 36)) return { func: 'ADC_LDR', label: 'Czujnik Światła LDR', color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC LDR' };
-    if (pin === (system.potPin ?? 34)) return { func: 'ADC_POT', label: 'Potencjometr Analogowy', color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC POT' };
-    if (pin === (system.buzzerPin ?? 18)) return { func: 'PWM_BUZZER', label: 'PWM Buzzer / Audio', color: 'border-amber-500 bg-amber-950/60 text-amber-300', badge: 'PWM BUZZER' };
-    if (pin === (system.ledPin ?? 2)) return { func: 'OUTPUT_LED', label: 'Dioda Statusu LED', color: 'border-blue-500 bg-blue-950/60 text-blue-300', badge: 'LED STATUS' };
-    if (pin === (system.userBtn1Pin ?? 35)) return { func: 'INPUT_BUTTON', label: 'Przycisk USER 1', color: 'border-teal-500 bg-teal-950/60 text-teal-300', badge: 'USER BTN' };
-    if (pin === 0) return { func: 'INPUT_BOOT', label: 'Przycisk BOOT (GPIO0)', color: 'border-slate-500 bg-slate-900 text-slate-300', badge: 'BOOT BTN' };
+    if (pin === (system.pirPin ?? 14)) return { func: 'INPUT_PIR', label: t('pinout.fn.pir'), color: 'border-emerald-500 bg-emerald-950/60 text-emerald-300', badge: 'PIR MOTION' };
+    if (pin === (system.ldrPin ?? 36)) return { func: 'ADC_LDR', label: t('pinout.fn.ldr'), color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC LDR' };
+    if (pin === (system.potPin ?? 34)) return { func: 'ADC_POT', label: t('pinout.fn.pot'), color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC POT' };
+    if (pin === (system.buzzerPin ?? 18)) return { func: 'PWM_BUZZER', label: t('pinout.fn.buzzer'), color: 'border-amber-500 bg-amber-950/60 text-amber-300', badge: 'PWM BUZZER' };
+    if (pin === (system.ledPin ?? 2)) return { func: 'OUTPUT_LED', label: t('pinout.fn.led'), color: 'border-blue-500 bg-blue-950/60 text-blue-300', badge: 'LED STATUS' };
+    if (pin === (system.userBtn1Pin ?? 35)) return { func: 'INPUT_BUTTON', label: t('pinout.fn.userBtn'), color: 'border-teal-500 bg-teal-950/60 text-teal-300', badge: 'USER BTN' };
+    if (pin === 0) return { func: 'INPUT_BOOT', label: t('pinout.fn.boot'), color: 'border-slate-500 bg-slate-900 text-slate-300', badge: 'BOOT BTN' };
 
     // 4. Check customPinFunctions record
     if (system.customPinFunctions && system.customPinFunctions[pin]) {
@@ -128,7 +130,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
       return { func: custom, label: custom.replace('_', ' '), color: 'border-slate-600 bg-slate-900 text-slate-200', badge: custom };
     }
 
-    return { func: 'GPIO_FREE', label: 'Wolny GPIO', color: 'border-slate-800 bg-slate-950 text-slate-400', badge: 'WOLNY' };
+    return { func: 'GPIO_FREE', label: t('pinout.fn.free'), color: 'border-slate-800 bg-slate-950 text-slate-400', badge: t('pinout.badge.free') };
   };
 
   // Assign a new function to a pin
@@ -168,7 +170,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
       };
     });
 
-    const msg = `Przypisano GPIO ${pin} jako: ${func}. Kod C++ (.ino) został automatycznie zaktualizowany!`;
+    const msg = t('pinout.assigned').replace('{pin}', String(pin)).replace('{func}', func);
     setLastAssignedMsg(msg);
     setTimeout(() => setLastAssignedMsg(null), 4000);
 
@@ -182,7 +184,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const current = getPinCurrentFunction(p.pin);
-      if (!p.label.toLowerCase().includes(q) && !p.defaultRole.toLowerCase().includes(q) && !current.label.toLowerCase().includes(q)) {
+      const roleLabel = t(p.defaultRole).toLowerCase();
+      if (
+        !p.label.toLowerCase().includes(q) &&
+        !roleLabel.includes(q) &&
+        !p.defaultRole.toLowerCase().includes(q) &&
+        !current.label.toLowerCase().includes(q)
+      ) {
         return false;
       }
     }
@@ -204,13 +212,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <span>Wizualna Mapa Pinów ESP32 & Przypisywanie Funkcji</span>
+              <span>{t('pinout.title')}</span>
               <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 Live Code Sync
               </span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Kliknij dowolny fizyczny pin, aby przypisać mu I2C, SPI, PWM, ADC lub sensory. Zmiany natychmiast aktualizują kod C++ (.ino).
+              {t('pinout.subtitle')}
             </p>
           </div>
         </div>
@@ -221,7 +229,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <Search className="ui-icon-sm text-slate-500 mr-2" aria-hidden="true" />
             <input
               type="text"
-              placeholder="Szukaj pinu (np. GPIO21, I2C, PWM)..."
+              placeholder={t('pinout.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-slate-200 focus:outline-none ui-focus-ring placeholder:text-slate-600 text-xs w-48 font-mono"
@@ -235,7 +243,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                 filterPeripheral === 'all' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Wszystkie
+              {t('pinout.all')}
             </button>
             <button
               onClick={() => setFilterPeripheral('i2c')}
@@ -275,7 +283,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                 filterPeripheral === 'touch' ? 'bg-rose-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Dotyk
+              {t('pinout.touch')}
             </button>
           </div>
         </div>
@@ -289,7 +297,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <span>{lastAssignedMsg}</span>
           </div>
           <span className="ui-type-micro text-emerald-400/80 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
-            Arduino C++ Gotowy
+            {t('pinout.cppReady')}
           </span>
         </div>
       )}
@@ -306,9 +314,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <div className="text-xs font-mono text-slate-400 font-semibold pb-1 border-b border-slate-800/80 flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                Szyna Lewa (Header J1)
+                {t('pinout.leftRail')}
               </span>
-              <span className="ui-type-micro text-slate-500">Piny 1-15</span>
+              <span className="ui-type-micro text-slate-500">{t('pinout.pinsRange').replace('{range}', '1-15')}</span>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -405,9 +413,9 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <div className="text-xs font-mono text-slate-400 font-semibold pb-1 border-b border-slate-800/80 flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                Szyna Prawa (Header J2)
+                {t('pinout.rightRail')}
               </span>
-              <span className="ui-type-micro text-slate-500">Piny 16-30</span>
+              <span className="ui-type-micro text-slate-500">{t('pinout.pinsRange').replace('{range}', '16-30')}</span>
             </div>
 
             <div className="flex flex-col gap-1.5">

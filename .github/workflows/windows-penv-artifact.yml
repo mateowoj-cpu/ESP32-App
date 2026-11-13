@@ -1,0 +1,50 @@
+name: Windows PIO penv artifact (Faza 11)
+
+# Optional / on-demand: builds a PlatformIO penv via Stage-PlatformIoPenv.ps1 and
+# uploads it as a CI artifact (never committed to git). Use the artifact on a
+# signed-release machine or download it before `npm run tauri:build:windows`.
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  stage-penv:
+    name: Stage PlatformIO penv
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Stage penv (BuildIfMissing)
+        shell: pwsh
+        run: |
+          ./scripts/windows/Stage-PlatformIoPenv.ps1 -BuildIfMissing
+          $penv = "src-tauri/resources/sidecar/platformio/penv"
+          if (-not (Test-Path $penv)) {
+            throw "Expected staged penv at $penv"
+          }
+          Write-Host "Staged penv OK:"
+          Get-ChildItem $penv | Select-Object -First 20 | ForEach-Object { $_.FullName }
+
+      - name: Upload penv artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: platformio-penv-windows
+          path: |
+            src-tauri/resources/sidecar/platformio/penv/**
+            src-tauri/resources/sidecar/ota/**
+          if-no-files-found: error
+          retention-days: 14

@@ -4,6 +4,13 @@ import { getSerialAdapter, type SerialPortInfo } from '../platform';
 import type { EsptoolInfo } from '../platform/flash';
 import type { BuildResult, ToolchainInfo } from '../platform/firmwareBuild';
 import type { DiscoveredOtaHost, OtaMethod, OtaToolInfo } from '../platform/ota';
+import {
+  loadRecentOtaHosts,
+  rememberOtaHost,
+  rankOtaHosts,
+  matchesPreferredMdns,
+  type RecentOtaHost,
+} from '../platform/otaRecent';
 import { useLocale } from '../i18n/LocaleContext';
 import { loadBoardPreset, saveBoardPreset } from '../platform/boardCache';
 import { appendDiagnosticsLog } from '../platform/diagnostics';
@@ -30,11 +37,14 @@ export interface SketchBuildSources {
 interface FlashHelperPanelProps {
   detectedChip: ConnectedEsp32Info | null;
   buildSources?: () => SketchBuildSources;
+  /** Project mDNS hostname (without .local) used to rank discovery results. */
+  preferredMdnsName?: string;
 }
 
 export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   detectedChip,
   buildSources,
+  preferredMdnsName,
 }) => {
   const { t } = useLocale();
   const [isTauri, setIsTauri] = useState(false);
@@ -52,7 +62,11 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const [otaPassword, setOtaPassword] = useState('esp32ota');
   const [otaMethod, setOtaMethod] = useState<OtaMethod>('espota');
   const [otaHosts, setOtaHosts] = useState<DiscoveredOtaHost[]>([]);
+  const [recentOtaHosts, setRecentOtaHosts] = useState<RecentOtaHost[]>(() => loadRecentOtaHosts());
+  const [preferProjectMdns, setPreferProjectMdns] = useState(true);
+  const [otaTimeoutSec, setOtaTimeoutSec] = useState(180);
   const [discovering, setDiscovering] = useState(false);
+  const [otaInFlight, setOtaInFlight] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -241,7 +255,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     setStatus(null);
     try {
       const { discoverOtaHosts } = await import('../platform/ota');
-      const hosts = await discoverOtaHosts(3000);
+      const raw = await discoverOtaHosts(3000);
+      const preferred = preferProjectMdns ? preferredMdnsName : undefined;
+      const hosts = rankOtaHosts(raw, preferred);
       setOtaHosts(hosts);
       if (hosts.length === 0) {
         setStatus(t('ota.noneFound'));
@@ -268,28 +284,55 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       return;
     }
     setBusy(true);
+    setOtaInFlight(true);
     setStatus(null);
     setLogs(prev => [...prev, '--- start OTA ---']);
     try {
-      const { flashOtaFirmware } = await import('../platform/ota');
+      const { flashOtaFirmware, mapOtaErrorMessage } = await import('../platform/ota');
       const result = await flashOtaFirmware({
         host: otaHost.trim(),
         port: otaPort,
         password: otaPassword,
         firmwarePath,
         method: otaMethod,
+        timeoutMs: otaTimeoutSec * 1000,
       });
-      setStatus(result.message);
+      const msg = mapOtaErrorMessage(t, result);
+      setStatus(msg);
+      if (result.ok) {
+        setRecentOtaHosts(
+          rememberOtaHost({
+            host: otaHost.trim(),
+            port: otaPort,
+            method: otaMethod,
+          }),
+        );
+      }
       void appendDiagnosticsLog(
-        `${result.message} host=${otaHost} method=${otaMethod}`,
+        `${msg} host=${otaHost} method=${otaMethod} code=${result.errorCode || ''}`,
         'ota',
       );
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const raw = err instanceof Error ? err.message : String(err);
+      const { mapOtaErrorMessage } = await import('../platform/ota');
+      const msg = mapOtaErrorMessage(t, { ok: false, message: raw, errorCode: null });
       setStatus(msg);
       void appendDiagnosticsLog(msg, 'ota');
     } finally {
+      setOtaInFlight(false);
       setBusy(false);
+    }
+  };
+
+  const handleCancelOta = async () => {
+    try {
+      const { cancelOtaFirmware } = await import('../platform/ota');
+      await cancelOtaFirmware();
+      setStatus(t('ota.cancelled'));
+      setLogs(prev => [...prev, '[ota] cancelled']);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setStatus(msg);
     }
   };
 
@@ -496,15 +539,29 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           <div className="sm:col-span-2 flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-slate-400">{t('ota.hostOrMdns')}</span>
-              <button
-                type="button"
-                disabled={busy || discovering}
-                onClick={() => void handleDiscoverOta()}
-                className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-10 rounded-lg border border-cyan-700/50 bg-cyan-950/40 text-cyan-100 hover:bg-cyan-900/50 disabled:opacity-40 transition-colors"
-              >
-                <Radar className={`ui-icon-sm ${discovering ? 'animate-pulse' : ''}`} aria-hidden="true" />
-                {discovering ? t('ota.discovering') : t('ota.discover')}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="inline-flex items-center gap-1.5 ui-type-micro text-slate-400 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={preferProjectMdns}
+                    onChange={e => setPreferProjectMdns(e.target.checked)}
+                    className="rounded text-cyan-500"
+                  />
+                  {t('ota.filterMdns')}
+                  {preferredMdnsName ? (
+                    <span className="font-mono text-cyan-300/90">{preferredMdnsName}</span>
+                  ) : null}
+                </label>
+                <button
+                  type="button"
+                  disabled={busy || discovering}
+                  onClick={() => void handleDiscoverOta()}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-10 rounded-lg border border-cyan-700/50 bg-cyan-950/40 text-cyan-100 hover:bg-cyan-900/50 disabled:opacity-40 transition-colors"
+                >
+                  <Radar className={`ui-icon-sm ${discovering ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                  {discovering ? t('ota.discovering') : t('ota.discover')}
+                </button>
+              </div>
             </div>
             {otaHosts.length > 0 && (
               <label className="flex flex-col gap-1">
@@ -531,6 +588,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
                     <option key={`${h.host}:${h.port}:${h.fullname}`} value={h.host}>
                       {h.hostname || h.host}
                       {h.addresses[0] ? ` (${h.addresses[0]})` : ''} · :{h.port} · {h.service}
+                      {preferProjectMdns && matchesPreferredMdns(h, preferredMdnsName)
+                        ? ` · ${t('ota.matched')}`
+                        : ''}
                     </option>
                   ))}
                 </select>
@@ -583,20 +643,67 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             </label>
           )}
         </div>
-        <button
-          type="button"
-          disabled={
-            busy ||
-            !firmwarePath ||
-            !otaHost.trim() ||
-            (otaMethod === 'espota' && !otaTool?.available)
-          }
-          onClick={() => void handleOta()}
-          className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-40 text-cyan-100 border border-cyan-500/40 font-semibold rounded-xl text-xs transition-colors"
-        >
-          <Wifi className={`ui-icon-sm ${busy ? 'animate-pulse' : ''}`} aria-hidden="true" />
-          {t('ota.upload')}
-        </button>
+        {recentOtaHosts.length > 0 && (
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-slate-400">{t('ota.recent')}</span>
+            <select
+              value=""
+              onChange={e => {
+                const selected = recentOtaHosts.find(
+                  h => `${h.host}:${h.port}` === e.target.value,
+                );
+                if (!selected) return;
+                setOtaHost(selected.host);
+                setOtaPort(selected.port);
+                if (selected.method) setOtaMethod(selected.method);
+              }}
+              className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono cursor-pointer"
+            >
+              <option value="">{t('ota.pickHost')}</option>
+              {recentOtaHosts.map(h => (
+                <option key={`${h.host}:${h.port}:${h.savedAt}`} value={`${h.host}:${h.port}`}>
+                  {h.host}:{h.port}
+                  {h.method ? ` · ${h.method}` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label className="flex flex-col gap-1 text-xs sm:max-w-[12rem]">
+          <span className="text-slate-400">{t('ota.timeout')}</span>
+          <input
+            type="number"
+            min={30}
+            max={900}
+            value={otaTimeoutSec}
+            onChange={e => setOtaTimeoutSec(Math.max(30, Math.min(900, Number(e.target.value) || 180)))}
+            className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+          />
+        </label>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            type="button"
+            disabled={
+              busy ||
+              !firmwarePath ||
+              !otaHost.trim() ||
+              (otaMethod === 'espota' && !otaTool?.available)
+            }
+            onClick={() => void handleOta()}
+            className="flex items-center justify-center gap-2 flex-1 py-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-40 text-cyan-100 border border-cyan-500/40 font-semibold rounded-xl text-xs transition-colors"
+          >
+            <Wifi className={`ui-icon-sm ${otaInFlight ? 'animate-pulse' : ''}`} aria-hidden="true" />
+            {t('ota.upload')}
+          </button>
+          <button
+            type="button"
+            disabled={!otaInFlight}
+            onClick={() => void handleCancelOta()}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 border border-slate-700 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+          >
+            {t('ota.cancel')}
+          </button>
+        </div>
       </div>
 
       {status && (
