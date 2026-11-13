@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+# Prepare a winget singleton manifest with InstallerSha256 from a real NSIS file.
+# Never invents hashes — requires a local installer path or downloadable URL.
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  prepare-draft-manifest.sh --version 0.2.6 --installer /path/to/setup.exe [--out-dir DIR]
+  prepare-draft-manifest.sh --version 0.2.6 --installer-url URL [--out-dir DIR]
+
+Computes SHA256 of the installer, fills packaging/winget template placeholders,
+and writes manifests + DRAFT_PR_BODY.md under the out directory.
+Does not open a PR and does not require winget credentials.
+EOF
+}
+
+VERSION=""
+INSTALLER=""
+INSTALLER_URL=""
+OUT_DIR=""
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --version) VERSION="${2:-}"; shift 2 ;;
+    --installer) INSTALLER="${2:-}"; shift 2 ;;
+    --installer-url) INSTALLER_URL="${2:-}"; shift 2 ;;
+    --out-dir) OUT_DIR="${2:-}"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown arg: $1" >&2; usage; exit 1 ;;
+  esac
+done
+
+if [[ -z "$VERSION" ]]; then
+  echo "--version is required" >&2
+  exit 1
+fi
+
+OUT_DIR="${OUT_DIR:-$ROOT/packaging/winget/ESP32DisplayStudio/out/$VERSION}"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+if [[ -n "$INSTALLER" ]]; then
+  if [[ ! -f "$INSTALLER" ]]; then
+    echo "Installer not found: $INSTALLER" >&2
+    exit 1
+  fi
+  INSTALLER_PATH="$INSTALLER"
+elif [[ -n "$INSTALLER_URL" ]]; then
+  INSTALLER_PATH="$TMP_DIR/installer.exe"
+  echo "Downloading installer from $INSTALLER_URL"
+  curl -fsSL -o "$INSTALLER_PATH" "$INSTALLER_URL"
+else
+  echo "Provide --installer or --installer-url" >&2
+  exit 1
+fi
+
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256="$(sha256sum "$INSTALLER_PATH" | awk '{print toupper($1)}')"
+elif command -v shasum >/dev/null 2>&1; then
+  SHA256="$(shasum -a 256 "$INSTALLER_PATH" | awk '{print toupper($1)}')"
+else
+  echo "Need sha256sum or shasum" >&2
+  exit 1
+fi
+
+if [[ -z "$SHA256" || ${#SHA256} -ne 64 ]]; then
+  echo "Failed to compute a 64-char SHA256" >&2
+  exit 1
+fi
+
+DEFAULT_URL="https://github.com/mateowoj-cpu/ESP32-App/releases/download/v${VERSION}/ESP32.Display.Studio_${VERSION}_x64-setup.exe"
+FINAL_URL="${INSTALLER_URL:-$DEFAULT_URL}"
+
+TEMPLATE_SRC=""
+for candidate in \
+  "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/${VERSION}/Studio.ESP32DisplayStudio.yaml" \
+  "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/0.2.5/Studio.ESP32DisplayStudio.yaml" \
+  "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/0.2.4/Studio.ESP32DisplayStudio.yaml"
+do
+  if [[ -f "$candidate" ]]; then
+    TEMPLATE_SRC="$candidate"
+    break
+  fi
+done
+
+if [[ -z "$TEMPLATE_SRC" ]]; then
+  echo "No winget template YAML found" >&2
+  exit 1
+fi
+
+mkdir -p "$OUT_DIR/manifests/s/Studio/ESP32DisplayStudio/${VERSION}"
+OUT_YAML="$OUT_DIR/manifests/s/Studio/ESP32DisplayStudio/${VERSION}/Studio.ESP32DisplayStudio.yaml"
+
+python3 - "$TEMPLATE_SRC" "$OUT_YAML" "$VERSION" "$FINAL_URL" "$SHA256" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+src, dest, version, url, sha = sys.argv[1:6]
+text = Path(src).read_text(encoding="utf-8")
+text = re.sub(r"(?m)^# Template winget.*$", f"# Generated winget singleton for ESP32 Display Studio v{version}.", text, count=1)
+text = re.sub(r"(?m)^PackageVersion:\s*.*$", f"PackageVersion: {version}", text, count=1)
+text = re.sub(r"(?m)^(\s*)InstallerUrl:\s*.*$", rf"\1InstallerUrl: {url}", text, count=1)
+text = re.sub(r"(?m)^(\s*)InstallerSha256:\s*.*$", rf"\1InstallerSha256: {sha}", text, count=1)
+# Refresh any release URL version segment without inventing new hashes
+text = re.sub(
+    r"https://github\.com/mateowoj-cpu/ESP32-App/releases/download/v[0-9.]+/ESP32\.Display\.Studio_[0-9.]+_x64-setup\.exe",
+    url,
+    text,
+    count=1,
+)
+Path(dest).write_text(text, encoding="utf-8")
+print(dest)
+PY
+
+ASSET_NAME="$(basename "$INSTALLER_PATH")"
+cat >"$OUT_DIR/DRAFT_PR_BODY.md" <<EOF
+# Draft winget-pkgs PR body (generated — Faza 13)
+
+**Do not invent credentials.** Human opens/merges the PR against microsoft/winget-pkgs after review.
+
+## Suggested PR title
+
+\`\`\`text
+New package: Studio.ESP32DisplayStudio version ${VERSION}
+\`\`\`
+
+(For updates: \`Update Studio.ESP32DisplayStudio to ${VERSION}\`)
+
+## Suggested PR body
+
+\`\`\`markdown
+## Description
+Adds / updates **Studio.ESP32DisplayStudio** (ESP32 Display Studio).
+
+- Publisher: ESP32 Display Studio
+- Version: ${VERSION}
+- Installer URL: ${FINAL_URL}
+- SHA256: ${SHA256}
+- Local asset used for hash: ${ASSET_NAME}
+
+## Validation
+- [ ] Manifest YAML validated with \`winget validate\`
+- [ ] Local install: \`winget install --manifest manifests/s/Studio/ESP32DisplayStudio/${VERSION}\`
+- [ ] Installer is Authenticode-signed (SmartScreen)
+
+## Notes
+Generated by \`scripts/winget/prepare-draft-manifest.sh\` from a real installer file.
+\`\`\`
+
+## Human checklist
+
+1. Confirm NSIS came from a **signed** GitHub Release \`v${VERSION}\`
+2. Copy \`manifests/s/Studio/ESP32DisplayStudio/${VERSION}/\` into a winget-pkgs fork
+3. Open PR to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) (or let CI draft job use \`WINGET_GITHUB_TOKEN\` — never commit the token)
+4. Follow docs/windows-smartscreen.md after first installs
+EOF
+
+echo "Wrote $OUT_YAML"
+echo "SHA256=$SHA256"
+echo "OUT_DIR=$OUT_DIR"

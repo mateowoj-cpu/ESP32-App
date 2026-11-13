@@ -23,6 +23,8 @@ async function bootstrap() {
       <App />
     </LocaleProvider>,
   );
+
+  void import('./platform/telemetry').then(m => m.trackTelemetry({ name: 'app_open' }));
 }
 
 void bootstrap();

@@ -1,0 +1,132 @@
+name: Winget Draft Manifest (SHA from release)
+
+# Faza 13 — after a signed Windows release tag, compute InstallerSha256 from the
+# real NSIS asset and upload a filled draft manifest + PR body.
+# Optional: open a *draft* PR against microsoft/winget-pkgs when WINGET_GITHUB_TOKEN
+# is configured (human still reviews / merges). Never invents SHA or credentials.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.2.6). Empty = latest tag from github.ref_name if tag push."
+        required: false
+        type: string
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: winget-draft-${{ github.event.release.tag_name || github.event.inputs.tag || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare-manifest:
+    name: Fill winget YAML from release NSIS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve tag / version
+        id: meta
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          TAG="${INPUT_TAG:-}"
+          if [[ -z "$TAG" ]]; then
+            TAG="${RELEASE_TAG:-}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            echo "No tag provided — use workflow_dispatch input or a published release." >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using tag=$TAG version=$VERSION"
+
+      - name: Download NSIS installer from GitHub Release
+        id: download
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          mkdir -p /tmp/winget-nsis
+          # Prefer exact productName pattern; fall back to any *-setup.exe on the release
+          ASSET=$(gh release view "$TAG" --json assets -q '.assets[].name' | grep -E 'x64-setup\.exe$' | head -n1 || true)
+          if [[ -z "$ASSET" ]]; then
+            ASSET=$(gh release view "$TAG" --json assets -q '.assets[].name' | grep -Ei '\.exe$' | head -n1 || true)
+          fi
+          if [[ -z "$ASSET" ]]; then
+            echo "No .exe installer asset on release $TAG — publish windows-release artifacts first." >&2
+            exit 1
+          fi
+          echo "Downloading asset: $ASSET"
+          gh release download "$TAG" --pattern "$ASSET" --dir /tmp/winget-nsis
+          echo "asset=$ASSET" >> "$GITHUB_OUTPUT"
+          ls -la /tmp/winget-nsis
+
+      - name: Prepare draft manifest (real SHA256)
+        id: prepare
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          chmod +x scripts/winget/prepare-draft-manifest.sh
+          INSTALLER=$(ls /tmp/winget-nsis/*.exe | head -n1)
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/$(basename "$INSTALLER")"
+          scripts/winget/prepare-draft-manifest.sh \
+            --version "$VERSION" \
+            --installer "$INSTALLER" \
+            --installer-url "$URL" \
+            --out-dir "packaging/winget/ESP32DisplayStudio/out/${VERSION}"
+          echo "out=packaging/winget/ESP32DisplayStudio/out/${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload draft winget package
+        uses: actions/upload-artifact@v4
+        with:
+          name: winget-draft-${{ steps.meta.outputs.version }}
+          path: packaging/winget/ESP32DisplayStudio/out/${{ steps.meta.outputs.version }}/**
+          if-no-files-found: error
+
+      - name: Optional draft PR to microsoft/winget-pkgs
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          OUT: packaging/winget/ESP32DisplayStudio/out/${{ steps.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "WINGET_GITHUB_TOKEN unset — artifact uploaded; human opens winget-pkgs PR."
+            exit 0
+          fi
+          WORK=/tmp/winget-pkgs
+          git clone --depth 1 https://github.com/microsoft/winget-pkgs.git "$WORK"
+          DEST="$WORK/manifests/s/Studio/ESP32DisplayStudio/${VERSION}"
+          mkdir -p "$DEST"
+          cp -f "$OUT/manifests/s/Studio/ESP32DisplayStudio/${VERSION}/Studio.ESP32DisplayStudio.yaml" "$DEST/"
+          BRANCH="studio-esp32-display-studio-${VERSION}"
+          cd "$WORK"
+          git config user.name "ESP32 Display Studio CI"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Push to the token owner's fork (human must fork microsoft/winget-pkgs first)
+          FORK_OWNER=$(gh api user -q .login)
+          git remote add fork "https://x-access-token:${GH_TOKEN}@github.com/${FORK_OWNER}/winget-pkgs.git"
+          git checkout -b "$BRANCH"
+          git add "manifests/s/Studio/ESP32DisplayStudio/${VERSION}"
+          git commit -m "New package: Studio.ESP32DisplayStudio version ${VERSION}"
+          git push -u fork "$BRANCH" --force
+          BODY_FILE="$GITHUB_WORKSPACE/$OUT/DRAFT_PR_BODY.md"
+          TITLE="New package: Studio.ESP32DisplayStudio version ${VERSION}"
+          gh pr create \
+            --repo microsoft/winget-pkgs \
+            --base master \
+            --head "${FORK_OWNER}:${BRANCH}" \
+            --title "$TITLE" \
+            --body-file "$BODY_FILE" \
+            --draft \
+            || echo "Draft PR create skipped/failed — artifact still uploaded for human PR."

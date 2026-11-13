@@ -182,6 +182,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       setLastBuild(result);
       setStatus(result.message);
       void appendDiagnosticsLog(result.message, 'build');
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'build_result', ok: !!result.ok }),
+      );
       if (result.ok && result.firmwarePath) {
         setFirmwarePath(result.firmwarePath);
         saveBoardPreset(detectedChip?.usbVendorId, detectedChip?.usbProductId, portId, {
@@ -197,6 +200,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       const msg = err instanceof Error ? err.message : String(err);
       setStatus(msg);
       void appendDiagnosticsLog(msg, 'build');
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'build_result', ok: false }),
+      );
       return null;
     } finally {
       setBusy(false);
@@ -226,6 +232,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         `${result.message} port=${portId} chip=${chip} offset=${offset}`,
         'flash',
       );
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'flash_result', ok: !!result.ok }),
+      );
       if (result.ok) {
         saveBoardPreset(detectedChip?.usbVendorId, detectedChip?.usbProductId, portId, {
           chip,
@@ -238,6 +247,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       const msg = err instanceof Error ? err.message : String(err);
       setStatus(msg);
       void appendDiagnosticsLog(msg, 'flash');
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'flash_result', ok: false }),
+      );
     } finally {
       setBusy(false);
     }
@@ -312,12 +324,18 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         `${msg} host=${otaHost} method=${otaMethod} code=${result.errorCode || ''}`,
         'ota',
       );
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'ota_result', ok: !!result.ok }),
+      );
     } catch (err) {
       const raw = err instanceof Error ? err.message : String(err);
       const { mapOtaErrorMessage } = await import('../platform/ota');
       const msg = mapOtaErrorMessage(t, { ok: false, message: raw, errorCode: null });
       setStatus(msg);
       void appendDiagnosticsLog(msg, 'ota');
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'ota_result', ok: false }),
+      );
     } finally {
       setOtaInFlight(false);
       setBusy(false);

@@ -50,8 +50,14 @@ jobs:
       - name: Board flash cache tests
         run: npm run test:board-cache
 
+      - name: Board sync tests
+        run: npm run test:board-sync
+
       - name: OTA host validation tests
         run: npm run test:ota
+
+      - name: Telemetry unit tests
+        run: npm run test:telemetry
 
       - name: Production build
         run: npm run build

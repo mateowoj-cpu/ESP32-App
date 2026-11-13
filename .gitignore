@@ -27,3 +27,6 @@ src-tauri/resources/windows/esp32-pc-agent.exe
 # Keep README.txt / empty markers — never commit the full venv tree.
 src-tauri/resources/sidecar/platformio/penv/
 src-tauri/resources/sidecar/ota/espota.py
+
+# Generated winget draft manifests (CI artifact / local prepare script)
+packaging/winget/ESP32DisplayStudio/out/

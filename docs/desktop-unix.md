@@ -1,6 +1,6 @@
-# Linux / macOS desktop parity (Faza 12)
+# Linux / macOS desktop parity (Faza 12 → 13)
 
-Windows pozostaje ścieżką release (NSIS/MSI, winget, Authenticode).  
+Windows pozostaje ścieżką release Authenticode / winget.  
 Shell Tauri 2 + natywny serial / OTA / Build działają też na **Linux** i **macOS**, o ile toolchain jest dostępny.
 
 ## Co działa out-of-the-box
@@ -40,10 +40,24 @@ npm run tauri:dev
 
 Wymaga Rust + zależności systemowych Tauri 2 ([prerequisites](https://v2.tauri.app/start/prerequisites/)).
 
-## Bundling / store
+## Bundling / CI (Faza 13)
 
-- **Nie** ma jeszcze CI release Linux AppImage/deb ani macOS `.dmg` w tym repo — backlog Faza 13+.
-- Diagnostyka ZIP i board sync działają na wszystkich desktopach Tauri.
+Workflow [`.github/workflows/desktop-unix-release.yml`](../.github/workflows/desktop-unix-release.yml):
+
+| Job | Runner | Targets | Config overlay |
+|-----|--------|---------|----------------|
+| `linux-packages` | `ubuntu-22.04` | AppImage + deb | `src-tauri/tauri.linux.json` |
+| `macos-dmg` | `macos-14` | dmg | `src-tauri/tauri.macos.json` |
+
+Wyzwalacze: tag `v*` oraz `workflow_dispatch`. Artefakty upload + opcjonalnie attach do GitHub Release.  
+**Bez** store submit / notarize (backlog Faza 14). Updater artifacts wyłączone w nakładkach Unix (`createUpdaterArtifacts: false`).
+
+Lokalnie:
+
+```bash
+npm run tauri:build -- --config src-tauri/tauri.linux.json
+npm run tauri:build -- --config src-tauri/tauri.macos.json
+```
 
 ## Docs powiązane
 
@@ -51,3 +65,4 @@ Wymaga Rust + zależności systemowych Tauri 2 ([prerequisites](https://v2.tauri
 - [windows-build-flash.md](./windows-build-flash.md)
 - [windows-ota.md](./windows-ota.md)
 - [windows-diagnostics.md](./windows-diagnostics.md)
+- [telemetry.md](./telemetry.md)

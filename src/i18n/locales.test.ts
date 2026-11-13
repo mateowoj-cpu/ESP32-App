@@ -25,6 +25,10 @@ assert(translate('en', 'pinout.title').toLowerCase().includes('pin'), 'en pinout
 assert(translate('en', 'ota.cancel').toLowerCase().includes('cancel'), 'en ota cancel');
 assert(translate('en', 'desktop.diagnosticsExport').toLowerCase().includes('zip'), 'en diag zip');
 assert(translate('pl', 'desktop.boardSync').toLowerCase().includes('profil'), 'pl board sync');
+assert(translate('en', 'desktop.telemetry').toLowerCase().includes('telemetry'), 'en telemetry');
+assert(translate('en', 'pinout.modal.title').toLowerCase().includes('pin'), 'en pinout modal');
+assert(translate('pl', 'usb.catalogTitle').toLowerCase().includes('płyt'), 'pl usb catalog');
+assert(translate('en', 'usb.board.esp32_devkit_v1.name').includes('DevKit'), 'en board name');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

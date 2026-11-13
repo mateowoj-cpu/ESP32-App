@@ -15,6 +15,8 @@ export const DesktopSettingsPanel: React.FC = () => {
     setCloseToTray,
     diagnosticsEnabled,
     setDiagnosticsEnabled,
+    telemetryEnabled,
+    setTelemetryEnabled,
   } = useLocale();
   const [isTauri, setIsTauri] = useState(false);
   const [status, setStatus] = useState<DesktopStatus | null>(null);
@@ -80,8 +82,10 @@ export const DesktopSettingsPanel: React.FC = () => {
       const { exportDiagnosticsZipWithDialog } = await import('../platform/diagnostics');
       const path = await exportDiagnosticsZipWithDialog();
       setMessage(`${t('desktop.diagnosticsExportOk')} ${path}`);
+      void import('../platform/telemetry').then(m => m.trackTelemetry({ name: 'diag_export', ok: true }));
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
+      void import('../platform/telemetry').then(m => m.trackTelemetry({ name: 'diag_export', ok: false }));
     } finally {
       setBusy(false);
     }
@@ -95,8 +99,14 @@ export const DesktopSettingsPanel: React.FC = () => {
       const meta = await syncCommunityBoardProfiles();
       const suffix = meta.remote ? '' : ` ${t('desktop.boardSyncBundled')}`;
       setMessage(`${t('desktop.boardSyncOk')} ${meta.count}${suffix}`);
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'board_sync', ok: true }),
+      );
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
+      void import('../platform/telemetry').then(m =>
+        m.trackTelemetry({ name: 'board_sync', ok: false }),
+      );
     } finally {
       setBusy(false);
     }
@@ -109,7 +119,7 @@ export const DesktopSettingsPanel: React.FC = () => {
           <MonitorSmartphone className="ui-icon-sm text-cyan-400" aria-hidden="true" />
           {t('desktop.title')}
         </h3>
-        <span className="ui-type-micro font-mono text-cyan-400">v0.2.5</span>
+        <span className="ui-type-micro font-mono text-cyan-400">v0.2.6</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -181,6 +191,19 @@ export const DesktopSettingsPanel: React.FC = () => {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5">
+        <label className="flex items-center justify-between gap-3 text-xs">
+          <span className="text-slate-300">{t('desktop.telemetry')}</span>
+          <input
+            type="checkbox"
+            checked={telemetryEnabled}
+            onChange={e => setTelemetryEnabled(e.target.checked)}
+            className="accent-cyan-400"
+          />
+        </label>
+        <p className="ui-type-micro text-slate-500 leading-relaxed">{t('desktop.telemetryHint')}</p>
       </div>
 
       <button
