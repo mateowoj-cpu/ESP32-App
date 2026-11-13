@@ -71,6 +71,20 @@ jobs:
           Invoke-Expression $cmd
           if ($LASTEXITCODE -ne 0) { throw "tauri build failed with exit $LASTEXITCODE" }
 
+      - name: Stage beta updater manifest (beta tags)
+        if: startsWith(github.ref, 'refs/tags/') && contains(github.ref_name, 'beta')
+        shell: pwsh
+        run: |
+          $nsis = Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.json" -ErrorAction SilentlyContinue
+          $root = Get-ChildItem "src-tauri/target/release/bundle" -Recurse -Filter "latest.json" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $src = if ($root) { $root.FullName } elseif ($nsis) { $nsis[0].FullName } else { $null }
+          if ($src) {
+            Copy-Item -Force $src "latest-beta.json"
+            Write-Host "Staged latest-beta.json from $src"
+          } else {
+            Write-Host "No latest.json found to clone as latest-beta.json"
+          }
+
       - name: Upload NSIS / MSI / PC Agent / updater artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -79,7 +93,8 @@ jobs:
             src-tauri/target/release/bundle/nsis/*
             src-tauri/target/release/bundle/msi/*
             tools/pc-agent/dist/esp32-pc-agent.exe
-          if-no-files-found: error
+            latest-beta.json
+          if-no-files-found: warn
 
       - name: Publish GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
@@ -89,6 +104,8 @@ jobs:
             src-tauri/target/release/bundle/nsis/*
             src-tauri/target/release/bundle/msi/*
             tools/pc-agent/dist/esp32-pc-agent.exe
+            latest-beta.json
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'beta') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

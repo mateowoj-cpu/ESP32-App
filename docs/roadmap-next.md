@@ -1,21 +1,23 @@
-# Kolejny krok po Fazie 5
+# Kolejny krok po Fazie 6
 
-## Stan po Fazie 5
+## Stan po Fazie 6
 
-- Flash helper (`esptool`) w widoku USB
-- Deep link `esp32studio://` + asocjacje `.esp32studio` / `.ino`
-- Smoke CI na PR (lint, testy, build, cargo check, agent `--once`)
-- Wcześniej: Serial native, NSIS/MSI, agent PC `.exe`, auto-update
+- Tray + close-to-tray, autostart Studio / agenta PC
+- i18n PL/EN (chrome + panel Desktop)
+- Kanały update stable / beta
+- Bump wersji **0.2.0** (gotowość do podpisanego releasu)
+- GPU: NVIDIA + best-effort Windows `typeperf` (AMD/Intel)
+- Wcześniej: Serial, NSIS/MSI, agent `.exe`, flash, deep link, smoke CI
 
-## Faza 6 (rekomendowana) — Polish produktowy
+## Faza 7 (rekomendowana) — Build-from-Studio
 
-1. **Podpisany release `v0.2.0`** — Authenticode + updater E2E na prawdziwym certyfikacie
-2. **Tray / autostart agenta PC** — skrót Windows, opcjonalny start z logowaniem
-3. **GPU AMD/Intel** (opcjonalnie) — LibreHardwareMonitor / Performance Counters
-4. **Lokalizacja EN** UI
-5. **Kanał beta vs stable** auto-update
+1. Integracja **PlatformIO CLI** / `arduino-cli` (wykryj w PATH)
+2. Kompilacja wygenerowanego `.ino` → `.bin` z poziomu Studio
+3. Jeden przepływ: **Generate → Build → Flash** (esptool)
+4. Opcjonalnie cache toolchain / board profile z wykrytego ESP32
 
-## Faza 7 (opcjonalna) — Build-from-Studio
+## Faza 8 (później)
 
-- Integracja PlatformIO CLI / `arduino-cli` → kompilacja `.ino` → `.bin` bez opuszczania Studio
-- Flash jednym przyciskiem: Generate → Build → Write
+- Pełne tłumaczenie pozostałych widoków
+- Publiczny signed store / winget
+- Telemetria diagnostyczna (opt-in) dla flash/COM

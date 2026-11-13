@@ -1,5 +1,6 @@
 import React from 'react';
 import { DisplayConfig, SystemConfig, DisplayModel, BusType, DisplayTheme, Screen } from '../types';
+import { DesktopSettingsPanel } from './DesktopSettingsPanel';
 import { 
   Monitor, 
   Wifi, 
@@ -78,6 +79,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
+      <DesktopSettingsPanel />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Panel 1: Konfiguracja Wyświetlacza & Motywów */}
         <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-5">

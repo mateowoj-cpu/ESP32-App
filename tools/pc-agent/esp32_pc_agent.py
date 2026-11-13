@@ -45,31 +45,65 @@ def root_disk_path() -> str:
     return "/"
 
 
+def _parse_percent(raw: str) -> int:
+    cleaned = raw.strip().replace("%", "")
+    return max(0, min(100, int(float(cleaned))))
+
+
 def read_gpu_percent() -> int:
-    """Best-effort NVIDIA GPU util via nvidia-smi. Returns 0 when unavailable."""
+    """Best-effort GPU util: NVIDIA nvidia-smi, then Windows typeperf (GPU Engine)."""
     nvidia_smi = shutil.which("nvidia-smi")
-    if not nvidia_smi:
-        return 0
-    try:
-        completed = subprocess.run(
-            [
-                nvidia_smi,
-                "--query-gpu=utilization.gpu",
-                "--format=csv,noheader,nounits",
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=2,
-        )
-        if completed.returncode != 0:
-            return 0
-        line = (completed.stdout or "").strip().splitlines()
-        if not line:
-            return 0
-        return max(0, min(100, int(float(line[0].strip()))))
-    except Exception:
-        return 0
+    if nvidia_smi:
+        try:
+            completed = subprocess.run(
+                [
+                    nvidia_smi,
+                    "--query-gpu=utilization.gpu",
+                    "--format=csv,noheader,nounits",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=2,
+            )
+            if completed.returncode == 0:
+                line = (completed.stdout or "").strip().splitlines()
+                if line:
+                    return _parse_percent(line[0])
+        except Exception:
+            pass
+
+    # Windows AMD/Intel: sample "GPU Engine(*)\\Utilization Percentage" via typeperf
+    if os.name == "nt" and shutil.which("typeperf"):
+        try:
+            completed = subprocess.run(
+                [
+                    "typeperf",
+                    r"\GPU Engine(*)\Utilization Percentage",
+                    "-sc",
+                    "1",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=4,
+            )
+            if completed.returncode == 0:
+                values: list[float] = []
+                for line in (completed.stdout or "").splitlines():
+                    if line.startswith('"') and "," in line and not line.lower().startswith('"timestamp'):
+                        parts = [p.strip().strip('"') for p in line.split(",")]
+                        for part in parts[1:]:
+                            try:
+                                values.append(float(part))
+                            except ValueError:
+                                continue
+                if values:
+                    return max(0, min(100, int(round(max(values)))))
+        except Exception:
+            pass
+
+    return 0
 
 
 def collect_stats(include_gpu: bool) -> dict:

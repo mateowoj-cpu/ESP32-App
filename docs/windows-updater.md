@@ -5,13 +5,15 @@ ESP32 Display Studio używa `tauri-plugin-updater`.
 ## Jak działa
 
 1. Release CI buduje NSIS/MSI **oraz** artefakty updatera (`.sig` + `latest.json`).
-2. Aplikacja sprawdza:
+2. Aplikacja sprawdza endpoint zależny od kanału (Ustawienia → Desktop):
 
-   `https://github.com/mateowoj-cpu/ESP32-App/releases/latest/download/latest.json`
+   - **stable:** `releases/latest/download/latest.json`
+   - **beta:** `releases/latest/download/latest-beta.json`
 
 3. Po pobraniu aktualizacji restartuje się (`plugin-process` → `relaunch`).
 
 W UI: przycisk **Update** w nagłówku (tylko shell Tauri) oraz banner, gdy jest nowa wersja.
+Aktualna linia produktowa: **0.2.0**.
 
 ## Klucze podpisu updatera
 
