@@ -1,198 +1,188 @@
 # ESP32 Display Studio
 
-Wizualne środowisko do projektowania interfejsów OLED/LCD dla ESP32: symulator sprzętowy, edytor UI, automatyzacje, cyber-zwierzak oraz generator gotowego kodu C++ (Arduino / PlatformIO).
+[![Smoke](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml/badge.svg)](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml)
+[![Version](https://img.shields.io/badge/version-0.2.6-blue)](./package.json)
+[![Tauri](https://img.shields.io/badge/desktop-Tauri%202-24C8DB)](./src-tauri/)
+[![i18n](https://img.shields.io/badge/i18n-PL%20%7C%20EN-informational)](./src/i18n/)
 
-Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App)
+**Wizualne studio UI OLED/LCD dla ESP32** — symulator sprzętowy, edytor ekranów, automatyzacje, wykrywanie USB (Web Serial / natywny COM), Build → Flash → OTA, agent PC oraz generator C++ (Arduino / PlatformIO).
 
-## Wymagania
+Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Wersja **0.2.6** (Fazy 0–13) · Następna: [Faza 14](./docs/roadmap-next.md)
 
-| Narzędzie | Wersja | Uwagi |
-|-----------|--------|--------|
-| Node.js | 22 LTS (lub nowszy) | [nodejs.org](https://nodejs.org/) |
-| npm | 10+ | dostarczany z Node |
-| Przeglądarka | Chrome, Edge, Brave lub inny Chromium | wymagana do **Web Serial** w trybie przeglądarkowym |
-| Rust + VS Build Tools | do desktopa Tauri | tylko gdy budujesz `npm run tauri:dev` / `tauri:build` |
-| WebView2 Runtime | Windows 10/11 | zwykle preinstalowany; installer Tauri potrafi dociągnąć bootstrapper |
+> **EN (short):** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and (on desktop) flash over USB or OTA Wi‑Fi with a Tauri 2 shell.
 
-### Windows
+## Spis treści
 
-1. Zainstaluj [Node.js 22 LTS](https://nodejs.org/) (zaznacz opcję „Add to PATH”).
-2. Używaj **PowerShell** lub **Windows Terminal**.
-3. **Tryb przeglądarki:** Edge/Chrome + Web Serial.
-4. **Tryb desktop (Tauri):** natywne porty `COMx` bez Web Serial — zobacz sekcję [Aplikacja desktop (Tauri)](#aplikacja-desktop-tauri).
-5. Podłącz płytkę i upewnij się, że w **Menedżerze urządzeń** pojawia się port `COMx`.
-   - **CH340 / CH9102** (VID `0x1A86`) — sterownik WCH
-   - **CP210x** (VID `0x10C4`) — Silicon Labs VCP
-   - **Espressif native USB** (VID `0x303A`, m.in. ESP32-S3/C3) — zwykle CDC przez Windows Update
-
-Bez sterownika USB-UART ani przeglądarka, ani shell Tauri nie zobaczą urządzenia.
+- [Szybki start](#szybki-start)
+- [Kluczowe funkcje](#kluczowe-funkcje)
+- [Dokumentacja](#dokumentacja)
+- [Wymagania](#wymagania)
+- [Desktop (Tauri)](#desktop-tauri)
+- [Status i roadmapa](#status-i-roadmapa)
+- [Contributing](#contributing)
 
 ## Szybki start
+
+### Web (Vite)
 
 ```bash
 npm install
 npm run dev
 ```
 
-Aplikacja startuje na [http://localhost:3000](http://localhost:3000).
+Aplikacja: [http://localhost:3000](http://localhost:3000) — Chromium z **Web Serial** do USB.
+
+### Desktop (Tauri)
+
+```bash
+npm install
+npm run tauri:dev          # natywne COMx / /dev/tty*
+npm run tauri:build        # instalator (Windows: NSIS/MSI)
+```
+
+Instalatory z CI: workflow `windows-release.yml` (tag `v*`) oraz `desktop-unix-release.yml` (AppImage / deb / dmg).  
+Szczegóły: [docs/developer-setup.md](./docs/developer-setup.md) · [docs/user-guide.md](./docs/user-guide.md).
 
 ### Przydatne skrypty
 
 | Skrypt | Opis |
 |--------|------|
-| `npm run dev` | Serwer deweloperski Vite (port 3000) |
-| `npm run build` | Build produkcyjny do `dist/` |
-| `npm run preview` | Podgląd builda |
-| `npm run lint` | Sprawdzenie TypeScript (`tsc --noEmit`) |
-| `npm run clean` | Usuwa `dist` i artefakty (działa na Windows, macOS i Linux) |
-| `npm run tauri:dev` | Desktop Tauri + Vite (natywny COM) |
-| `npm run tauri:build` | Instalator desktop (na Windows: NSIS/MSI) |
-| `npm run tauri:build:signed` | Build z nakładką Authenticode (`tauri.windows-signing.local.json`) |
+| `npm run dev` / `build` / `preview` | Vite |
+| `npm run lint` | TypeScript (`tsc --noEmit`) |
+| `npm run smoke` | Lint + testy platform + build |
+| `npm run tauri:dev` / `tauri:build` | Shell desktop |
+| `npm run tauri:build:signed` | Build + nakładka Authenticode (lokalny JSON) |
 
-## Funkcje
+## Kluczowe funkcje
 
-- **Symulator sprzętowy** — OLED/LCD, sensory, GPIO, USB/Bluetooth
-- **Edytor graficzny UI** — widgety, animacje, sekwencje ekranów
-- **Wykryj ESP32 (USB)** — Web Serial + baza popularnych płytek (preset)
-- **Automatyzacje i cyber-zwierzak** — triggery PIR/czas/dotyk/USB
-- **Integracje** — pogoda (Open-Meteo i inne), agent PC (CPU/RAM/dysk)
-- **Generator C++** — plik `.ino`, `platformio.ini`, mapa pinów
+| Obszar | Co dostajesz |
+|--------|----------------|
+| **Projektowanie** | Symulator OLED/LCD, edytor widgetów, sekwencje ekranów, mapa pinów |
+| **Automatyzacje** | Triggery PIR / czas / dotyk / USB, cyber-zwierzak |
+| **USB** | Web Serial (przeglądarka) lub natywny serial (Tauri); baza płytek + board cache/sync |
+| **Firmware** | Generator `.ino` + `platformio.ini`; **Build-from-Studio** (PIO / arduino-cli) |
+| **Flash / OTA** | `esptool` na COM; OTA Wi‑Fi (`espota` / HTTP) + odkrywanie **mDNS** |
+| **Desktop** | Tray, close-to-tray, autostart, deep link `esp32studio://`, pliki `.esp32studio` |
+| **Agent PC** | CPU / RAM / dysk (/ GPU) → ESP32 (`tools/pc-agent`) |
+| **Aktualizacje** | Kanały stable / beta (`latest.json` / `latest-beta.json`) |
+| **i18n** | PL / EN (chrome + treści paneli) |
+| **Diagnostyka** | Lokalny log + eksport ZIP; **opt-in** telemetria sieciowa (domyślnie off) |
+| **Dystrybucja** | NSIS/MSI, szablony winget + draft CI, paczki Unix z CI |
 
-## Port szeregowy (warstwa platform)
+## Dokumentacja
 
-Dostęp do USB/Serial jest odizolowany w `src/platform/`:
+Pełny indeks: **[docs/README.md](./docs/README.md)**
 
-- `webSerial` — natywne Web Serial API w Chromium
-- `nativeSerial` — Tauri + Rust (`serialport`), porty `COMx` / `/dev/tty*`
-- `mockSerial` — tryb bez sprzętu (presety / testy)
+| Start | Temat |
+|-------|--------|
+| [Przewodnik użytkownika](./docs/user-guide.md) | Jak korzystać z Studio |
+| [Setup developera](./docs/developer-setup.md) | Środowisko, skrypty, CI, PR |
+| [Architektura](./docs/architecture.md) | UI ↔ platform ↔ Tauri |
+| [Roadmapa](./docs/roadmap-next.md) | Po Fazie 13 → Faza 14 |
 
-UI (`UsbDetectorView`) korzysta wyłącznie z tej abstrakcji — nie wywołuje `navigator.serial` bezpośrednio. W shellu Tauri `main.tsx` rejestruje adapter native przed renderem.
+**Desktop / Windows:** [installer](./docs/windows-installer.md) · [drivers](./docs/windows-drivers.md) · [desktop polish](./docs/windows-desktop.md) · [updater](./docs/windows-updater.md) · [signing](./docs/windows-signing.md) · [SmartScreen](./docs/windows-smartscreen.md) · [winget](./docs/windows-winget.md) · [deep link](./docs/windows-deep-link.md) · [PC agent](./docs/windows-pc-agent.md) · [diagnostics](./docs/windows-diagnostics.md)
 
-## Aplikacja desktop (Tauri)
+**Build / flash / OTA:** [build-flash](./docs/windows-build-flash.md) · [flash](./docs/windows-flash.md) · [sidecar PIO](./docs/windows-sidecar-pio.md) · [OTA](./docs/windows-ota.md)
 
-Scaffold leży w `src-tauri/` (Tauri 2). Komendy Rust:
+**Unix & privacy:** [desktop-unix](./docs/desktop-unix.md) · [telemetry](./docs/telemetry.md)
 
-- `list_serial_ports`
-- `open_serial_port` (domyślnie 115200 baud)
-- `write_serial_port` / `close_serial_port`
-- eventy: `serial-data`, `serial-disconnected`
+## Wymagania
 
-### Dev (Windows)
+| Narzędzie | Wersja | Uwagi |
+|-----------|--------|--------|
+| Node.js | 22 LTS+ | [nodejs.org](https://nodejs.org/) |
+| npm | 10+ | z Node |
+| Przeglądarka | Chromium | Web Serial w trybie web |
+| Rust + C++ toolchain | stable | tylko desktop Tauri |
+| WebView2 | Win 10/11 | zwykle preinstalowany |
 
-1. Zainstaluj [Rust](https://rustup.rs/) oraz **Visual Studio Build Tools** (workload C++).
-2. Upewnij się, że WebView2 jest dostępny.
-3. W katalogu projektu:
+### Windows — port COM
 
-```powershell
-npm install
-npm run tauri:dev
-```
+1. Node 22 LTS (Add to PATH), PowerShell / Windows Terminal.  
+2. Przeglądarka **lub** shell Tauri (natywny COM bez Web Serial).  
+3. W Menedżerze urządzeń musi być `COMx`:
+   - **CH340 / CH9102** (`0x1A86`) — WCH  
+   - **CP210x** (`0x10C4`) — Silicon Labs  
+   - **Espressif USB** (`0x303A`, m.in. S3/C3) — zwykle CDC przez Windows Update  
 
-W zakładce **Wykryj ESP32 (USB)** zobaczysz backend `Native COM` i listę portów.
+Bez sterownika USB-UART ani przeglądarka, ani Tauri nie zobaczą urządzenia — [docs/windows-drivers.md](./docs/windows-drivers.md).
 
-### Build instalatora Windows
+## Desktop (Tauri)
 
-Na maszynie Windows (MSVC):
+Scaffold: `src-tauri/` (Tauri 2). Serial: `list_serial_ports`, `open_serial_port` (domyślnie 115200), `write` / `close`; eventy `serial-data`, `serial-disconnected`.
+
+Warstwa JS: `src/platform/` (`webSerial` / `nativeSerial` / `mockSerial`) — UI nie woła `navigator.serial` bezpośrednio.
+
+### Build Windows
 
 ```powershell
 npm install
 npm run tauri:build
 ```
 
-Artefakty NSIS/MSI pojawią się w `src-tauri/target/release/bundle/`.
+Artefakty: `src-tauri/target/release/bundle/` (NSIS PL/EN, MSI ze stałym `upgradeCode`, WebView2 bootstrapper).  
+Podpis (opcjonalnie, sekrety lokalne / CI — **nie w git**): [docs/windows-signing.md](./docs/windows-signing.md).
 
-Instalator:
-
-- **NSIS** (`.exe`) — język PL/EN, instalacja dla bieżącego użytkownika, hook ze wskazówką o sterownikach COM
-- **MSI** — stały `upgradeCode` do aktualizacji in-place
-- **WebView2** — bootstrapper dociągany przy braku Runtime
-- Zasoby: `DRIVERS.txt`, `SIGNING.txt` w katalogu aplikacji
-
-Dokumentacja:
-
-- [docs/windows-installer.md](./docs/windows-installer.md) — bundlowanie NSIS/MSI
-- [docs/windows-drivers.md](./docs/windows-drivers.md) — CH340 / CP210x / Espressif
-- [docs/windows-signing.md](./docs/windows-signing.md) — Authenticode + sekrety CI
-
-Podpis (opcjonalnie):
-
-```powershell
-Copy-Item src-tauri\tauri.windows-signing.example.json src-tauri\tauri.windows-signing.local.json
-# wstaw thumbprint certyfikatu
-npm run tauri:build:signed
-```
-
-CI: `.github/workflows/windows-release.yml` (tag `v*` lub ręczne uruchomienie).
-
-## Agent PC (monitor zasobów)
-
-Źródło: [`tools/pc-agent`](./tools/pc-agent). Wysyła CPU/RAM/dysk/(opcjonalnie GPU) na `POST /api/pc-stats`.
+### Agent PC
 
 ```bash
-cd tools/pc-agent
-pip install -r requirements.txt
+cd tools/pc-agent && pip install -r requirements.txt
 python esp32_pc_agent.py --host 192.168.1.150 --port 8080
 ```
 
-Windows `.exe`:
+Windows `.exe`: `scripts/windows/Build-PcAgent.ps1`. W UI: **Integracje → Monitor PC**. Docs: [windows-pc-agent.md](./docs/windows-pc-agent.md).
 
-```powershell
-powershell -File .\scripts\windows\Build-PcAgent.ps1
-.\tools\pc-agent\dist\esp32-pc-agent.exe --host 192.168.1.150 --port 8080
-```
+### Firmware z Studio
 
-W shellu Tauri: **Integracje → Monitor PC → Start/Stop**.  
-Docs: [docs/windows-pc-agent.md](./docs/windows-pc-agent.md) · Auto-update: [docs/windows-updater.md](./docs/windows-updater.md)
-
-## Auto-update (desktop)
-
-Tauri sprawdza `releases/latest/download/latest.json`. Przycisk **Update** w nagłówku.  
-Wymaga secretu `TAURI_SIGNING_PRIVATE_KEY` w CI (publiczny klucz jest już w `tauri.conf.json`).
-
-## Eksport firmware / build / flash
-
-1. Skonfiguruj wyświetlacz, ekrany i automatyzacje.
-2. W shellu Tauri: **USB → Build → Flash** (sidecar PIO lub `pio`/`arduino-cli` + `esptool`; OTA Wi‑Fi w tej samej zakładce).
-3. Albo pobierz `.ino` z **Generator Kodu C++** i zbuduj w Arduino IDE / PlatformIO ręcznie.
-
-Sidecar (bez PATH):
+1. Skonfiguruj UI / automatyzacje.  
+2. Desktop: **USB → Build → Flash** (sidecar PIO lub PATH); OTA w tej samej zakładce.  
+3. Albo eksport `.ino` z generatora i build w Arduino IDE / PlatformIO.
 
 ```powershell
 powershell -File .\scripts\windows\Install-PlatformIoSidecar.ps1
 ```
 
-Docs: [docs/windows-build-flash.md](./docs/windows-build-flash.md) · [docs/windows-sidecar-pio.md](./docs/windows-sidecar-pio.md) · [docs/windows-ota.md](./docs/windows-ota.md) · [docs/windows-flash.md](./docs/windows-flash.md) · [docs/windows-winget.md](./docs/windows-winget.md) · [docs/windows-diagnostics.md](./docs/windows-diagnostics.md) · [docs/windows-smartscreen.md](./docs/windows-smartscreen.md) · [docs/desktop-unix.md](./docs/desktop-unix.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
+### Zmienne środowiskowe
 
-Projekt zapisuj jako `.esp32studio` (asocjacja Windows / `esp32studio://open?path=...`).
+Skopiuj `.env.example` → `.env` w razie potrzeby:
 
-Wymagane biblioteki Arduino (przykład OLED SSD1306): Adafruit SSD1306, Adafruit GFX, ArduinoJson.
-
-## Zmienne środowiskowe
-
-Skopiuj `.env.example` → `.env` w razie potrzeby (np. klucz Gemini — obecnie opcjonalny / nieużywany w UI).
-
-```
-GEMINI_API_KEY=...
+```text
+GEMINI_API_KEY=...          # opcjonalny / obecnie nieużywany w UI
 APP_URL=http://localhost:3000
+# VITE_TELEMETRY_ENDPOINT=  # tylko build z opt-in telemetry (docs/telemetry.md)
 ```
 
-## Roadmapa Windows (skrót)
+Sekrety Authenticode / updater / winget — wyłącznie GitHub Secrets lub lokalny sejf (zob. `.env.example` komentarze).
 
-- **Faza 0–1:** README Windows, skrypty cross-platform, abstrakcja Serial
-- **Faza 2:** scaffold Tauri 2 + natywny COM
-- **Faza 3:** NSIS/MSI, docs sterowników, Authenticode CI
-- **Faza 4:** agent PC `.exe` + auto-update Tauri
-- **Faza 5:** flash helper (`esptool`) + deep link / `.esp32studio` + smoke CI
-- **Faza 6:** tray/autostart, i18n PL/EN, kanały update, wersja `0.2.0`
-- **Faza 7:** Build-from-Studio (PlatformIO/`arduino-cli` → `.bin` → flash)
-- **Faza 8:** i18n PL/EN, winget template, diagnostyka, board cache (`0.2.1`)
-- **Faza 9:** sidecar PlatformIO, OTA Wi‑Fi, chrome i18n głębokich paneli, winget `0.2.2`
-- **Faza 10:** głębokie i18n paneli, bundling penv (stage script), mDNS OTA discovery, winget PR template
-- **Faza 11:** i18n treści (pet/Integrations/pinout), winget `0.2.4` path, CI penv artifact, mDNS UX + OTA hardening (`0.2.4`)
-- **Faza 12:** SmartScreen checklist, eksport diagnostyki ZIP, board sync community, Linux/macOS parity (`0.2.5`)
-- **Faza 13 (obecna):** CI AppImage/deb/dmg, opt-in telemetria, draft winget z SHA CI, głębsze i18n pinout/USB (`0.2.6`) — [docs/roadmap-next.md](./docs/roadmap-next.md)
-- **Faza 14 (następna):** community marketplace, EV signing/SmartScreen, board catalog, Unix polish
+## Status i roadmapa
+
+| Faza | Skrót |
+|------|--------|
+| 0–5 | README Windows, Serial abstrakcja, Tauri COM, NSIS/MSI, agent PC, flash + deep link |
+| 6–8 | Tray/autostart, i18n, kanały update, Build-from-Studio, winget template, diagnostyka |
+| 9–11 | Sidecar PIO, OTA + mDNS, głębokie i18n, penv CI, winget path |
+| **12** | SmartScreen checklist, ZIP diagnostyki, board sync, Unix parity (`0.2.5`) |
+| **13 (obecna)** | CI AppImage/deb/dmg, opt-in telemetria, draft winget SHA, i18n pinout/USB (`0.2.6`) |
+| **14 (następna)** | Community marketplace, EV/SmartScreen, board catalog, Unix polish |
+
+Szczegóły: [docs/roadmap-next.md](./docs/roadmap-next.md).
+
+**Uwaga dystrybucji:** draft winget i checklisty SmartScreen **nie** oznaczają live publish do `winget-pkgs` ani gotowej reputacji EV — to kroki człowieka po signed release.
+
+## Contributing
+
+1. Fork / branch od `main`.  
+2. `npm install` → `npm run smoke`.  
+3. Zachowaj i18n PL+EN dla nowych stringów UI.  
+4. Aktualizuj docs przy zmianie zachowania użytkownika.  
+5. Nie commituj sekretów, `.pfx`, prywatnych kluczy updatera.
+
+Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md).
 
 ## Licencja
 
-Projekt prywatny / bez wskazanej licencji w repozytorium — sprawdź ustawienia właściciela na GitHub.
+Projekt bez wskazanej licencji w repozytorium — sprawdź ustawienia właściciela na GitHub.
+
+## Screenshots
+
+Zrzuty ekranu UI można dodać do `docs/media/` i podlinkować tutaj po pierwszym publicznym releasie wizualnym (obecnie brak oficjalnych assetów w repo).

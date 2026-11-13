@@ -1,7 +1,8 @@
-# Opt-in diagnostic telemetry (Faza 13)
+# Opt-in diagnostic telemetry
 
 Studio keeps **local** flash/COM diagnostics (log + ZIP) separate from optional
-**network** telemetry. Telemetry is **off by default**.
+**network** telemetry (added in Phase 13). Telemetry is **off by default**.
+Docs index: [README.md](./README.md) · local ZIP: [windows-diagnostics.md](./windows-diagnostics.md).
 
 ## What is sent (only when enabled)
 

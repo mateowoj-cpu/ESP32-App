@@ -1,5 +1,7 @@
 # Kolejny krok po Fazie 13
 
+Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 14+ jako ukończonych** bez merge’a funkcji.
+
 ## Stan po Fazie 13
 
 - **CI desktop non-Windows** — workflow `desktop-unix-release.yml` (AppImage/deb na Ubuntu, `.dmg` na macOS); nakładki `tauri.linux.json` / `tauri.macos.json` (bez store submit)

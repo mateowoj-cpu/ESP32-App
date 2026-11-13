@@ -1,6 +1,7 @@
-# Build-from-Studio (Faza 7)
+# Build-from-Studio
 
-Jeden przepływ w shellu Tauri: **Generate → Build → Flash**.
+Jeden przepływ w shellu Tauri: **Generate → Build → Flash** (od Fazy 7; sidecar / OTA w Fazach 9–11).  
+Powiązane: [windows-flash.md](./windows-flash.md) · [windows-sidecar-pio.md](./windows-sidecar-pio.md) · [windows-ota.md](./windows-ota.md).
 
 ## Wymagania
 

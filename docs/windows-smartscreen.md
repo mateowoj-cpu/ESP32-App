@@ -1,7 +1,8 @@
-# SmartScreen / reputacja podpisów (Faza 12)
+# SmartScreen / reputacja podpisów
 
-Cel: po pierwszym **Authenticode-signed** instalatorze (NSIS/MSI) i ścieżce winget — monitorować reputację SmartScreen i ewentualnie przejść na **EV** code signing.  
-**Bez fałszywych certyfikatów, hashów ani sekretów w repo.**
+Checklist człowieka (od Fazy 12; EV / pełna reputacja = backlog Fazy 14).  
+Cel: po pierwszym **Authenticode-signed** instalatorze (NSIS/MSI) i ścieżce winget — monitorować SmartScreen.  
+**Bez fałszywych certyfikatów, hashów ani sekretów w repo.** Indeks: [README.md](./README.md).
 
 ## Co robi Studio w repo
 
