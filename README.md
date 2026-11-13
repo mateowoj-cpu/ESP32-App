@@ -149,14 +149,13 @@ Docs: [docs/windows-pc-agent.md](./docs/windows-pc-agent.md) · Auto-update: [do
 Tauri sprawdza `releases/latest/download/latest.json`. Przycisk **Update** w nagłówku.  
 Wymaga secretu `TAURI_SIGNING_PRIVATE_KEY` w CI (publiczny klucz jest już w `tauri.conf.json`).
 
-## Eksport firmware / flash
+## Eksport firmware / build / flash
 
 1. Skonfiguruj wyświetlacz, ekrany i automatyzacje.
-2. Pobierz `.ino` albo skopiuj kod z **Generator Kodu C++**.
-3. Zbuduj w Arduino IDE 2.x / PlatformIO.
-4. W shellu Tauri: **USB → Flash helper** (`pip install esptool`) i wgraj `.bin`.
+2. W shellu Tauri: **USB → Build → Flash** (wymaga `pio` lub `arduino-cli` + `esptool` w PATH).
+3. Albo pobierz `.ino` z **Generator Kodu C++** i zbuduj w Arduino IDE / PlatformIO ręcznie.
 
-Docs: [docs/windows-flash.md](./docs/windows-flash.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
+Docs: [docs/windows-build-flash.md](./docs/windows-build-flash.md) · [docs/windows-flash.md](./docs/windows-flash.md) · Deep link: [docs/windows-deep-link.md](./docs/windows-deep-link.md) · Desktop: [docs/windows-desktop.md](./docs/windows-desktop.md)
 
 Projekt zapisuj jako `.esp32studio` (asocjacja Windows / `esp32studio://open?path=...`).
 
@@ -178,8 +177,9 @@ APP_URL=http://localhost:3000
 - **Faza 3:** NSIS/MSI, docs sterowników, Authenticode CI
 - **Faza 4:** agent PC `.exe` + auto-update Tauri
 - **Faza 5:** flash helper (`esptool`) + deep link / `.esp32studio` + smoke CI
-- **Faza 6 (obecna):** tray/autostart, i18n PL/EN, kanały update, wersja `0.2.0`
-- **Faza 7 (następna):** Build-from-Studio (PlatformIO/`arduino-cli` → flash) — zob. [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 6:** tray/autostart, i18n PL/EN, kanały update, wersja `0.2.0`
+- **Faza 7 (obecna):** Build-from-Studio (PlatformIO/`arduino-cli` → `.bin` → flash)
+- **Faza 8 (następna):** pełne EN, winget/signed release, diagnostyka — zob. [docs/roadmap-next.md](./docs/roadmap-next.md)
 
 ## Licencja
 

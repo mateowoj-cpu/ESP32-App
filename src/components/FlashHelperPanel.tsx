@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ConnectedEsp32Info } from '../types';
 import { getSerialAdapter, type SerialPortInfo } from '../platform';
 import type { EsptoolInfo } from '../platform/flash';
+import type { BuildResult, ToolchainInfo } from '../platform/firmwareBuild';
 import {
   Zap,
   RefreshCw,
@@ -9,15 +10,29 @@ import {
   AlertCircle,
   CheckCircle2,
   Terminal,
+  Hammer,
+  Play,
 } from 'lucide-react';
+
+export interface SketchBuildSources {
+  sketchSource: string;
+  platformioIni: string;
+  boardProfile: string;
+  sketchName?: string;
+}
 
 interface FlashHelperPanelProps {
   detectedChip: ConnectedEsp32Info | null;
+  buildSources?: () => SketchBuildSources;
 }
 
-export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip }) => {
+export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
+  detectedChip,
+  buildSources,
+}) => {
   const [isTauri, setIsTauri] = useState(false);
   const [esptool, setEsptool] = useState<EsptoolInfo | null>(null);
+  const [toolchain, setToolchain] = useState<ToolchainInfo | null>(null);
   const [ports, setPorts] = useState<SerialPortInfo[]>([]);
   const [portId, setPortId] = useState('');
   const [baud, setBaud] = useState(460800);
@@ -27,6 +42,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
+  const [lastBuild, setLastBuild] = useState<BuildResult | null>(null);
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -56,16 +72,25 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
       }
       setIsTauri(true);
       const { getEsptoolInfo, listenFlashLog } = await import('../platform/flash');
+      const { getFirmwareToolchainInfo, listenBuildLog } = await import('../platform/firmwareBuild');
       setEsptool(await getEsptoolInfo());
+      setToolchain(await getFirmwareToolchainInfo());
       const adapter = getSerialAdapter();
       if (adapter.listPorts) {
         const listed = await adapter.listPorts();
         setPorts(listed);
         if (!portId && listed[0]) setPortId(listed[0].id || listed[0].label);
       }
-      return listenFlashLog(line => {
-        setLogs(prev => [...prev.slice(-200), line]);
+      const unFlash = await listenFlashLog(line => {
+        setLogs(prev => [...prev.slice(-300), `[flash] ${line}`]);
       });
+      const unBuild = await listenBuildLog(line => {
+        setLogs(prev => [...prev.slice(-300), `[build] ${line}`]);
+      });
+      return () => {
+        unFlash();
+        unBuild();
+      };
     } catch {
       setIsTauri(false);
     }
@@ -92,9 +117,42 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
     }
   };
 
-  const handleFlash = async () => {
-    if (!portId || !firmwarePath) {
-      setStatus('Wybierz port COM i plik .bin.');
+  const handleBuild = async (): Promise<string | null> => {
+    if (!buildSources) {
+      setStatus('Brak generatora szkicu — otwórz projekt w Studio.');
+      return null;
+    }
+    setBusy(true);
+    setStatus(null);
+    setLogs(prev => [...prev, '--- start build ---']);
+    try {
+      const sources = buildSources();
+      const { buildFirmwareFromSketch } = await import('../platform/firmwareBuild');
+      const result = await buildFirmwareFromSketch({
+        sketchSource: sources.sketchSource,
+        platformioIni: sources.platformioIni,
+        boardProfile: sources.boardProfile || chip,
+        sketchName: sources.sketchName,
+      });
+      setLastBuild(result);
+      setStatus(result.message);
+      if (result.ok && result.firmwarePath) {
+        setFirmwarePath(result.firmwarePath);
+        return result.firmwarePath;
+      }
+      return null;
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err));
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleFlash = async (pathOverride?: string) => {
+    const path = pathOverride || firmwarePath;
+    if (!portId || !path) {
+      setStatus('Wybierz port COM i plik .bin (lub zbuduj firmware).');
       return;
     }
     setBusy(true);
@@ -106,7 +164,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
         port: portId,
         baud,
         chip,
-        firmwarePath,
+        firmwarePath: path,
         flashOffset: offset,
       });
       setStatus(result.message);
@@ -117,20 +175,26 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
     }
   };
 
+  const handleBuildAndFlash = async () => {
+    const built = await handleBuild();
+    if (built) {
+      await handleFlash(built);
+    }
+  };
+
   if (!isTauri) {
     return (
       <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
         <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
           <Zap className="w-4 h-4 text-amber-400" />
-          Flash helper (esptool)
+          Build & Flash (esptool)
         </h3>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Wgrywanie firmware dostępne w aplikacji desktop (Tauri). W przeglądarce pobierz{' '}
-          <code className="text-cyan-400">.ino</code>, zbuduj binarkę w Arduino/PlatformIO i użyj
-          esptool ręcznie.
+          Kompilacja PlatformIO / arduino-cli oraz flash dostępne w aplikacji desktop (Tauri).
+          W przeglądarce pobierz <code className="text-cyan-400">.ino</code> i zbuduj lokalnie.
         </p>
         <p className="text-[11px] font-mono text-slate-500">
-          pip install esptool && esptool.py --port COMx write_flash 0x1000 firmware.bin
+          pip install platformio && pio run · pip install esptool
         </p>
       </div>
     );
@@ -141,16 +205,26 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
           <Zap className="w-4 h-4 text-amber-400" />
-          Flash helper (esptool)
+          Build → Flash
         </h3>
         <button
           type="button"
           onClick={() => void refresh()}
           className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800"
-          title="Odśwież esptool / porty"
+          title="Odśwież toolchain / porty"
         >
           <RefreshCw className="w-4 h-4" />
         </button>
+      </div>
+
+      <div
+        className={`text-[11px] font-mono px-2.5 py-1.5 rounded-lg border ${
+          toolchain?.available
+            ? 'text-emerald-300 bg-emerald-950/40 border-emerald-800/60'
+            : 'text-amber-200 bg-amber-950/40 border-amber-800/60'
+        }`}
+      >
+        {toolchain?.hint || 'Sprawdzanie PlatformIO / arduino-cli…'}
       </div>
 
       <div
@@ -163,11 +237,11 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
         {esptool?.hint || 'Sprawdzanie esptool…'}
       </div>
 
-      {!esptool?.available && (
+      {!toolchain?.available && (
         <p className="text-xs text-slate-400 flex gap-2 items-start">
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          Zainstaluj: <code className="text-cyan-400">pip install esptool</code> i upewnij się, że
-          Python jest w PATH.
+          Zainstaluj: <code className="text-cyan-400">pip install platformio</code> lub{' '}
+          <code className="text-cyan-400">arduino-cli</code> (+ core esp32:esp32).
         </p>
       )}
 
@@ -237,12 +311,12 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[11px] text-slate-400">Plik firmware (.bin)</span>
+        <span className="text-[11px] text-slate-400">Firmware (.bin)</span>
         <div className="flex gap-2">
           <input
             value={firmwarePath}
             onChange={e => setFirmwarePath(e.target.value)}
-            placeholder="C:\build\firmware.bin"
+            placeholder="Zbuduj albo wybierz .bin"
             className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-mono"
           />
           <button
@@ -254,25 +328,48 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
             Wybierz
           </button>
         </div>
-        <p className="text-[10px] text-slate-500 leading-relaxed">
-          Najpierw zbuduj firmware w Arduino IDE / PlatformIO (Studio generuje .ino). esptool
-          wgrywa gotowy .bin — nie kompiluje szkicu.
-        </p>
+        {lastBuild?.projectDir && (
+          <p className="text-[10px] text-slate-500 font-mono truncate" title={lastBuild.projectDir}>
+            Projekt: {lastBuild.projectDir}
+          </p>
+        )}
       </div>
 
-      <button
-        type="button"
-        disabled={busy || !esptool?.available}
-        onClick={() => void handleFlash()}
-        className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold rounded-xl text-xs transition-colors"
-      >
-        <Zap className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
-        {busy ? 'Wgrywanie…' : 'Wgraj firmware (write_flash)'}
-      </button>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <button
+          type="button"
+          disabled={busy || !toolchain?.available || !buildSources}
+          onClick={() => void handleBuild()}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-100 border border-slate-700 font-semibold rounded-xl text-xs transition-colors"
+        >
+          <Hammer className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
+          Build
+        </button>
+        <button
+          type="button"
+          disabled={busy || !esptool?.available}
+          onClick={() => void handleFlash()}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-40 text-amber-200 border border-amber-500/40 font-semibold rounded-xl text-xs transition-colors"
+        >
+          <Zap className="w-4 h-4" />
+          Flash
+        </button>
+        <button
+          type="button"
+          disabled={busy || !toolchain?.available || !esptool?.available || !buildSources}
+          onClick={() => void handleBuildAndFlash()}
+          className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold rounded-xl text-xs transition-colors"
+        >
+          <Play className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
+          Build + Flash
+        </button>
+      </div>
 
       {status && (
         <div className="flex items-start gap-2 text-xs text-slate-200">
-          {status.toLowerCase().includes('sukces') || status.toLowerCase().includes('wgrany') ? (
+          {status.toLowerCase().includes('zbudowano') ||
+          status.toLowerCase().includes('wgrany') ||
+          status.toLowerCase().includes('sukces') ? (
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
           ) : (
             <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -281,16 +378,19 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({ detectedChip
         </div>
       )}
 
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-40 overflow-y-auto">
+      <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-48 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-[10px] uppercase font-mono text-slate-500 mb-2">
           <Terminal className="w-3 h-3" />
-          Log esptool
+          Log build / flash
         </div>
         {logs.length === 0 ? (
           <p className="text-[11px] text-slate-600 font-mono">Brak logów.</p>
         ) : (
           logs.map((line, i) => (
-            <div key={`${i}-${line.slice(0, 12)}`} className="text-[11px] font-mono text-slate-300 whitespace-pre-wrap">
+            <div
+              key={`${i}-${line.slice(0, 16)}`}
+              className="text-[11px] font-mono text-slate-300 whitespace-pre-wrap"
+            >
               {line}
             </div>
           ))

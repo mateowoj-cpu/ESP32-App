@@ -18,7 +18,8 @@
     "pc-agent:test": "python3 tools/pc-agent/esp32_pc_agent.py --once --host 127.0.0.1 --port 9 --no-gpu || true",
     "test:deeplink": "tsx src/platform/deepLink.test.ts",
     "test:i18n": "tsx src/i18n/locales.test.ts",
-    "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run build"
+    "test:pio-board": "tsx src/utils/pioBoard.test.ts",
+    "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run build"
   },
 
   "dependencies": {

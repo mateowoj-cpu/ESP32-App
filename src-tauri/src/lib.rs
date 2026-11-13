@@ -1,4 +1,5 @@
 mod desktop;
+mod firmware_build;
 mod flash;
 mod pc_agent;
 mod serial;
@@ -8,6 +9,7 @@ use desktop::{
     get_desktop_status, set_app_autostart, set_close_to_tray, set_pc_agent_autostart,
     show_main_window, DesktopPrefs,
 };
+use firmware_build::{build_firmware_from_sketch, get_firmware_toolchain_info};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
 use pc_agent::{get_pc_agent_info, start_pc_agent, stop_pc_agent, PcAgentState};
 use serial::{
@@ -60,6 +62,8 @@ pub fn run() {
             get_esptool_info,
             flash_write_firmware,
             read_open_file,
+            get_firmware_toolchain_info,
+            build_firmware_from_sketch,
             get_desktop_status,
             set_app_autostart,
             set_pc_agent_autostart,
