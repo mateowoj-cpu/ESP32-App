@@ -1,6 +1,6 @@
 # Diagnostyka flash/COM (opt-in)
 
-Lokalny log diagnostyczny — **bez telemetrii chmurowej**.
+Lokalny log diagnostyczny — **bez telemetrii chmurowej** (opcjonalna sieć: [telemetry.md](./telemetry.md), osobny przełącznik, domyślnie off).
 
 ## Włączenie
 

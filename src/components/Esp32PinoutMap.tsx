@@ -109,10 +109,10 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
 
     // 2. Check Touch Config assignments
     if (display.touchEnabled) {
-      if (pin === display.touchSdaPin) return { func: 'TOUCH_SDA', label: 'Touch SDA', color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH SDA' };
-      if (pin === display.touchSclPin) return { func: 'TOUCH_SCL', label: 'Touch SCL', color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH SCL' };
-      if (pin === display.touchIntPin) return { func: 'TOUCH_INT', label: 'Touch INT (IRQ)', color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH INT' };
-      if (pin === display.touchRstPin) return { func: 'TOUCH_RST', label: 'Touch RST', color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH RST' };
+      if (pin === display.touchSdaPin) return { func: 'TOUCH_SDA', label: t('pinout.fn.touchSda'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH SDA' };
+      if (pin === display.touchSclPin) return { func: 'TOUCH_SCL', label: t('pinout.fn.touchScl'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH SCL' };
+      if (pin === display.touchIntPin) return { func: 'TOUCH_INT', label: t('pinout.fn.touchInt'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH INT' };
+      if (pin === display.touchRstPin) return { func: 'TOUCH_RST', label: t('pinout.fn.touchRst'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH RST' };
     }
 
     // 3. Check System Config assignments
@@ -446,21 +446,21 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-base font-bold text-white">
-                    Konfiguracja Pinu {selectedPin.label}
+                    {t('pinout.modal.title').replace('{label}', selectedPin.label)}
                   </h3>
                   {selectedPin.isInputOnly && (
                     <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-rose-950 text-rose-300 border border-rose-800">
-                      Tylko Wejście (Input Only)
+                      {t('pinout.modal.inputOnly')}
                     </span>
                   )}
                   {selectedPin.isStrapping && (
                     <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-amber-950 text-amber-300 border border-amber-800">
-                      Strapping Pin
+                      {t('pinout.modal.strapping')}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-slate-400 mt-1">
-                  Wybierz funkcję logiczną dla tego fizycznego pinu. Aplikacja automatycznie zaktualizuje kod C++ (.ino) oraz połączenia w symulatorze.
+                  {t('pinout.modal.hint')}
                 </p>
               </div>
             </div>
@@ -469,9 +469,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             {selectedPin.isInputOnly && (
               <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl flex items-start gap-2.5 text-xs text-rose-300 leading-relaxed">
                 <AlertTriangle className="ui-icon-sm shrink-0 text-rose-400 mt-0.5" aria-hidden="true" />
-                <span>
-                  <strong>Ograniczenie sprzętowe ESP32:</strong> Piny GPIO 34, 35, 36 (VP) oraz 39 (VN) nie posiadają wewnętrznych rezystorów pull-up/pull-down ani tranzystorów wyjściowych. Mogą działać wyłącznie jako wejścia analogowe ADC1 lub cyfrowe wejścia czujników (nie mogą być wyjściami PWM ani sterować ekranami).
-                </span>
+                <span>{t('pinout.modal.hwLimit')}</span>
               </div>
             )}
 
@@ -481,7 +479,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               {/* Category: I2C (Display & Sensors) */}
               <div className="flex flex-col gap-1.5">
                 <span className="ui-type-micro font-mono uppercase text-cyan-400 font-semibold tracking-wider">
-                  Magistrala I2C (Ekran OLED / Czujniki)
+                  {t('pinout.cat.i2c')}
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -499,8 +497,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">I2C SDA (Dane)</div>
-                      <div className="ui-type-micro text-slate-400">Domyślnie GPIO 21</div>
+                      <div className="font-bold">{t('pinout.opt.i2cSda')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.i2cSdaHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'I2C_SDA' && <Check className="ui-icon-sm text-cyan-400" aria-hidden="true" />}
                   </button>
@@ -520,8 +518,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">I2C SCL (Zegar)</div>
-                      <div className="ui-type-micro text-slate-400">Domyślnie GPIO 22</div>
+                      <div className="font-bold">{t('pinout.opt.i2cScl')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.i2cSclHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'I2C_SCL' && <Check className="ui-icon-sm text-cyan-400" aria-hidden="true" />}
                   </button>
@@ -531,7 +529,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               {/* Category: PWM (Buzzer, Backlight, Servo) */}
               <div className="flex flex-col gap-1.5">
                 <span className="ui-type-micro font-mono uppercase text-amber-400 font-semibold tracking-wider">
-                  Generatory PWM (LEDC Hardware)
+                  {t('pinout.cat.pwm')}
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -549,8 +547,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">PWM Buzzer (Dźwięk)</div>
-                      <div className="ui-type-micro text-slate-400">Sygnalizator piezo, tony</div>
+                      <div className="font-bold">{t('pinout.opt.buzzer')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.buzzerHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BUZZER' && <Check className="ui-icon-sm text-amber-400" aria-hidden="true" />}
                   </button>
@@ -570,8 +568,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">PWM Podświetlenie</div>
-                      <div className="ui-type-micro text-slate-400">Regulacja jasności ekranu</div>
+                      <div className="font-bold">{t('pinout.opt.backlight')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.backlightHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BACKLIGHT' && <Check className="ui-icon-sm text-amber-400" aria-hidden="true" />}
                   </button>
@@ -581,7 +579,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               {/* Category: Sensors & ADC Inputs */}
               <div className="flex flex-col gap-1.5">
                 <span className="ui-type-micro font-mono uppercase text-emerald-400 font-semibold tracking-wider">
-                  Sensory & Wejścia Analogowe/Cyfrowe
+                  {t('pinout.cat.sensors')}
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -596,8 +594,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">Czujnik Ruchu PIR</div>
-                      <div className="ui-type-micro text-slate-400">Wejście cyfrowe HIGH/LOW</div>
+                      <div className="font-bold">{t('pinout.opt.pir')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.pirHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_PIR' && <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />}
                   </button>
@@ -614,8 +612,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">Fotorezystor LDR</div>
-                      <div className="ui-type-micro text-slate-400">Pomiar jasności ADC</div>
+                      <div className="font-bold">{t('pinout.opt.ldr')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.ldrHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'ADC_LDR' && <Check className="ui-icon-sm text-yellow-400" aria-hidden="true" />}
                   </button>
@@ -632,8 +630,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">Potencjometr ADC</div>
-                      <div className="ui-type-micro text-slate-400">Wejście analogowe 0-4095</div>
+                      <div className="font-bold">{t('pinout.opt.pot')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.potHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'ADC_POT' && <Check className="ui-icon-sm text-yellow-400" aria-hidden="true" />}
                   </button>
@@ -650,8 +648,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">Przycisk USER 1</div>
-                      <div className="ui-type-micro text-slate-400">Input Pullup (Aktywny LOW)</div>
+                      <div className="font-bold">{t('pinout.opt.userBtn')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.userBtnHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_BUTTON' && <Check className="ui-icon-sm text-teal-400" aria-hidden="true" />}
                   </button>
@@ -661,7 +659,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               {/* Category: Touchscreen Pins */}
               <div className="flex flex-col gap-1.5">
                 <span className="ui-type-micro font-mono uppercase text-rose-400 font-semibold tracking-wider">
-                  Panel Dotykowy (CST816S / FT6236 / XPT2046)
+                  {t('pinout.cat.touch')}
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -676,8 +674,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">Touch INT (IRQ)</div>
-                      <div className="ui-type-micro text-slate-400">Przerwanie dotknięcia ekranu</div>
+                      <div className="font-bold">{t('pinout.opt.touchInt')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.touchIntHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'TOUCH_INT' && <Check className="ui-icon-sm text-rose-400" aria-hidden="true" />}
                   </button>
@@ -697,8 +695,8 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     <div>
-                      <div className="font-bold">Touch RST (Reset)</div>
-                      <div className="ui-type-micro text-slate-400">Linia resetu dotyku</div>
+                      <div className="font-bold">{t('pinout.opt.touchRst')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.touchRstHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'TOUCH_RST' && <Check className="ui-icon-sm text-rose-400" aria-hidden="true" />}
                   </button>
@@ -708,7 +706,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
               {/* Category: SPI (LCD ST7789 / ILI9341) */}
               <div className="flex flex-col gap-1.5">
                 <span className="ui-type-micro font-mono uppercase text-indigo-400 font-semibold tracking-wider">
-                  Magistrala SPI (Ekrany Kolorowe TFT LCD)
+                  {t('pinout.cat.spi')}
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -723,7 +721,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-indigo-500/60'
                     }`}
                   >
-                    SPI MOSI (Dane)
+                    {t('pinout.opt.spiMosi')}
                   </button>
                   <button
                     disabled={selectedPin.isInputOnly}
@@ -737,7 +735,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-indigo-500/60'
                     }`}
                   >
-                    SPI SCK (Zegar)
+                    {t('pinout.opt.spiSck')}
                   </button>
                   <button
                     disabled={selectedPin.isInputOnly}
@@ -751,7 +749,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-indigo-500/60'
                     }`}
                   >
-                    SPI CS (Chip Select)
+                    {t('pinout.opt.spiCs')}
                   </button>
                   <button
                     disabled={selectedPin.isInputOnly}
@@ -765,7 +763,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-indigo-500/60'
                     }`}
                   >
-                    LCD DC (Data/Cmd)
+                    {t('pinout.opt.lcdDc')}
                   </button>
                 </div>
               </div>
@@ -779,13 +777,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                   }}
                   className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-mono transition-colors"
                 >
-                  Zwolnij Pin (Ustaw jako Wolny GPIO)
+                  {t('pinout.opt.free')}
                 </button>
                 <button
                   onClick={() => setSelectedPin(null)}
                   className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors"
                 >
-                  Zamknij
+                  {t('pinout.opt.close')}
                 </button>
               </div>
             </div>

@@ -17,7 +17,14 @@ export interface BoardPreset {
   touchScl: number;
   touchInt: number;
   touchRst: number;
+  /** Fallback English/PL labels; prefer `featureKeys` + i18n in UI. */
   features: string[];
+  /** i18n keys under `usb.board.<id>.fN` */
+    featureKeys: string[];
+}
+
+export function boardNameKey(id: string): string {
+  return `usb.board.${id}.name`;
 }
 
 export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
@@ -39,6 +46,12 @@ export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
     touchInt: 33,
     touchRst: 25,
     features: ['Wi-Fi 802.11 b/g/n', 'Bluetooth 4.2 BR/EDR & BLE', '12-bit ADC', 'PWM 16ch'],
+    featureKeys: [
+      'usb.board.esp32_devkit_v1.f0',
+      'usb.board.esp32_devkit_v1.f1',
+      'usb.board.esp32_devkit_v1.f2',
+      'usb.board.esp32_devkit_v1.f3',
+    ],
   },
   {
     id: 'esp32_s3_tdisplay_touch',
@@ -58,6 +71,12 @@ export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
     touchInt: 21,
     touchRst: 16,
     features: ['Wbudowany dotyk pojemnościowy CST816S', 'USB OTG / Native JTAG', 'Wi-Fi 4 + BLE 5.0 Mesh', 'Instrukcje AI/DSP'],
+    featureKeys: [
+      'usb.board.esp32_s3_tdisplay_touch.f0',
+      'usb.board.esp32_s3_tdisplay_touch.f1',
+      'usb.board.esp32_s3_tdisplay_touch.f2',
+      'usb.board.esp32_s3_tdisplay_touch.f3',
+    ],
   },
   {
     id: 'waveshare_esp32_s3_touch_round',
@@ -77,6 +96,12 @@ export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
     touchInt: 5,
     touchRst: 13,
     features: ['Ekran okrągły GC9A01', 'Dotyk pojemnościowy CST816S', 'Wbudowany żyroskop/akcelerometr', 'Slot kart MicroSD'],
+    featureKeys: [
+      'usb.board.waveshare_esp32_s3_touch_round.f0',
+      'usb.board.waveshare_esp32_s3_touch_round.f1',
+      'usb.board.waveshare_esp32_s3_touch_round.f2',
+      'usb.board.waveshare_esp32_s3_touch_round.f3',
+    ],
   },
   {
     id: 'm5stack_core2',
@@ -96,6 +121,12 @@ export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
     touchInt: 39,
     touchRst: 0,
     features: ['Dotyk pojemnościowy FT6336U', 'Wbudowany głośnik I2S', 'Układ zasilania AXP192', 'RTC BM8563'],
+    featureKeys: [
+      'usb.board.m5stack_core2.f0',
+      'usb.board.m5stack_core2.f1',
+      'usb.board.m5stack_core2.f2',
+      'usb.board.m5stack_core2.f3',
+    ],
   },
   {
     id: 'esp32_c3_supermini',
@@ -115,6 +146,11 @@ export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
     touchInt: 3,
     touchRst: 2,
     features: ['Ultra-niski pobór prądu', 'Architektura RISC-V', 'Wi-Fi 4 + BLE 5.0 Long-Range'],
+    featureKeys: [
+      'usb.board.esp32_c3_supermini.f0',
+      'usb.board.esp32_c3_supermini.f1',
+      'usb.board.esp32_c3_supermini.f2',
+    ],
   },
   {
     id: 'esp32_ili9341_xpt2046',
@@ -134,6 +170,11 @@ export const POPULAR_ESP32_BOARDS: BoardPreset[] = [
     touchInt: 36,
     touchRst: 4,
     features: ['Oporowy panel dotykowy XPT2046 SPI', 'Duży ekran 320x240 ILI9341', 'Konwerter USB-UART CH340'],
+    featureKeys: [
+      'usb.board.esp32_ili9341_xpt2046.f0',
+      'usb.board.esp32_ili9341_xpt2046.f1',
+      'usb.board.esp32_ili9341_xpt2046.f2',
+    ],
   },
 ];
 

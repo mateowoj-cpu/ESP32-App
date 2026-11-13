@@ -1,42 +1,53 @@
-# winget + signed public release (Faza 8 → 12)
+# winget + signed public release (Faza 8 → 13)
 
 ## Cel
 
 Dystrybucja ESP32 Display Studio przez **winget** po podpisaniu instalatora Authenticode i opublikowaniu tagu `v0.2.x`.
 
-## Checklista live winget-pkgs (Faza 12)
+## Automatyczny draft (Faza 13)
 
-1. Sekrety CI (tylko w GitHub Actions / lokalnym sejfie — **nie w git**): `TAURI_SIGNING_PRIVATE_KEY`, opcjonalnie `WINDOWS_CERTIFICATE*`
-2. Tag `v0.2.5` (lub wcześniejszy signed `v0.2.4`) → workflow `windows-release.yml`
-3. Opcjonalnie: workflow `windows-penv-artifact.yml` → artifact penv → `Stage-PlatformIoPenv.ps1` przed bundlem
-4. Pobierz NSIS `.exe` z releasu, policz SHA256:
+Po opublikowaniu releasu (lub ręcznie `workflow_dispatch`):
 
-```powershell
-Get-FileHash .\ESP32.Display.Studio_*_x64-setup.exe -Algorithm SHA256
+1. Workflow [`.github/workflows/winget-draft.yml`](../.github/workflows/winget-draft.yml) pobiera NSIS z GitHub Release
+2. `scripts/winget/prepare-draft-manifest.sh` liczy **prawdziwy** SHA256 i wypełnia YAML + `DRAFT_PR_BODY.md`
+3. Artefakt CI `winget-draft-<version>` — do ręcznego PR
+4. Opcjonalnie (sekret człowieka `WINGET_GITHUB_TOKEN` + fork `winget-pkgs`): draft PR do `microsoft/winget-pkgs`
+
+**Nigdy** nie commituj tokenów ani wymyślonych SHA.
+
+Lokalnie (gdy masz plik `.exe`):
+
+```bash
+./scripts/winget/prepare-draft-manifest.sh \
+  --version 0.2.6 \
+  --installer ./ESP32.Display.Studio_0.2.6_x64-setup.exe
 ```
 
-5. Uzupełnij `packaging/winget/.../0.2.5/Studio.ESP32DisplayStudio.yaml`:
-   - `InstallerUrl`
-   - `InstallerSha256` (zamień `REPLACE_WITH_SHA256_OF_NSIS_INSTALLER` — **nie wymyślaj hasha**)
-6. Skopiuj treść z [`packaging/winget/ESP32DisplayStudio/PR_BODY.md`](../packaging/winget/ESP32DisplayStudio/PR_BODY.md)
-7. PR do [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs):
+## Checklista live winget-pkgs (human)
+
+1. Sekrety CI (tylko w GitHub Actions / lokalnym sejfie — **nie w git**): `TAURI_SIGNING_PRIVATE_KEY`, opcjonalnie `WINDOWS_CERTIFICATE*`, opcjonalnie `WINGET_GITHUB_TOKEN`
+2. Tag `v0.2.6` → workflow `windows-release.yml`
+3. Opcjonalnie: workflow `windows-penv-artifact.yml` → artifact penv → `Stage-PlatformIoPenv.ps1` przed bundlem
+4. Uruchom `winget-draft.yml` (lub poczekaj na `release: published`) — sprawdź artefakt SHA
+5. Szablon referencyjny w repo: `packaging/winget/.../0.2.6/Studio.ESP32DisplayStudio.yaml` (placeholder SHA do czasu releasu)
+6. PR do [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs):
 
 ```text
-manifests/s/Studio/ESP32DisplayStudio/0.2.5/
+manifests/s/Studio/ESP32DisplayStudio/0.2.6/
 ```
 
 Lokalny test:
 
 ```powershell
-winget install --manifest packaging\winget\ESP32DisplayStudio\manifests\s\Studio\ESP32DisplayStudio\0.2.5
+winget install --manifest packaging\winget\ESP32DisplayStudio\manifests\s\Studio\ESP32DisplayStudio\0.2.6
 ```
 
-8. Po instalacji: monitoring SmartScreen — [windows-smartscreen.md](./windows-smartscreen.md).
+7. Po instalacji: monitoring SmartScreen — [windows-smartscreen.md](./windows-smartscreen.md).
 
 ## Uwagi
 
 - Nazwa pliku NSIS zależy od `productName` / wersji Tauri — dopasuj URL do faktycznego assetu.
 - Bez Authenticode SmartScreen może blokować instalację; zob. [windows-signing.md](./windows-signing.md).
 - Kanał updatera stable czyta `latest.json` z `releases/latest`.
-- Szablony `0.2.1` / `0.2.2` / `0.2.4` zostają w drzewie jako referencja.
-- **Human-only:** rzeczywisty PR do `microsoft/winget-pkgs` i prawdziwy SHA256 instalatora — poza agentem.
+- Szablony `0.2.1` / `0.2.2` / `0.2.4` / `0.2.5` zostają w drzewie jako referencja.
+- **Human-only:** merge PR w `microsoft/winget-pkgs`, prawdziwy Authenticode, `WINGET_GITHUB_TOKEN`.

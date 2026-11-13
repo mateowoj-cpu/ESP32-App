@@ -189,8 +189,9 @@ APP_URL=http://localhost:3000
 - **Faza 9:** sidecar PlatformIO, OTA Wi‑Fi, chrome i18n głębokich paneli, winget `0.2.2`
 - **Faza 10:** głębokie i18n paneli, bundling penv (stage script), mDNS OTA discovery, winget PR template
 - **Faza 11:** i18n treści (pet/Integrations/pinout), winget `0.2.4` path, CI penv artifact, mDNS UX + OTA hardening (`0.2.4`)
-- **Faza 12 (obecna):** SmartScreen checklist, eksport diagnostyki ZIP, board sync community, Linux/macOS parity (`0.2.5`) — [docs/roadmap-next.md](./docs/roadmap-next.md)
-- **Faza 13 (następna):** CI desktop non-Windows, opt-in telemetria, draft winget PR, głębsze i18n
+- **Faza 12:** SmartScreen checklist, eksport diagnostyki ZIP, board sync community, Linux/macOS parity (`0.2.5`)
+- **Faza 13 (obecna):** CI AppImage/deb/dmg, opt-in telemetria, draft winget z SHA CI, głębsze i18n pinout/USB (`0.2.6`) — [docs/roadmap-next.md](./docs/roadmap-next.md)
+- **Faza 14 (następna):** community marketplace, EV signing/SmartScreen, board catalog, Unix polish
 
 ## Licencja
 

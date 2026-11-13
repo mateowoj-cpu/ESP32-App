@@ -8,6 +8,7 @@ import {
 import { 
   POPULAR_ESP32_BOARDS, 
   BoardPreset, 
+  boardNameKey,
   identifyEsp32FromUsbVidPid 
 } from '../utils/usbEsp32Detector';
 import {
@@ -56,19 +57,6 @@ function formatClockTimestamp(date = new Date()): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
 }
 
-function backendLabel(kind: SerialBackendKind): string {
-  switch (kind) {
-    case 'web':
-      return 'Web Serial';
-    case 'mock':
-      return 'Mock';
-    case 'native':
-      return 'Native COM';
-    default:
-      return 'Niedostępny';
-  }
-}
-
 export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   detectedChip,
   setDetectedChip,
@@ -79,6 +67,18 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   buildSources,
 }) => {
   const { t } = useLocale();
+  const backendLabel = (kind: SerialBackendKind): string => {
+    switch (kind) {
+      case 'web':
+        return 'Web Serial';
+      case 'mock':
+        return 'Mock';
+      case 'native':
+        return 'Native COM';
+      default:
+        return t('usb.backend.unavailable');
+    }
+  };
   const serialAdapter = getSerialAdapter();
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     {
       id: 'log-1',
       timestamp: '00:00:01',
-      text: `--- ESP32 Display Studio Serial Monitor gotowy (${backendLabel(serialAdapter.kind)}) ---`,
+      text: t('usb.log.ready').replace('{backend}', backendLabel(serialAdapter.kind)),
       direction: 'system',
     },
   ]);
@@ -152,7 +152,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         appendLogs([
           {
             timestamp: formatClockTimestamp(),
-            text: '[SYSTEM] Port szeregowy rozłączony',
+            text: t('usb.log.disconnected'),
             direction: 'system',
           },
         ]);
@@ -175,20 +175,23 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     appendLogs([
       {
         timestamp: timeStr,
-        text: `[SYSTEM] Wykryto urządzenie USB (${backendLabel(serialAdapter.kind)}): VID 0x${vid
-          .toString(16)
-          .toUpperCase()
-          .padStart(4, '0')} / PID 0x${pid.toString(16).toUpperCase().padStart(4, '0')} · ${port.info.label}`,
+        text: t('usb.log.detected')
+          .replace('{backend}', backendLabel(serialAdapter.kind))
+          .replace('{vid}', `0x${vid.toString(16).toUpperCase().padStart(4, '0')}`)
+          .replace('{pid}', `0x${pid.toString(16).toUpperCase().padStart(4, '0')}`)
+          .replace('{label}', port.info.label),
         direction: 'system',
       },
       {
         timestamp: timeStr,
-        text: `[IDENTYFIKACJA] Rodzina: ${identified.chipFamily} · Model: ${identified.chipModel}`,
+        text: t('usb.log.identified')
+          .replace('{family}', identified.chipFamily)
+          .replace('{model}', identified.chipModel),
         direction: 'system',
       },
       {
         timestamp: timeStr,
-        text: identified.rawBootLog || 'Połączono z ESP32 przy 115200 baud',
+        text: identified.rawBootLog || t('usb.log.connected'),
         direction: 'rx',
       },
     ]);
@@ -210,7 +213,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     if (!serialAdapter.isAvailable()) {
       setDetectError(
         serialAdapter.unavailableReason() ||
-          'Port szeregowy jest niedostępny. Wybierz model ESP32 z poniższej bazy sprzętowej.'
+          t('usb.err.unavailable')
       );
       setIsDetecting(false);
       return;
@@ -222,7 +225,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         setAvailablePorts(ports);
         if (ports.length === 0) {
           setDetectError(
-            'Nie znaleziono portów COM/tty. Sprawdź kabel USB i sterownik (CH340 / CP210x / Espressif).'
+            t('usb.err.noPorts')
           );
           setShowPortPicker(false);
           setNoPortsFound(true);
@@ -232,7 +235,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         setNoPortsFound(false);
         if (ports.length > 1) {
           setShowPortPicker(true);
-          setDetectError('Wykryto wiele portów — wybierz właściwy COM poniżej.');
+          setDetectError(t('usb.err.manyPorts'));
           appendLogs([
             {
               timestamp: formatClockTimestamp(),
@@ -249,7 +252,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       await openPortById();
     } catch (err: unknown) {
       if (err instanceof SerialRequestCancelledError || isSerialRequestCancelled(err)) {
-        const message = err instanceof Error ? err.message : 'Wybór portu anulowany';
+        const message = err instanceof Error ? err.message : t('usb.err.cancelled');
         if (message.includes('Wybierz port') || message.includes('wiele')) {
           try {
             const ports = await serialAdapter.listPorts();
@@ -262,8 +265,8 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         }
         // User dismissed browser picker — silent.
       } else {
-        const message = err instanceof Error ? err.message : 'Nieznany błąd';
-        setDetectError(`Błąd odczytu portu szeregowego: ${message}`);
+        const message = err instanceof Error ? err.message : t('usb.err.unknown');
+        setDetectError(t('usb.err.read').replace('{message}', message));
       }
     } finally {
       setIsDetecting(false);
@@ -277,8 +280,8 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       await openPortById(portId);
     } catch (err: unknown) {
       if (!isSerialRequestCancelled(err)) {
-        const message = err instanceof Error ? err.message : 'Nieznany błąd';
-        setDetectError(`Błąd otwarcia portu: ${message}`);
+        const message = err instanceof Error ? err.message : t('usb.err.unknown');
+        setDetectError(t('usb.err.open').replace('{message}', message));
       }
     } finally {
       setIsDetecting(false);
@@ -293,13 +296,13 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       setNoPortsFound(ports.length === 0);
       if (ports.length === 0) {
         setShowDriverHelp(true);
-        setDetectError('Brak portów COM — podłącz ESP32, zainstaluj sterownik i odśwież listę.');
+        setDetectError(t('usb.err.noPortsRefresh'));
       } else {
         setDetectError(null);
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Nieznany błąd';
-      setDetectError(`Nie udało się odświeżyć listy portów: ${message}`);
+      const message = err instanceof Error ? err.message : t('usb.err.unknown');
+      setDetectError(t('usb.err.refresh').replace('{message}', message));
     }
   };
 
@@ -311,11 +314,12 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   // Select board preset manually
   const handleSelectPreset = (preset: BoardPreset) => {
     const identified = identifyEsp32FromUsbVidPid(preset.vid, preset.pid);
-    identified.chipModel = preset.name;
+    const localizedName = t(boardNameKey(preset.id));
+    identified.chipModel = localizedName;
     identified.flashSizeMb = preset.flashMb;
     identified.psramSizeMb = preset.psramMb;
     identified.maxCpuClockMhz = preset.clockMhz;
-    identified.features = preset.features;
+    identified.features = preset.featureKeys.map(key => t(key));
 
     setDetectedChip(identified);
 
@@ -327,7 +331,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       {
         id: `log-${Date.now()}`,
         timestamp: timeStr,
-        text: `[WYBÓR] Załadowano konfigurację sprzętową: ${preset.name}`,
+        text: `[SELECT] ${localizedName}`,
         direction: 'system',
       },
     ]);
@@ -505,8 +509,8 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             type="button"
             onClick={handleDismissDriverHelp}
             className="absolute top-3 right-3 p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            title="Ukryj wskazówki sterowników"
-           aria-label="Ukryj wskazówki sterowników">
+            title={t('usb.driversDismiss')}
+           aria-label={t('usb.driversDismiss')}>
             <X className="ui-icon-sm" aria-hidden="true" />
           </button>
           <div className="flex items-start gap-3 pr-8">
@@ -515,12 +519,10 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-semibold text-slate-100">
-                Sterowniki USB-UART na Windows
+                {t('usb.driversTitle')}
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                {noPortsFound
-                  ? 'System nie widzi żadnego COMx. Zainstaluj sterownik mostka USB odpowiadający Twojej płytce, potem kliknij „Porty COM”.'
-                  : 'Aby ESP32 pojawił się jako port COM, Windows potrzebuje sterownika mostka USB-UART (albo CDC Espressif).'}
+                {noPortsFound ? t('usb.driversHintEmpty') : t('usb.driversHint')}
               </p>
             </div>
           </div>
@@ -558,7 +560,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             </a>
             <span className="text-slate-600">·</span>
             <span className="text-slate-500 font-mono">
-              Po instalacji sprawdź Menedżer urządzeń → Porty (COM i LPT)
+              {t('usb.driversAfter')}
             </span>
           </div>
         </div>
@@ -590,30 +592,30 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               {/* Specs Grid */}
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="ui-type-micro uppercase font-mono text-slate-400">Architektura:</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.arch')}</span>
                   <span className="font-semibold text-slate-200">{detectedChip.architecture}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="ui-type-micro uppercase font-mono text-slate-400">Liczba Rdzeni & Zegar:</span>
-                  <span className="font-semibold text-slate-200 font-mono">{detectedChip.coreCount} rdzenie @ {detectedChip.maxCpuClockMhz} MHz</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.cores')}</span>
+                  <span className="font-semibold text-slate-200 font-mono">{t('usb.spec.coresValue').replace('{cores}', String(detectedChip.coreCount)).replace('{mhz}', String(detectedChip.maxCpuClockMhz))}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="ui-type-micro uppercase font-mono text-slate-400">Pamięć Flash & PSRAM:</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.memory')}</span>
                   <span className="font-semibold text-cyan-300 font-mono">{detectedChip.flashSizeMb} MB Flash {detectedChip.psramSizeMb > 0 ? `+ ${detectedChip.psramSizeMb} MB PSRAM` : ''}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
-                  <span className="ui-type-micro uppercase font-mono text-slate-400">Adres MAC / USB ID:</span>
+                  <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.mac')}</span>
                   <span className="font-mono text-slate-300 ui-type-micro">{detectedChip.macAddress} ({detectedChip.usbVendorId}:{detectedChip.usbProductId})</span>
                 </div>
               </div>
 
               {/* Supported Features Tags */}
               <div className="flex flex-col gap-2">
-                <span className="ui-type-micro font-mono text-slate-400 uppercase">Wbudowane Funkcje Układu:</span>
+                <span className="ui-type-micro font-mono text-slate-400 uppercase">{t('usb.spec.features')}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {detectedChip.features.map(f => (
                     <span key={f} className="px-2.5 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded ui-type-micro">
-                      {f}
+                      {f.startsWith('usb.board.') ? t(f) : f}
                     </span>
                   ))}
                 </div>
@@ -646,9 +648,9 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">
-                Baza Płytek ESP32 i Kontrolerów Dotyku
+                {t('usb.catalogTitle')}
               </h3>
-              <span className="ui-type-micro text-slate-500">Wybierz aby przetestować</span>
+              <span className="ui-type-micro text-slate-500">{t('usb.catalogHint')}</span>
             </div>
 
             <div className="grid grid-cols-1 gap-2.5">
@@ -664,10 +666,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                     </span>
                     <div>
                       <div className="text-xs font-semibold text-slate-200 group-hover:text-cyan-300 transition-colors">
-                        {board.name}
+                        {t(boardNameKey(board.id))}
                       </div>
                       <div className="ui-type-micro text-slate-400">
-                        {board.cores}x {board.clockMhz}MHz · {board.flashMb}MB Flash · Dotyk: <strong className="text-rose-400">{board.touchController.toUpperCase()}</strong>
+                        {t('usb.catalogMeta')
+                          .replace('{cores}', String(board.cores))
+                          .replace('{mhz}', String(board.clockMhz))
+                          .replace('{flash}', String(board.flashMb))}
+                        <strong className="text-rose-400">{board.touchController.toUpperCase()}</strong>
                       </div>
                     </div>
                   </div>
@@ -683,12 +689,12 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
               <Terminal className="ui-icon-sm text-emerald-400" aria-hidden="true" />
-              Monitor Szeregowy Portu COM (115200 baud)
+              {t('usb.monitorTitle')}
             </h3>
             <button
               onClick={() => setSerialLogs([])}
               className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-rose-400 transition-colors"
-              title="Wyczyść logi konsoli"
+              title={t('usb.monitorClear')}
             >
               <Trash2 className="ui-icon-sm" aria-hidden="true" />
             </button>
@@ -719,7 +725,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               type="text"
               value={commandInput}
               onChange={e => setCommandInput(e.target.value)}
-              placeholder="Wpisz komendę (np. ping, info, touch, restart)..."
+              placeholder={t('usb.monitorPlaceholder')}
               className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none ui-focus-ring focus:border-cyan-500"
             />
             <button
@@ -727,12 +733,12 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               className="flex items-center gap-2 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
             >
               <Send className="ui-icon-sm" aria-hidden="true" />
-              <span>Wyślij</span>
+              <span>{t('usb.monitorSend')}</span>
             </button>
           </form>
 
           <div className="flex items-center justify-between ui-type-micro font-mono text-slate-500 pt-1">
-            <span>Szybkie komendy:</span>
+            <span>{t('usb.monitorQuick')}</span>
             <div className="flex gap-2">
               <button
                 type="button"
