@@ -3,6 +3,9 @@ import { ConnectedEsp32Info } from '../types';
 import { getSerialAdapter, type SerialPortInfo } from '../platform';
 import type { EsptoolInfo } from '../platform/flash';
 import type { BuildResult, ToolchainInfo } from '../platform/firmwareBuild';
+import { useLocale } from '../i18n/LocaleContext';
+import { loadBoardPreset, saveBoardPreset } from '../platform/boardCache';
+import { appendDiagnosticsLog } from '../platform/diagnostics';
 import {
   Zap,
   RefreshCw,
@@ -30,6 +33,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   detectedChip,
   buildSources,
 }) => {
+  const { t } = useLocale();
   const [isTauri, setIsTauri] = useState(false);
   const [esptool, setEsptool] = useState<EsptoolInfo | null>(null);
   const [toolchain, setToolchain] = useState<ToolchainInfo | null>(null);
@@ -52,6 +56,17 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   useEffect(() => {
     if (detectedChip?.portName) {
       setPortId(detectedChip.portName);
+    }
+    const cached = loadBoardPreset(
+      detectedChip?.usbVendorId,
+      detectedChip?.usbProductId,
+      detectedChip?.portName,
+    );
+    if (cached) {
+      setChip(cached.chip);
+      setOffset(cached.offset);
+      setBaud(cached.baud);
+      return;
     }
     if (detectedChip?.chipFamily) {
       const family = detectedChip.chipFamily.toLowerCase();
@@ -136,13 +151,22 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       });
       setLastBuild(result);
       setStatus(result.message);
+      void appendDiagnosticsLog(result.message, 'build');
       if (result.ok && result.firmwarePath) {
         setFirmwarePath(result.firmwarePath);
+        saveBoardPreset(detectedChip?.usbVendorId, detectedChip?.usbProductId, portId, {
+          chip,
+          offset,
+          baud,
+          boardProfile: sources.boardProfile || chip,
+        });
         return result.firmwarePath;
       }
       return null;
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      setStatus(msg);
+      void appendDiagnosticsLog(msg, 'build');
       return null;
     } finally {
       setBusy(false);
@@ -168,8 +192,22 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         flashOffset: offset,
       });
       setStatus(result.message);
+      void appendDiagnosticsLog(
+        `${result.message} port=${portId} chip=${chip} offset=${offset}`,
+        'flash',
+      );
+      if (result.ok) {
+        saveBoardPreset(detectedChip?.usbVendorId, detectedChip?.usbProductId, portId, {
+          chip,
+          offset,
+          baud,
+          boardProfile: chip,
+        });
+      }
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      setStatus(msg);
+      void appendDiagnosticsLog(msg, 'flash');
     } finally {
       setBusy(false);
     }
@@ -187,12 +225,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
         <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
           <Zap className="w-4 h-4 text-amber-400" />
-          Build & Flash (esptool)
+          {t('flash.titleBrowser')}
         </h3>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          Kompilacja PlatformIO / arduino-cli oraz flash dostępne w aplikacji desktop (Tauri).
-          W przeglądarce pobierz <code className="text-cyan-400">.ino</code> i zbuduj lokalnie.
-        </p>
+        <p className="text-xs text-slate-400 leading-relaxed">{t('flash.browserHint')}</p>
         <p className="text-[11px] font-mono text-slate-500">
           pip install platformio && pio run · pip install esptool
         </p>
@@ -205,7 +240,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
           <Zap className="w-4 h-4 text-amber-400" />
-          Build → Flash
+          {t('flash.title')}
         </h3>
         <button
           type="button"
@@ -224,7 +259,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             : 'text-amber-200 bg-amber-950/40 border-amber-800/60'
         }`}
       >
-        {toolchain?.hint || 'Sprawdzanie PlatformIO / arduino-cli…'}
+        {toolchain?.hint || t('flash.checkingToolchain')}
       </div>
 
       <div
@@ -234,20 +269,19 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             : 'text-amber-200 bg-amber-950/40 border-amber-800/60'
         }`}
       >
-        {esptool?.hint || 'Sprawdzanie esptool…'}
+        {esptool?.hint || t('flash.checkingEsptool')}
       </div>
 
       {!toolchain?.available && (
         <p className="text-xs text-slate-400 flex gap-2 items-start">
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          Zainstaluj: <code className="text-cyan-400">pip install platformio</code> lub{' '}
-          <code className="text-cyan-400">arduino-cli</code> (+ core esp32:esp32).
+          {t('flash.installToolchain')}
         </p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <label className="flex flex-col gap-1">
-          <span className="text-slate-400">Port COM</span>
+          <span className="text-slate-400">{t('flash.port')}</span>
           {ports.length > 0 ? (
             <select
               value={portId}
@@ -271,7 +305,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-slate-400">Chip</span>
+          <span className="text-slate-400">{t('flash.chip')}</span>
           <select
             value={chip}
             onChange={e => setChip(e.target.value)}
@@ -287,7 +321,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-slate-400">Baud</span>
+          <span className="text-slate-400">{t('flash.baud')}</span>
           <select
             value={baud}
             onChange={e => setBaud(Number(e.target.value))}
@@ -301,7 +335,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-slate-400">Offset flash</span>
+          <span className="text-slate-400">{t('flash.offset')}</span>
           <input
             value={offset}
             onChange={e => setOffset(e.target.value)}
@@ -311,12 +345,12 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[11px] text-slate-400">Firmware (.bin)</span>
+        <span className="text-[11px] text-slate-400">{t('flash.firmware')}</span>
         <div className="flex gap-2">
           <input
             value={firmwarePath}
             onChange={e => setFirmwarePath(e.target.value)}
-            placeholder="Zbuduj albo wybierz .bin"
+            placeholder=".bin"
             className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-mono"
           />
           <button
@@ -325,7 +359,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs flex items-center gap-1.5"
           >
             <FolderOpen className="w-3.5 h-3.5" />
-            Wybierz
+            {t('flash.pick')}
           </button>
         </div>
         {lastBuild?.projectDir && (
@@ -343,7 +377,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-100 border border-slate-700 font-semibold rounded-xl text-xs transition-colors"
         >
           <Hammer className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
-          Build
+          {t('flash.build')}
         </button>
         <button
           type="button"
@@ -352,7 +386,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-40 text-amber-200 border border-amber-500/40 font-semibold rounded-xl text-xs transition-colors"
         >
           <Zap className="w-4 h-4" />
-          Flash
+          {t('flash.flash')}
         </button>
         <button
           type="button"
@@ -361,7 +395,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold rounded-xl text-xs transition-colors"
         >
           <Play className={`w-4 h-4 ${busy ? 'animate-pulse' : ''}`} />
-          Build + Flash
+          {t('flash.buildFlash')}
         </button>
       </div>
 
@@ -381,10 +415,10 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-48 overflow-y-auto">
         <div className="flex items-center gap-1.5 text-[10px] uppercase font-mono text-slate-500 mb-2">
           <Terminal className="w-3 h-3" />
-          Log build / flash
+          {t('flash.log')}
         </div>
         {logs.length === 0 ? (
-          <p className="text-[11px] text-slate-600 font-mono">Brak logów.</p>
+          <p className="text-[11px] text-slate-600 font-mono">{t('flash.noLogs')}</p>
         ) : (
           logs.map((line, i) => (
             <div

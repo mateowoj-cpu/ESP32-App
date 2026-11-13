@@ -47,6 +47,9 @@ jobs:
       - name: PIO board mapping tests
         run: npm run test:pio-board
 
+      - name: Board flash cache tests
+        run: npm run test:board-cache
+
       - name: Production build
         run: npm run build
 

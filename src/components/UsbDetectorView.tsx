@@ -26,6 +26,7 @@ import {
   looksLikeWindowsHost,
 } from '../platform/windowsDrivers';
 import { FlashHelperPanel, type SketchBuildSources } from './FlashHelperPanel';
+import { useLocale } from '../i18n/LocaleContext';
 import { 
   Usb, 
   Cpu, 
@@ -77,6 +78,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   setSystem,
   buildSources,
 }) => {
+  const { t } = useLocale();
   const serialAdapter = getSerialAdapter();
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
@@ -420,14 +422,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         <div>
           <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
             <Usb className="w-4 h-4 text-cyan-400" />
-            Wykrywanie ESP32 przez Port USB & Konsola Szeregowa
+            {t('usb.title')}
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Podłącz ESP32 kablem USB do komputera. Aplikacja odczyta Vendor ID (VID) i Product ID (PID) przez warstwę platform Serial, zidentyfikuje rodzinę procesora oraz kontroler dotyku.
+            {t('usb.noDeviceHint')}
           </p>
           <p className="text-[11px] text-slate-500 mt-1 font-mono">
             Backend: {backendLabel(serialBackend)}
-            {portConnected ? ' · port otwarty @ 115200' : ' · brak otwartego portu'}
+            {portConnected ? ` · ${t('usb.portOpen')}` : ` · ${t('usb.portClosed')}`}
           </p>
         </div>
 
@@ -438,10 +440,10 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               onClick={() => void handleRefreshNativePorts()}
               disabled={isDetecting}
               className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-xs transition-colors border border-slate-700"
-              title="Odśwież listę portów COM"
+              title={t('usb.ports')}
             >
               <RefreshCw className="w-4 h-4" />
-              <span>Porty COM</span>
+              <span>{t('usb.ports')}</span>
             </button>
           )}
           <button
@@ -450,7 +452,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
           >
             <Usb className={`w-4 h-4 ${isDetecting ? 'animate-bounce' : ''}`} />
-            <span>{isDetecting ? 'Skanowanie portów USB...' : 'Wykryj ESP32 przez USB'}</span>
+            <span>{isDetecting ? t('usb.scanning') : t('usb.detect')}</span>
           </button>
         </div>
       </div>
@@ -459,7 +461,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         <div className="p-4 bg-amber-950/40 border border-amber-800/80 rounded-xl text-xs text-amber-300 flex items-start gap-3">
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <div className="leading-relaxed">
-            <strong>Informacja:</strong> {detectError}
+            <strong>{t('usb.info')}:</strong> {detectError}
           </div>
         </div>
       )}
@@ -468,9 +470,9 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         <div className="p-4 bg-slate-900 border border-cyan-500/30 rounded-2xl flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Wybierz port COM / tty
+              {t('usb.pickPort')}
             </h3>
-            <span className="text-[10px] text-slate-500 font-mono">{availablePorts.length} dostępnych</span>
+            <span className="text-[10px] text-slate-500 font-mono">{availablePorts.length} {t('usb.available')}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {availablePorts.map(port => (
@@ -552,7 +554,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-medium"
             >
               <BookOpen className="w-3.5 h-3.5" />
-              Pełna dokumentacja sterowników
+              {t('usb.drivers')}
             </a>
             <span className="text-slate-600">·</span>
             <span className="text-slate-500 font-mono">
@@ -581,7 +583,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
 
                 <span className="px-2.5 py-1 bg-emerald-950/80 border border-emerald-800 text-emerald-400 rounded-full text-[10px] font-mono font-bold flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  ROZPOZNANY
+                  {t('usb.recognized')}
                 </span>
               </div>
 
@@ -623,7 +625,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                 className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm mt-1"
               >
                 {appliedPresetId ? <Check className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-                <span>{appliedPresetId ? 'Pomyślnie Zastosowano do Projektu!' : 'Zastosuj Piny i Konfigurację tego ESP32 do Projektu'}</span>
+                <span>{appliedPresetId ? t('usb.applied') : t('usb.apply')}</span>
               </button>
             </div>
           ) : (
@@ -631,9 +633,9 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-600">
                 <Usb className="w-8 h-8" />
               </div>
-              <h3 className="text-sm font-semibold text-slate-200">Brak podłączonego ESP32</h3>
+              <h3 className="text-sm font-semibold text-slate-200">{t('usb.noDevice')}</h3>
               <p className="text-xs text-slate-400 max-w-sm">
-                Kliknij przycisk "Wykryj ESP32 przez USB" u góry lub wybierz płytkę z poniższej biblioteki popularnych modułów.
+                {t('usb.noDeviceHint')}
               </p>
             </div>
           )}

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { generatePythonPcAgentScript } from '../utils/codeGenerator';
 import type { PcAgentInfo } from '../platform/pcAgent';
+import { useLocale } from '../i18n/LocaleContext';
 
 interface IntegrationsViewProps {
   apiConfig: ApiIntegrationsConfig;
@@ -62,6 +63,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
   simState,
   setSimState,
 }) => {
+  const { t } = useLocale();
   const [isFetchingWeather, setIsFetchingWeather] = useState(false);
   const [weatherFetchStatus, setWeatherFetchStatus] = useState<string | null>(null);
 
@@ -409,7 +411,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
                 <CloudSun className="w-4 h-4 text-amber-400" />
-                API Pogody w Czasie Rzeczywistym
+                {t('integ.weather')}
               </h3>
               <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
                 currentProvider === 'open-meteo' || currentProvider === 'wttr-in'
@@ -687,7 +689,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-cyan-400" />
-                Monitor Zasobów Komputera (PC)
+                {t('integ.pc')}
               </h3>
               <span className="text-[10px] font-mono text-cyan-400">
                 PORT {apiConfig.pcMonitor.port}
@@ -884,7 +886,7 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
                 <Bell className="w-4 h-4 text-emerald-400" />
-                Powiadomienia w Czasie Rzeczywistym
+                {t('integ.notify')}
               </h3>
               <span className="text-[10px] font-mono text-emerald-400">
                 HTTP PUSH

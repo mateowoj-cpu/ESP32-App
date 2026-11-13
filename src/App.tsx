@@ -55,7 +55,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const { t, updateChannel } = useLocale();
+  const { t, updateChannel, diagnosticsEnabled } = useLocale();
   const [activeTab, setActiveTab] = useState<
     'editor' | 'simulator' | 'usb' | 'automations' | 'integrations' | 'code' | 'settings'
   >('simulator');
@@ -154,6 +154,13 @@ export default function App() {
       setImportNotice(err instanceof Error ? err.message : String(err));
     }
   };
+
+  // Sync diagnostics preference into native shell
+  useEffect(() => {
+    void import('./platform/diagnostics')
+      .then(m => m.setDiagnosticsEnabledNative(diagnosticsEnabled))
+      .catch(() => undefined);
+  }, [diagnosticsEnabled]);
 
   // Auto-check updates + deep-link / file association listeners (Tauri)
   useEffect(() => {
@@ -684,7 +691,7 @@ export default function App() {
           }`}
         >
           <Tv className="w-4 h-4" />
-          <span>Symulator</span>
+          <span>{t('nav.mobile.simulator')}</span>
         </button>
         <button
           onClick={() => setActiveTab('editor')}
@@ -695,7 +702,7 @@ export default function App() {
           }`}
         >
           <Layers className="w-4 h-4" />
-          <span>Edytor UI</span>
+          <span>{t('nav.mobile.editor')}</span>
         </button>
         <button
           onClick={() => setActiveTab('usb')}
@@ -706,7 +713,7 @@ export default function App() {
           }`}
         >
           <Usb className="w-4 h-4" />
-          <span>Wykryj USB</span>
+          <span>{t('nav.mobile.usb')}</span>
         </button>
         <button
           onClick={() => setActiveTab('automations')}
@@ -717,7 +724,7 @@ export default function App() {
           }`}
         >
           <Zap className="w-4 h-4" />
-          <span>Automatyzacje</span>
+          <span>{t('nav.mobile.automations')}</span>
         </button>
         <button
           onClick={() => setActiveTab('integrations')}
@@ -728,7 +735,7 @@ export default function App() {
           }`}
         >
           <CloudSun className="w-4 h-4" />
-          <span>Integracje</span>
+          <span>{t('nav.mobile.integrations')}</span>
         </button>
         <button
           onClick={() => setActiveTab('code')}
@@ -739,7 +746,7 @@ export default function App() {
           }`}
         >
           <Code className="w-4 h-4" />
-          <span>Kod C++</span>
+          <span>{t('nav.mobile.code')}</span>
         </button>
         <button
           onClick={() => setActiveTab('settings')}
@@ -750,7 +757,7 @@ export default function App() {
           }`}
         >
           <Settings2 className="w-4 h-4" />
-          <span>Ustawienia</span>
+          <span>{t('nav.mobile.settings')}</span>
         </button>
       </div>
 
@@ -853,7 +860,7 @@ export default function App() {
 
       {/* Footer Strip */}
       <footer className="border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        ESP32 Display Studio &copy; 2026 · Kompatybilny z ESP32 WROOM / ESP32-S3 / ESP32-C3 · Adafruit_SSD1306, TFT_eSPI, U8g2
+        {t('footer.copy')}
       </footer>
     </div>
   );
