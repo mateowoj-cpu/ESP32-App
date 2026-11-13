@@ -13,6 +13,8 @@ export const DesktopSettingsPanel: React.FC = () => {
     setUpdateChannel,
     closeToTray,
     setCloseToTray,
+    diagnosticsEnabled,
+    setDiagnosticsEnabled,
   } = useLocale();
   const [isTauri, setIsTauri] = useState(false);
   const [status, setStatus] = useState<DesktopStatus | null>(null);
@@ -78,7 +80,7 @@ export const DesktopSettingsPanel: React.FC = () => {
           <MonitorSmartphone className="w-4 h-4 text-cyan-400" />
           {t('desktop.title')}
         </h3>
-        <span className="text-[10px] font-mono text-cyan-400">v0.2.0</span>
+        <span className="text-[10px] font-mono text-cyan-400">v0.2.1</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -116,6 +118,29 @@ export const DesktopSettingsPanel: React.FC = () => {
           className="accent-cyan-400"
         />
       </label>
+
+      <div className="flex flex-col gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5">
+        <label className="flex items-center justify-between gap-3 text-xs">
+          <span className="text-slate-300">{t('desktop.diagnostics')}</span>
+          <input
+            type="checkbox"
+            checked={diagnosticsEnabled}
+            onChange={e => setDiagnosticsEnabled(e.target.checked)}
+            className="accent-cyan-400"
+          />
+        </label>
+        {diagnosticsEnabled && isTauri && (
+          <button
+            type="button"
+            onClick={() => {
+              void import('../platform/diagnostics').then(m => m.openDiagnosticsFolder());
+            }}
+            className="self-start text-[11px] text-cyan-400 hover:text-cyan-300"
+          >
+            {t('desktop.diagnosticsOpen')}
+          </button>
+        )}
+      </div>
 
       {!isTauri ? (
         <p className="text-[11px] text-slate-500 leading-relaxed">{t('desktop.hint')}</p>

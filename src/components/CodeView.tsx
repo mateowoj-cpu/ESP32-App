@@ -11,6 +11,7 @@ import {
   generatePlatformIoIni, 
   generatePythonPcAgentScript 
 } from '../utils/codeGenerator';
+import { useLocale } from '../i18n/LocaleContext';
 import { 
   Copy, 
   Check, 
@@ -38,6 +39,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
   screens,
   automations,
 }) => {
+  const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<'ino' | 'platformio' | 'pinout' | 'guide'>('ino');
   const [copied, setCopied] = useState(false);
 
@@ -101,24 +103,24 @@ export const CodeView: React.FC<CodeViewProps> = ({
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-base font-bold text-white tracking-tight">
-                  Szkic Arduino IDE (.ino) dla Twojego ESP32
+                  {t('code.title')}
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold">
                   Arduino IDE 1.8 & 2.x
                 </span>
                 <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  {lineCount} linii · ~{approxSizeKb} KB
+                  {lineCount} {t('common.lines')} · ~{approxSizeKb} KB
                 </span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
-                Wygenerowany plik <code className="text-cyan-400 bg-slate-950 px-1 py-0.5 rounded font-mono">.ino</code> zawiera kompletną logikę: sterownik ekranu {display.model.toUpperCase()}, obsługę dotyku, stany sensorów, API pogody, odpytywanie agenta PC oraz Twoje reguły automatyzacji.
+                {t('code.desc')} ({display.model.toUpperCase()})
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
             <div className="flex items-center bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 focus-within:border-cyan-500 transition-colors">
-              <span className="text-slate-500 text-xs font-mono select-none">nazwa:</span>
+              <span className="text-slate-500 text-xs font-mono select-none">{t('code.name')}</span>
               <input
                 type="text"
                 value={sketchName}
@@ -134,7 +136,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:scale-[1.02] active:scale-[0.98]"
             >
               <Download className="w-4 h-4 stroke-[2.5]" />
-              <span>Pobierz Szkic (.ino)</span>
+              <span>{t('code.download')}</span>
             </button>
           </div>
         </div>
@@ -149,10 +151,10 @@ export const CodeView: React.FC<CodeViewProps> = ({
             </div>
             <div className="text-xs">
               <p className="font-bold text-emerald-300">
-                Pobrano plik: <code className="font-mono bg-emerald-950 px-1 py-0.5 rounded">{cleanSketchName}.ino</code>
+                {t('code.downloaded')} <code className="font-mono bg-emerald-950 px-1 py-0.5 rounded">{cleanSketchName}.ino</code>
               </p>
               <p className="text-slate-300 mt-0.5 leading-relaxed">
-                <strong>Wskazówka Arduino IDE:</strong> Umieść plik w folderze o tej samej nazwie: <code className="font-mono text-cyan-300 bg-slate-950 px-1 rounded">{cleanSketchName}/{cleanSketchName}.ino</code>. Gdy otworzysz plik po raz pierwszy, Arduino IDE samo zaproponuje utworzenie tego folderu.
+                {t('code.arduinoTip')} <code className="font-mono text-cyan-300 bg-slate-950 px-1 rounded">{cleanSketchName}/{cleanSketchName}.ino</code>
               </p>
             </div>
           </div>
@@ -160,7 +162,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             onClick={() => setDownloadSuccessModal(false)}
             className="text-xs text-slate-400 hover:text-white px-3 py-1 bg-slate-900 border border-slate-700 rounded-lg shrink-0"
           >
-            Rozumiem, zamknij
+            {t('code.dismiss')}
           </button>
         </div>
       )}
@@ -175,7 +177,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             }`}
           >
             <Code className="w-4 h-4" />
-            <span>Kod C++ ({cleanSketchName}.ino)</span>
+            <span>{t('code.tabIno')} ({cleanSketchName}.ino)</span>
           </button>
           <button
             onClick={() => setActiveTab('platformio')}
@@ -184,7 +186,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>platformio.ini</span>
+            <span>{t('code.tabPio')}</span>
           </button>
           <button
             onClick={() => setActiveTab('pinout')}
@@ -193,7 +195,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             }`}
           >
             <Cpu className="w-4 h-4" />
-            <span>Schemat Połączeń Pinów</span>
+            <span>{t('code.tabPinout')}</span>
           </button>
           <button
             onClick={() => setActiveTab('guide')}
@@ -202,7 +204,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Instrukcja Wgrania</span>
+            <span>{t('code.tabGuide')}</span>
           </button>
         </div>
 

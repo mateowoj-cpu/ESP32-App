@@ -10,6 +10,7 @@
     "allow-pc-agent",
     "allow-flash",
     "allow-desktop",
+    "allow-diagnostics",
     "updater:default",
     "process:default",
     "dialog:default",

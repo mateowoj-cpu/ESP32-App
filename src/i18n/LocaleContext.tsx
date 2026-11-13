@@ -9,6 +9,8 @@ import {
   saveUpdateChannel,
   loadCloseToTray,
   saveCloseToTray,
+  loadDiagnosticsEnabled,
+  saveDiagnosticsEnabled,
 } from './locales';
 
 interface LocaleContextValue {
@@ -19,6 +21,8 @@ interface LocaleContextValue {
   setUpdateChannel: (channel: UpdateChannel) => void;
   closeToTray: boolean;
   setCloseToTray: (enabled: boolean) => void;
+  diagnosticsEnabled: boolean;
+  setDiagnosticsEnabled: (enabled: boolean) => void;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -27,6 +31,7 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [locale, setLocaleState] = useState<AppLocale>(() => loadLocale());
   const [updateChannel, setChannelState] = useState<UpdateChannel>(() => loadUpdateChannel());
   const [closeToTray, setCloseToTrayState] = useState<boolean>(() => loadCloseToTray());
+  const [diagnosticsEnabled, setDiagState] = useState<boolean>(() => loadDiagnosticsEnabled());
 
   const value = useMemo<LocaleContextValue>(
     () => ({
@@ -50,8 +55,16 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           .then(m => m.setCloseToTrayPreference(next))
           .catch(() => undefined);
       },
+      diagnosticsEnabled,
+      setDiagnosticsEnabled: next => {
+        saveDiagnosticsEnabled(next);
+        setDiagState(next);
+        void import('../platform/diagnostics')
+          .then(m => m.setDiagnosticsEnabledNative(next))
+          .catch(() => undefined);
+      },
     }),
-    [locale, updateChannel, closeToTray],
+    [locale, updateChannel, closeToTray, diagnosticsEnabled],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

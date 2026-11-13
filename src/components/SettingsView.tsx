@@ -1,6 +1,7 @@
 import React from 'react';
 import { DisplayConfig, SystemConfig, DisplayModel, BusType, DisplayTheme, Screen } from '../types';
 import { DesktopSettingsPanel } from './DesktopSettingsPanel';
+import { useLocale } from '../i18n/LocaleContext';
 import { 
   Monitor, 
   Wifi, 
@@ -39,6 +40,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   setSystem,
   screens = [],
 }) => {
+  const { t } = useLocale();
   // Handle model change and update resolution automatically
   const handleModelChange = (model: DisplayModel) => {
     let width = 128;
@@ -87,7 +89,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
               <Monitor className="w-4 h-4 text-cyan-400" />
-              Parametry Ekranu i Motywy Wizualne
+              {t('settings.display')}
             </h3>
             <span className="text-[10px] font-mono text-cyan-400">
               {display.width}x{display.height} px

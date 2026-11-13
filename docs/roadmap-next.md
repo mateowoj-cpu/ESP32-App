@@ -1,20 +1,16 @@
-# Kolejny krok po Fazie 7
+# Kolejny krok po Fazie 8
 
-## Stan po Fazie 7
+## Stan po Fazie 8
 
-- Build-from-Studio: PlatformIO / arduino-cli → `.bin` → esptool
-- UI: Build / Flash / Build+Flash w widoku USB
-- Profile płytki z wykrytego ESP32
-- Wcześniej: Serial, installer, agent PC, updater, tray, i18n, deep link, smoke CI
+- Rozszerzone i18n PL/EN (chrome + USB/Flash/Code/Integracje/Ustawienia)
+- Manifest winget (szablon) + docs signed release
+- Opt-in diagnostyka flash/COM → lokalny `studio.log`
+- Cache presetów flash per VID:PID
+- Wersja linii **0.2.1**
 
-## Faza 8 (rekomendowana) — Product polish & dystrybucja
+## Faza 9 (rekomendowana)
 
-1. **Pełne tłumaczenie** pozostałych widoków (nie tylko chrome)
-2. **winget / signed public release** `v0.2.x` z Authenticode + updater E2E
-3. **Opt-in diagnostyka** flash/COM (logi do pliku, bez telemetrii chmurowej)
-4. **Board presets cache** — zapamiętaj ostatni udany env PIO / offset flash per VID:PID
-
-## Faza 9 (opcjonalna)
-
-- Wbudowany / sidecare’owany PlatformIO Core (offline installer)
-- OTA update firmware przez Wi‑Fi z Studio
+1. **Sidecar / offline PlatformIO Core** w instalatorze (bez PATH użytkownika)
+2. **OTA firmware** przez Wi‑Fi z Studio (`espota` / HTTP update)
+3. Dokończenie tłumaczeń głębokich paneli (symulator, edytor, automatyzacje)
+4. Publikacja winget w `winget-pkgs` po pierwszym podpisanym `v0.2.1`

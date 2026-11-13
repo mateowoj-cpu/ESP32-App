@@ -1,4 +1,5 @@
 mod desktop;
+mod diagnostics;
 mod firmware_build;
 mod flash;
 mod pc_agent;
@@ -8,6 +9,10 @@ mod update_channel;
 use desktop::{
     get_desktop_status, set_app_autostart, set_close_to_tray, set_pc_agent_autostart,
     show_main_window, DesktopPrefs,
+};
+use diagnostics::{
+    append_diagnostics_log, get_diagnostics_log_path, open_diagnostics_folder,
+    set_diagnostics_enabled, DiagnosticsState,
 };
 use firmware_build::{build_firmware_from_sketch, get_firmware_toolchain_info};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
@@ -51,6 +56,7 @@ pub fn run() {
         .manage(SerialManager::default())
         .manage(PcAgentState::default())
         .manage(DesktopPrefs::default())
+        .manage(DiagnosticsState::default())
         .invoke_handler(tauri::generate_handler![
             list_serial_ports,
             open_serial_port,
@@ -70,7 +76,11 @@ pub fn run() {
             set_close_to_tray,
             show_main_window,
             check_update_channel,
-            download_and_install_channel
+            download_and_install_channel,
+            set_diagnostics_enabled,
+            append_diagnostics_log,
+            get_diagnostics_log_path,
+            open_diagnostics_folder
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

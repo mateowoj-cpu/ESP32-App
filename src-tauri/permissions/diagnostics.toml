@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "allow-diagnostics"
+description = "Allows opt-in local diagnostics logging for flash/COM."
+commands.allow = [
+  "set_diagnostics_enabled",
+  "append_diagnostics_log",
+  "get_diagnostics_log_path",
+  "open_diagnostics_folder"
+]
