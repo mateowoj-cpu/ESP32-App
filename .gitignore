@@ -22,3 +22,8 @@ tools/pc-agent/dist/
 tools/pc-agent/*.spec.bak
 src-tauri/binaries/*.exe
 src-tauri/resources/windows/esp32-pc-agent.exe
+
+# Optional offline PlatformIO penv staged for signed installer (Faza 10)
+# Keep README.txt / empty markers — never commit the full venv tree.
+src-tauri/resources/sidecar/platformio/penv/
+src-tauri/resources/sidecar/ota/espota.py

@@ -3,7 +3,7 @@ import { ConnectedEsp32Info } from '../types';
 import { getSerialAdapter, type SerialPortInfo } from '../platform';
 import type { EsptoolInfo } from '../platform/flash';
 import type { BuildResult, ToolchainInfo } from '../platform/firmwareBuild';
-import type { OtaMethod, OtaToolInfo } from '../platform/ota';
+import type { DiscoveredOtaHost, OtaMethod, OtaToolInfo } from '../platform/ota';
 import { useLocale } from '../i18n/LocaleContext';
 import { loadBoardPreset, saveBoardPreset } from '../platform/boardCache';
 import { appendDiagnosticsLog } from '../platform/diagnostics';
@@ -17,6 +17,7 @@ import {
   Hammer,
   Play,
   Wifi,
+  Radar,
 } from 'lucide-react';
 
 export interface SketchBuildSources {
@@ -50,6 +51,8 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const [otaPort, setOtaPort] = useState(3232);
   const [otaPassword, setOtaPassword] = useState('esp32ota');
   const [otaMethod, setOtaMethod] = useState<OtaMethod>('espota');
+  const [otaHosts, setOtaHosts] = useState<DiscoveredOtaHost[]>([]);
+  const [discovering, setDiscovering] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -230,6 +233,28 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     const built = await handleBuild();
     if (built) {
       await handleFlash(built);
+    }
+  };
+
+  const handleDiscoverOta = async () => {
+    setDiscovering(true);
+    setStatus(null);
+    try {
+      const { discoverOtaHosts } = await import('../platform/ota');
+      const hosts = await discoverOtaHosts(3000);
+      setOtaHosts(hosts);
+      if (hosts.length === 0) {
+        setStatus(t('ota.noneFound'));
+      } else if (!otaHost.trim()) {
+        setOtaHost(hosts[0].host);
+        if (hosts[0].port) setOtaPort(hosts[0].port);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setStatus(msg);
+      setOtaHosts([]);
+    } finally {
+      setDiscovering(false);
     }
   };
 
@@ -466,17 +491,61 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             {otaMethod === 'http' ? t('ota.methodHttp') : otaTool?.hint || t('ota.checking')}
           </span>
         </div>
-        <p className="ui-type-micro text-slate-500">{t('ota.hint')}</p>
+        <p className="ui-type-micro text-slate-400">{t('ota.hint')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <label className="flex flex-col gap-1 sm:col-span-2">
-            <span className="text-slate-400">{t('ota.host')}</span>
-            <input
-              value={otaHost}
-              onChange={e => setOtaHost(e.target.value)}
-              placeholder="192.168.1.50"
-              className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
-            />
-          </label>
+          <div className="sm:col-span-2 flex flex-col gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-slate-400">{t('ota.hostOrMdns')}</span>
+              <button
+                type="button"
+                disabled={busy || discovering}
+                onClick={() => void handleDiscoverOta()}
+                className="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-10 rounded-lg border border-cyan-700/50 bg-cyan-950/40 text-cyan-100 hover:bg-cyan-900/50 disabled:opacity-40 transition-colors"
+              >
+                <Radar className={`ui-icon-sm ${discovering ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                {discovering ? t('ota.discovering') : t('ota.discover')}
+              </button>
+            </div>
+            {otaHosts.length > 0 && (
+              <label className="flex flex-col gap-1">
+                <span className="text-slate-400">{t('ota.discovered')}</span>
+                <select
+                  value={otaHosts.find(h => h.host === otaHost)?.host ?? ''}
+                  onChange={e => {
+                    const selected = otaHosts.find(h => h.host === e.target.value);
+                    if (!selected) return;
+                    setOtaHost(selected.host);
+                    if (selected.port) setOtaPort(selected.port);
+                    if (selected.service.includes('http') && otaMethod === 'espota') {
+                      setOtaMethod('http');
+                    }
+                    if (selected.service.includes('arduino') && otaMethod === 'http') {
+                      setOtaMethod('espota');
+                    }
+                  }}
+                  className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono cursor-pointer"
+                  aria-label={t('ota.pickHost')}
+                >
+                  <option value="">{t('ota.pickHost')}</option>
+                  {otaHosts.map(h => (
+                    <option key={`${h.host}:${h.port}:${h.fullname}`} value={h.host}>
+                      {h.hostname || h.host}
+                      {h.addresses[0] ? ` (${h.addresses[0]})` : ''} · :{h.port} · {h.service}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className="flex flex-col gap-1">
+              <span className="text-slate-400">{t('ota.host')}</span>
+              <input
+                value={otaHost}
+                onChange={e => setOtaHost(e.target.value)}
+                placeholder="192.168.1.50 / esp32-display.local"
+                className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+              />
+            </label>
+          </div>
           <label className="flex flex-col gap-1">
             <span className="text-slate-400">{t('ota.port')}</span>
             <input
@@ -531,10 +600,16 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       </div>
 
       {status && (
-        <div className="flex items-start gap-2 text-xs text-slate-200">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-start gap-2 text-xs text-slate-200"
+        >
           {status.toLowerCase().includes('zbudowano') ||
           status.toLowerCase().includes('wgrany') ||
-          status.toLowerCase().includes('sukces') ? (
+          status.toLowerCase().includes('sukces') ||
+          status.toLowerCase().includes('success') ||
+          status.toLowerCase().includes('uploaded') ? (
             <CheckCircle2 className="ui-icon-sm text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
           ) : (
             <AlertCircle className="ui-icon-sm text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />

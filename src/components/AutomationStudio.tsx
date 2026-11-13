@@ -880,93 +880,99 @@ void updatePetTimeline() {
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                 <Wand2 className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                Szybkie Dodawanie Gotowych Reguł (1 kliknięcie)
+                {t('auto.quickTemplates')}
               </span>
-              <span className="ui-type-micro text-cyan-400 font-mono">Błyskawiczne szablony</span>
+              <span className="ui-type-micro text-cyan-400 font-mono">{t('auto.quickTemplatesHint')}</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
               <button
+                type="button"
                 onClick={() => handleAddFromTemplate('night_dim')}
-                className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-purple-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
+                className="cursor-pointer p-2.5 min-h-[5.5rem] bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-slate-500/60 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
-                  <Moon className="ui-icon-sm text-purple-400" aria-hidden="true" />
-                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-purple-400 transition-colors" aria-hidden="true" />
+                  <Moon className="ui-icon-sm text-slate-300" aria-hidden="true" />
+                  <Plus className="ui-icon-sm text-slate-500 group-hover:text-slate-300 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-purple-300">Nocne Ściemnianie</div>
-                  <div className="text-xs text-slate-400 mt-0.5">22:00 $\rightarrow$ 15% + Sen</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-slate-100">{t('auto.tpl.night')}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">22:00 → 15% + Sen</div>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAddFromTemplate('morning_wake')}
-                className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
+                className="cursor-pointer p-2.5 min-h-[5.5rem] bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
                   <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
                   <Plus className="ui-icon-sm text-slate-500 group-hover:text-amber-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-amber-300">Pobudka Rano</div>
-                  <div className="text-xs text-slate-400 mt-0.5">07:00 $\rightarrow$ 85% + ^_^</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-amber-300">{t('auto.tpl.morning')}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">07:00 → 85% + ^_^</div>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAddFromTemplate('pir_look_around')}
-                className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
+                className="cursor-pointer p-2.5 min-h-[5.5rem] bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
                   <Eye className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                   <Plus className="ui-icon-sm text-slate-500 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-cyan-300">Ruch PIR (GPIO 14)</div>
-                  <div className="text-xs text-slate-400 mt-0.5">Rozglądanie się</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-cyan-300">{t('auto.tpl.pir')}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">GPIO 14</div>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAddFromTemplate('usb_pc_monitor')}
-                className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
+                className="cursor-pointer p-2.5 min-h-[5.5rem] bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-emerald-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
                   <Usb className="ui-icon-sm text-emerald-400" aria-hidden="true" />
                   <Plus className="ui-icon-sm text-slate-500 group-hover:text-emerald-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-emerald-300">Wpięcie USB-C</div>
-                  <div className="text-xs text-slate-400 mt-0.5">Monitor Zasobów PC</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-emerald-300">{t('auto.tpl.usb')}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">USB-C</div>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAddFromTemplate('dusk_lux')}
-                className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-teal-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
+                className="cursor-pointer p-2.5 min-h-[5.5rem] bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-teal-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
                   <Sliders className="ui-icon-sm text-teal-400" aria-hidden="true" />
                   <Plus className="ui-icon-sm text-slate-500 group-hover:text-teal-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-teal-300">Zmierzch LDR</div>
-                  <div className="text-xs text-slate-400 mt-0.5">&lt; 35 lux $\rightarrow$ 25%</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-teal-300">LDR &lt; 35 lx</div>
+                  <div className="text-xs text-slate-400 mt-0.5">→ 25%</div>
                 </div>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAddFromTemplate('temp_alarm')}
-                className="p-2.5 bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-rose-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
+                className="cursor-pointer p-2.5 min-h-[5.5rem] bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-rose-500/50 rounded-xl text-left transition-all flex flex-col justify-between group"
               >
                 <div className="flex items-center justify-between">
                   <Flame className="ui-icon-sm text-rose-400" aria-hidden="true" />
                   <Plus className="ui-icon-sm text-slate-500 group-hover:text-rose-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-rose-300">Gorąco &gt; 30°C</div>
-                  <div className="text-xs text-slate-400 mt-0.5">Wariowanie / Alert</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-rose-300">{t('auto.tpl.temp')}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">&gt; 30°C</div>
                 </div>
               </button>
             </div>
@@ -978,20 +984,21 @@ void updatePetTimeline() {
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
                   <Sparkles className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                  Kreator Nowej Automatyzacji ESP32
+                  {t('auto.ruleCreator')}
                 </h3>
                 <button
+                  type="button"
                   onClick={() => setIsAddingRule(false)}
-                  className="text-xs text-slate-400 hover:text-slate-200"
+                  className="cursor-pointer text-xs text-slate-400 hover:text-slate-200"
                 >
-                  Anuluj
+                  {t('common.cancel')}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Rule Name */}
                 <div className="md:col-span-2">
-                  <label className="text-xs text-slate-400 block mb-1">Nazwa automatyzacji:</label>
+                  <label className="text-xs text-slate-400 block mb-1">{t('auto.ruleCreator')}:</label>
                   <input
                     type="text"
                     value={newName}
@@ -1649,12 +1656,12 @@ void updatePetTimeline() {
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                   <Wand2 className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                  Szybkie Presety Zachowań
+                  {t('auto.presets')}
                 </span>
-                <span className="ui-type-micro text-cyan-400 font-mono">1 kliknięcie</span>
+                <span className="ui-type-micro text-cyan-400 font-mono">1×</span>
               </div>
               <p className="ui-type-micro text-slate-400">
-                Wybierz gotowy, realistyczny cykl zachowań cyber-zwierzaka zaprogramowany na określoną liczbę minut:
+                {t('auto.timelineHint')}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">

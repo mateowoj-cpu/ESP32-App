@@ -1,8 +1,8 @@
-# Sidecar PlatformIO (Faza 9)
+# Sidecar PlatformIO (Faza 9–10)
 
-Build-from-Studio **nie wymaga** `pio` w PATH użytkownika, jeśli zainstalujesz offline **sidecar**.
+Build-from-Studio **nie wymaga** `pio` w PATH użytkownika, jeśli zainstalujesz offline **sidecar** albo spakujesz penv w signed installerze.
 
-## Instalacja (Windows)
+## Instalacja po instalacji Studio (Windows)
 
 ```powershell
 powershell -File .\scripts\windows\Install-PlatformIoSidecar.ps1
@@ -17,6 +17,20 @@ Skrypt tworzy:
 
 Wymaga Python 3 (zaznacz „Add to PATH” przy instalacji).
 
+## Bundling penv w instalatorze (Faza 10)
+
+Pełny penv jest zbyt duży na git. Na maszynie release / w CI:
+
+```powershell
+powershell -File .\scripts\windows\Stage-PlatformIoPenv.ps1 -BuildIfMissing
+npm run tauri:build:windows
+```
+
+To kopiuje penv do `src-tauri/resources/sidecar/platformio/penv/` (gitignored).  
+`tauri.conf.json` bundluje `resources/sidecar/**/*`, więc signed NSIS/MSI może zawierać offline PIO.
+
+Bez stage’owania instalator nadal dostarcza `README.txt` + NSIS hook z instrukcją sidecar.
+
 ## Jak Studio szuka toolchainu
 
 Kolejność:
@@ -28,11 +42,8 @@ Kolejność:
 
 W UI: **USB → Build → Flash** — hint pokazuje `(sidecar)` gdy użyto lokalnego penv.
 
-## Instalator NSIS/MSI
-
-Pakiet bundluje `resources/sidecar/README.txt` (instrukcja). Pełny penv PlatformIO jest zbyt duży, by trzymać go w repo — stage’uj go lokalnie przy signed release albo uruchom skrypt po instalacji (hook NSIS przypomina o sidecar).
-
 ## Docs powiązane
 
 - [windows-build-flash.md](./windows-build-flash.md) — przepływ Build → Flash
-- [windows-ota.md](./windows-ota.md) — OTA Wi‑Fi (espota / HTTP)
+- [windows-ota.md](./windows-ota.md) — OTA Wi‑Fi + mDNS
+- [windows-winget.md](./windows-winget.md) — winget po signed release

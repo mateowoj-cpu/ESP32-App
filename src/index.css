@@ -89,6 +89,19 @@
     font-family: inherit;
   }
 
+  /* Pro Max / bencium: clickable affordance on native controls */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
   /* Visible keyboard focus — skill: never remove outline without replacement */
   :focus-visible {
     outline: 2px solid rgb(34 211 238 / 0.85);

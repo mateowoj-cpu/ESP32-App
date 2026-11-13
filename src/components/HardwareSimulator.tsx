@@ -875,14 +875,14 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             {/* Display Subtitle with Touch coordinates live indicator */}
             <div className="mt-3 flex items-center justify-between w-full px-2 ui-type-micro font-mono text-slate-400">
               <span className="flex items-center gap-1.5">
-                <span>KONTROLER: {display.touchEnabled ? display.touchController.toUpperCase() : 'BRAK'}</span>
+                <span>{t('sim.controller')}: {display.touchEnabled ? display.touchController.toUpperCase() : t('sim.none')}</span>
                 {simState.touchActive && (
                   <span className="px-1.5 py-0.2 bg-rose-500/20 text-rose-300 rounded ui-type-micro font-bold animate-pulse">
-                    DOTYK: X={simState.touchX} Y={simState.touchY}
+                    {t('sim.touchActive')}: X={simState.touchX} Y={simState.touchY}
                   </span>
                 )}
               </span>
-              <span className="text-cyan-400">AKTYWNY: {activeScreen?.name || 'Brak'}</span>
+              <span className="text-cyan-400">{t('sim.activeScreen')}: {activeScreen?.name || t('sim.none')}</span>
             </div>
           </div>
 
@@ -891,11 +891,11 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-300 font-medium flex items-center gap-2">
                 <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
-                Podręczna Jasność Ekranu (PWM):
+                {t('sim.brightness')}
               </span>
               <div className="flex items-center gap-1.5">
                 <span className="font-mono text-cyan-400 font-bold">{display.brightness}%</span>
-                <span className="ui-type-micro text-slate-500 font-mono">(podgląd na żywo)</span>
+                <span className="ui-type-micro text-slate-400 font-mono">{t('sim.brightnessLive')}</span>
               </div>
             </div>
 
@@ -930,7 +930,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
           {/* Touch Gesture Control Buttons */}
           {display.touchEnabled && (
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs">
-              <span className="ui-type-micro font-mono text-slate-500 mr-1">Gesty Dotyku:</span>
+              <span className="ui-type-micro font-mono text-slate-400 mr-1">{t('sim.gestures')}</span>
               <button
                 onClick={() => handleSimulateGesture('tap')}
                 className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono ui-type-micro transition-colors"
@@ -1086,7 +1086,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
                 <Radio className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                Wirtualne Czujniki i Sensory ESP32
+                {t('sim.sensors')}
               </h3>
               <span className="ui-type-micro font-mono text-slate-500">Symulacja na żywo</span>
             </div>
@@ -1141,19 +1141,20 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                   <Activity className="ui-icon-sm" aria-hidden="true" />
                 </div>
                 <div>
-                  <div className="text-xs font-medium text-slate-200">Czujnik Ruchu PIR (GPIO 14)</div>
-                  <div className="ui-type-micro text-slate-400">Wybudza ekran i reakcje cyber-zwierzaka</div>
+                  <div className="text-xs font-medium text-slate-200">{t('sim.pir')} (GPIO 14)</div>
+                  <div className="ui-type-micro text-slate-400">GPIO / cyber-pet</div>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={handleTogglePIR}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all ${
+                className={`cursor-pointer px-3 py-1.5 min-h-10 rounded-lg text-xs font-mono font-medium transition-all ${
                   simState.pirActive 
-                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_12px_#06b6d4]' 
+                    ? 'bg-cyan-500 text-slate-950 font-bold' 
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {simState.pirActive ? 'RUCH: TAK' : 'RUCH: BRAK'}
+                {simState.pirActive ? 'ON' : 'OFF'}
               </button>
             </div>
 
@@ -1162,7 +1163,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   {simState.ambientLux < 50 ? <Moon className="ui-icon-sm text-indigo-400" aria-hidden="true" /> : <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />}
-                  Sensor Światła LDR (GPIO 36 / ADC)
+                  {t('sim.ldr')}
                 </span>
                 <span className="font-mono text-cyan-400 font-semibold">{simState.ambientLux} lux</span>
               </div>
@@ -1190,7 +1191,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   <Thermometer className="ui-icon-sm text-rose-400" aria-hidden="true" />
-                  Temperatura otoczenia DHT22 (GPIO 4)
+                  {t('sim.temp')}
                 </span>
                 <span className="font-mono text-rose-400 font-semibold">{simState.temperature.toFixed(1)} °C</span>
               </div>
@@ -1236,7 +1237,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   <Clock className="ui-icon-sm text-indigo-400" aria-hidden="true" />
-                  Symulowana Godzina (Zegar NTP)
+                  {t('sim.clock')}
                 </span>
                 <span className="font-mono text-indigo-300 font-semibold">{simState.simulatedTime}</span>
               </div>
