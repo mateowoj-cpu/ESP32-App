@@ -47,6 +47,13 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Assert MSI WiX en-US / ASCII (LGHT0311 guard)
+        shell: pwsh
+        run: |
+          Write-Host "HEAD=$(git rev-parse HEAD)"
+          Write-Host "Ref=$env:GITHUB_REF"
+          node ./scripts/windows/assert-msi-ascii-config.mjs
+
       - name: Build PC agent (.exe)
         shell: pwsh
         run: |

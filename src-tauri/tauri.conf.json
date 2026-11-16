@@ -109,7 +109,9 @@
         "installerHooks": "windows/installer-hooks.nsh"
       },
       "wix": {
-        "language": "en-US",
+        "language": {
+          "en-US": {}
+        },
         "upgradeCode": "a7c3e9f1-5b2d-4e8a-9c1f-6d4b8a2e0f35"
       }
     }
