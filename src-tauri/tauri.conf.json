@@ -50,7 +50,7 @@
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "targets": ["nsis", "msi"],
     "publisher": "ESP32 Display Studio",
     "homepage": "https://github.com/mateowoj-cpu/ESP32-App",

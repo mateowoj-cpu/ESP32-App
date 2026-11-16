@@ -13,7 +13,7 @@ ESP32 Display Studio używa `tauri-plugin-updater`.
 3. Po pobraniu aktualizacji restartuje się (`plugin-process` → `relaunch`).
 
 W UI: przycisk **Update** w nagłówku (tylko shell Tauri) oraz banner, gdy jest nowa wersja.
-Aktualna linia produktowa: **0.2.10** (Windows updater; Unix: unsigned overlays `createUpdaterArtifacts: false`, signed overlays + multi-platform `latest.json` gdy sekret — [desktop-unix.md](./desktop-unix.md)).
+Aktualna linia produktowa: **0.2.10** (`createUpdaterArtifacts: false` w bazie; Windows/Unix signed overlays tylko z poprawnym sekretem — [desktop-unix.md](./desktop-unix.md)).
 
 ## Klucze podpisu updatera
 
@@ -26,9 +26,9 @@ Sekrety GitHub Actions:
 | `TAURI_SIGNING_PRIVATE_KEY` | Zawartość prywatnego klucza (minisign / tauri signer) |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Hasło klucza (jeśli ustawione) |
 
-Bez prywatnego klucza CI **wyłącza** `createUpdaterArtifacts` (nakładka `src-tauri/tauri.windows.updater-unsigned.json`, jak Unix unsigned overlays) — instalator NSIS/MSI powstaje, bez `.sig` / `latest.json`. Pusty lub zły sekret w env powodował wcześniej fail po bundlach (`incorrect updater private key password: Missing comment in secret key`).
+Domyślnie `bundle.createUpdaterArtifacts` w `tauri.conf.json` jest **`false`** (jak Unix unsigned overlays). CI podpisuje updater **tylko** gdy sekret wygląda na prawdziwy klucz minisign / `tauri signer` (linia `untrusted comment:`) — wtedy dokłada `tauri.windows.updater-signed.json`. W przeciwnym razie (brak / blank / placeholder bez komentarza) czyści env i dokłada `tauri.windows.updater-unsigned.json` → NSIS/MSI bez `.sig` / `latest.json`, **bez** faila `Missing comment in secret key`.
 
-Gdy `TAURI_SIGNING_PRIVATE_KEY` jest ustawiony (prawidłowy minisign / `tauri signer`), workflow zostawia `createUpdaterArtifacts: true` z `tauri.conf.json` i podpisuje artefakty updatera.
+**Nie używaj Re-run** na starym `workflow_dispatch` — GitHub trzyma stary `head_sha`. Po merge fixów odpal **nowy** dispatch na tipie `main`.
 
 ### Regeneracja kluczy
 
