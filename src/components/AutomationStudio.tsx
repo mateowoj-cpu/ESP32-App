@@ -63,6 +63,25 @@ interface AutomationStudioProps {
 
 type StudioTab = 'visual_blocks' | 'script_dsl' | 'timeline';
 
+const TRIGGER_TYPE_OPTIONS: TriggerType[] = [
+  'time_is',
+  'pir_motion',
+  'light_lux_below',
+  'boot_button_pressed',
+  'temp_above',
+  'usb_connected',
+];
+
+const ACTION_TYPE_OPTIONS: ActionType[] = [
+  'set_brightness',
+  'set_pet_mood',
+  'switch_screen',
+  'wake_display',
+];
+
+const GENERATOR_DURATION_OPTIONS = [1, 2, 3, 5, 10] as const;
+const GENERATOR_PERSONALITY_OPTIONS = ['balanced', 'curious', 'crazy', 'sleepy'] as const;
+
 const PET_MOOD_SELECT_VALUES: PetMood[] = [
   'look_around',
   'look_up',
@@ -96,29 +115,29 @@ const PET_BEHAVIOR_I18N_KEY: Partial<Record<PetBehaviorType, string>> = {
 
 // Szybkie presety czasu
 const TIME_PRESETS = [
-  { label: '06:30 Rano', value: '06:30' },
-  { label: '08:00 Praca', value: '08:00' },
-  { label: '12:00 Południe', value: '12:00' },
-  { label: '18:00 Wieczór', value: '18:00' },
-  { label: '22:00 Noc', value: '22:00' },
-  { label: '23:30 Cisza', value: '23:30' },
+  { labelKey: 'auto.presetTime.morning630', value: '06:30' },
+  { labelKey: 'auto.presetTime.work0800', value: '08:00' },
+  { labelKey: 'auto.presetTime.noon1200', value: '12:00' },
+  { labelKey: 'auto.presetTime.evening1800', value: '18:00' },
+  { labelKey: 'auto.presetTime.night2200', value: '22:00' },
+  { labelKey: 'auto.presetTime.quiet2330', value: '23:30' },
 ];
 
 // Szybkie presety jasności
 const BRIGHTNESS_PRESETS = [
-  { label: '10% Noc', value: 10 },
-  { label: '25% Ciemno', value: 25 },
-  { label: '50% Średnia', value: 50 },
-  { label: '75% Jasno', value: 75 },
-  { label: '100% Maks', value: 100 },
+  { labelKey: 'auto.presetBrightness.night10', value: 10 },
+  { labelKey: 'auto.presetBrightness.dim25', value: 25 },
+  { labelKey: 'auto.presetBrightness.med50', value: 50 },
+  { labelKey: 'auto.presetBrightness.bright75', value: 75 },
+  { labelKey: 'auto.presetBrightness.max100', value: 100 },
 ];
 
 // Szybkie presety progu światła LDR
 const LUX_PRESETS = [
-  { label: '10 lx (Mrok)', value: 10 },
-  { label: '35 lx (Zmierzch)', value: 35 },
-  { label: '150 lx (Pokój)', value: 150 },
-  { label: '500 lx (Biuro)', value: 500 },
+  { labelKey: 'auto.presetLux.dark10', value: 10 },
+  { labelKey: 'auto.presetLux.dusk35', value: 35 },
+  { labelKey: 'auto.presetLux.room150', value: 150 },
+  { labelKey: 'auto.presetLux.office500', value: 500 },
 ];
 
 // Szybkie presety temperatury
@@ -465,7 +484,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     const duplicated: AutomationRule = {
       ...rule,
       id: `rule_${Date.now()}`,
-      name: `${rule.name} (Kopia)`,
+      name: `${rule.name} ${t('auto.ruleCopySuffix')}`,
     };
     setAutomations(prev => [...prev, duplicated]);
     setExpandedRuleId(duplicated.id);
@@ -478,7 +497,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     if (templateKey === 'night_dim') {
       newRule = {
         id: `rule_${Date.now()}`,
-        name: '🌙 Nocne ściemnianie (22:00 -> 15% + Ziewanie)',
+        name: t('auto.tplRuleName.night'),
         enabled: true,
         trigger: { type: 'time_is', time: '22:00' },
         action: { type: 'set_brightness', brightness: 15, petMood: 'yawn' }
@@ -486,7 +505,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     } else if (templateKey === 'morning_wake') {
       newRule = {
         id: `rule_${Date.now()}`,
-        name: '☀️ Poranne wybudzenie (07:00 -> 85% + Radość)',
+        name: t('auto.tplRuleName.morning'),
         enabled: true,
         trigger: { type: 'time_is', time: '07:00' },
         action: { type: 'wake_display', brightness: 85, petMood: 'happy' }
@@ -494,7 +513,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     } else if (templateKey === 'pir_look_around') {
       newRule = {
         id: `rule_${Date.now()}`,
-        name: '👀 Reakcja PIR (Ruch -> Rozglądanie się)',
+        name: t('auto.tplRuleName.pir'),
         enabled: true,
         trigger: { type: 'pir_motion', gpioPin: 14 },
         action: { type: 'set_pet_mood', petMood: 'look_around' }
@@ -502,7 +521,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     } else if (templateKey === 'usb_pc_monitor') {
       newRule = {
         id: `rule_${Date.now()}`,
-        name: '🔌 Kabel USB-C (Wpięto -> Ekran Monitora PC)',
+        name: t('auto.tplRuleName.usb'),
         enabled: true,
         trigger: { type: 'usb_connected' },
         action: { type: 'switch_screen', targetScreenId: screens[2]?.id || screens[0]?.id }
@@ -510,7 +529,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     } else if (templateKey === 'dusk_lux') {
       newRule = {
         id: `rule_${Date.now()}`,
-        name: '💡 Zmierzch LDR (< 35 lx -> Jasność 25%)',
+        name: t('auto.tplRuleName.dusk'),
         enabled: true,
         trigger: { type: 'light_lux_below', threshold: 35 },
         action: { type: 'set_brightness', brightness: 25 }
@@ -518,7 +537,7 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
     } else if (templateKey === 'temp_alarm') {
       newRule = {
         id: `rule_${Date.now()}`,
-        name: '🔥 Alarm gorąca (> 30°C -> Szaleństwo zwierzaka)',
+        name: t('auto.tplRuleName.temp'),
         enabled: true,
         trigger: { type: 'temp_above', threshold: 30 },
         action: { type: 'set_pet_mood', petMood: 'crazy' }
@@ -639,8 +658,8 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
       id: `step_${Date.now()}`,
       behavior: newStepBehavior,
       durationSec: Math.max(2, newStepDuration),
-      name: newStepName || 'Nowe zachowanie',
-      description: newStepDesc || 'Własny krok w sekwencji zwierzaka'
+      name: newStepName || t('auto.stepFallbackName'),
+      description: newStepDesc || t('auto.stepFallbackDesc')
     };
     setTimelineSteps(prev => [...prev, newStep]);
   };
@@ -668,8 +687,14 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
       return `  { ${cppConst}, ${ms}UL, "${s.name}" }, // ${s.durationSec}s: ${s.description}`;
     }).join('\n');
 
+    const banner = t('auto.cpp.banner').replace('{time}', formatTime(totalDurationSec));
+    const seqComment = t('auto.cpp.seqComment');
+    const callHint = t('auto.cpp.callHint');
+    const serialNew = t('auto.cpp.serialNewBehavior').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const serialDur = t('auto.cpp.serialDuration').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
     return `// ==============================================================================
-//  OŚ CZASU ZACHOWAŃ CYBER-ZWIERZAKA DLA ESP32 (Łączny czas: ${formatTime(totalDurationSec)})
+//  ${banner}
 // ==============================================================================
 
 struct PetTimelineStep {
@@ -678,7 +703,7 @@ struct PetTimelineStep {
   const char* stepName;
 };
 
-// Zdefiniowana sekwencja zachowań (nieblokująca pętla millis)
+// ${seqComment}
 const PetTimelineStep PET_TIMELINE_ROUTINE[] = {
 ${stepsCpp}
 };
@@ -687,7 +712,7 @@ const int PET_TIMELINE_STEPS_COUNT = sizeof(PET_TIMELINE_ROUTINE) / sizeof(PET_T
 int currentTimelineIndex = 0;
 unsigned long lastTimelineStepMillis = 0;
 
-// Wywołaj tę funkcję wewnątrz loop() swojego ESP32:
+// ${callHint}
 void updatePetTimeline() {
   unsigned long currentMillis = millis();
   
@@ -697,9 +722,9 @@ void updatePetTimeline() {
     
     currentPetMood = PET_TIMELINE_ROUTINE[currentTimelineIndex].mood;
     
-    Serial.print(F("[CYBER-PET OŚ CZASU] Nowe zachowanie: "));
+    Serial.print(F("${serialNew}"));
     Serial.print(PET_TIMELINE_ROUTINE[currentTimelineIndex].stepName);
-    Serial.print(F(" (trwanie: "));
+    Serial.print(F("${serialDur}"));
     Serial.print(PET_TIMELINE_ROUTINE[currentTimelineIndex].durationMs / 1000);
     Serial.println(F("s)"));
   }
@@ -730,7 +755,11 @@ void updatePetTimeline() {
       else if (r.action.type === 'wake_display') actStr = `wake_display()`;
       else actStr = `execute_action(${r.action.type})`;
 
-      return `# Reguła: ${r.name} [${r.enabled ? 'AKTYWNA' : 'WYŁĄCZONA'}]\n${trigStr} DO\n    ${actStr}\n    notify_console("Reguła wykonana: ${r.name}")\nEND\n`;
+      const status = r.enabled ? t('auto.enabled') : t('auto.disabled');
+      const header = t('auto.dsl.ruleHeader').replace('{name}', r.name).replace('{status}', status);
+      const notify = t('auto.dsl.notify').replace('{name}', r.name).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      // Keep ON / DO / END and action identifiers as technical DSL tokens.
+      return `# ${header}\n${trigStr} DO\n    ${actStr}\n    notify_console("${notify}")\nEND\n`;
     }).join('\n');
   };
 
@@ -876,8 +905,7 @@ void updatePetTimeline() {
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-teal-300">{t('auto.tpl.dusk')}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">→ 25%</div>
-                </div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t('auto.tpl.blurb.dusk')}</div>                </div>
               </button>
 
               <button
@@ -939,12 +967,11 @@ void updatePetTimeline() {
                       onChange={e => setNewTriggerType(e.target.value as TriggerType)}
                       className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100"
                     >
-                      <option value="time_is">Zegar Czasu Rzeczywistego NTP == Godzina</option>
-                      <option value="pir_motion">Czujnik Ruchu PIR (Wykryto obecność)</option>
-                      <option value="light_lux_below">Czujnik Światła LDR &lt; Próg lux (Ciemność)</option>
-                      <option value="boot_button_pressed">Wciśnięcie Przycisku BOOT (GPIO 0)</option>
-                      <option value="temp_above">Temperatura DHT22 &gt; Próg °C</option>
-                      <option value="usb_connected">Podłączenie Kabla USB-C do komputera</option>
+                      {TRIGGER_TYPE_OPTIONS.map(type => (
+                        <option key={type} value={type}>
+                          {t(`auto.triggerType.${type}`)}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -969,7 +996,7 @@ void updatePetTimeline() {
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                             }`}
                           >
-                            {preset.label}
+                            {t(preset.labelKey)}
                           </button>
                         ))}
                       </div>
@@ -1003,7 +1030,7 @@ void updatePetTimeline() {
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                             }`}
                           >
-                            {preset.label}
+                            {t(preset.labelKey)}
                           </button>
                         ))}
                       </div>
@@ -1078,10 +1105,11 @@ void updatePetTimeline() {
                       onChange={e => setNewActionType(e.target.value as ActionType)}
                       className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100"
                     >
-                      <option value="set_brightness">Zmień jasność ekranu (PWM)</option>
-                      <option value="set_pet_mood">Ustaw nastrój Cyber-Zwierzaka</option>
-                      <option value="switch_screen">Przełącz aktywny ekran LCD/OLED</option>
-                      <option value="wake_display">Wybudź urządzenie ze stanu uśpienia</option>
+                      {ACTION_TYPE_OPTIONS.map(type => (
+                        <option key={type} value={type}>
+                          {t(`auto.actionType.${type}`)}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -1112,7 +1140,7 @@ void updatePetTimeline() {
                                 : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                             }`}
                           >
-                            {preset.label}
+                            {t(preset.labelKey)}
                           </button>
                         ))}
                       </div>
@@ -1269,12 +1297,11 @@ void updatePetTimeline() {
                             }))}
                             className="bg-slate-900 border border-slate-700 rounded px-2 py-1 ui-type-micro text-slate-200"
                           >
-                            <option value="time_is">Godzina NTP == Czas</option>
-                            <option value="pir_motion">Ruch PIR (GPIO)</option>
-                            <option value="light_lux_below">Światło LDR &lt; lux</option>
-                            <option value="boot_button_pressed">Przycisk BOOT (GPIO 0)</option>
-                            <option value="temp_above">Temperatura &gt; °C</option>
-                            <option value="usb_connected">Wpięcie Kabla USB-C</option>
+                            {TRIGGER_TYPE_OPTIONS.map(type => (
+                              <option key={type} value={type}>
+                                {t(`auto.triggerType.${type}`)}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
@@ -1308,7 +1335,7 @@ void updatePetTimeline() {
                                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                                   }`}
                                 >
-                                  {p.label}
+                                  {t(p.labelKey)}
                                 </button>
                               ))}
                             </div>
@@ -1348,7 +1375,7 @@ void updatePetTimeline() {
                                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                                   }`}
                                 >
-                                  {p.label}
+                                  {t(p.labelKey)}
                                 </button>
                               ))}
                             </div>
@@ -1449,10 +1476,11 @@ void updatePetTimeline() {
                             }))}
                             className="bg-slate-900 border border-slate-700 rounded px-2 py-1 ui-type-micro text-slate-200"
                           >
-                            <option value="set_brightness">Zmień jasność ekranu (PWM)</option>
-                            <option value="set_pet_mood">Zmień nastrój zwierzaka</option>
-                            <option value="switch_screen">Przełącz ekran</option>
-                            <option value="wake_display">Wybudź urządzenie</option>
+                            {ACTION_TYPE_OPTIONS.map(type => (
+                              <option key={type} value={type}>
+                                {t(`auto.actionType.${type}`)}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
@@ -1490,7 +1518,7 @@ void updatePetTimeline() {
                                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                                   }`}
                                 >
-                                  {p.label}
+                                  {t(p.labelKey)}
                                 </button>
                               ))}
                             </div>
@@ -1644,41 +1672,42 @@ void updatePetTimeline() {
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                   <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                     <Sparkles className="ui-icon-sm text-emerald-400" aria-hidden="true" />
-                    Generator Czasowy
+                    {t('auto.generator.title')}
                   </span>
-                  <span className="ui-type-micro text-emerald-400 font-mono">Algorytmiczny</span>
+                  <span className="ui-type-micro text-emerald-400 font-mono">{t('auto.generator.badge')}</span>
                 </div>
                 <p className="ui-type-micro text-slate-400 mt-1">
-                  Wygeneruj spersonalizowany harmonogram zachowań o żądanym czasie trwania i temperamencie:
+                  {t('auto.generator.hint')}
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   <div>
-                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Długość osi czasu:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">{t('auto.generator.durationLabel')}</label>
                     <select
                       value={generatorMinutes}
                       onChange={e => setGeneratorMinutes(Number(e.target.value))}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-100 font-mono"
                     >
-                      <option value={1}>1 minuta (60s)</option>
-                      <option value={2}>2 minuty (120s)</option>
-                      <option value={3}>3 minuty (180s)</option>
-                      <option value={5}>5 minut (300s)</option>
-                      <option value={10}>10 minut (600s)</option>
+                      {GENERATOR_DURATION_OPTIONS.map(mins => (
+                        <option key={mins} value={mins}>
+                          {t(`auto.generator.duration.${mins}`)}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">Temperament zwierzaka:</label>
+                    <label className="ui-type-micro font-medium text-slate-400 block mb-1">{t('auto.generator.personalityLabel')}</label>
                     <select
                       value={generatorPersonality}
-                      onChange={e => setGeneratorPersonality(e.target.value as any)}
+                      onChange={e => setGeneratorPersonality(e.target.value as typeof generatorPersonality)}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-100"
                     >
-                      <option value="balanced">Zrównoważony</option>
-                      <option value="curious">Ciekawski / Odkrywca</option>
-                      <option value="crazy">Nadpobudliwy / Szalony</option>
-                      <option value="sleepy">Senny / Leniwy</option>
+                      {GENERATOR_PERSONALITY_OPTIONS.map(personality => (
+                        <option key={personality} value={personality}>
+                          {t(`auto.personality.${personality}`)}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -1689,7 +1718,7 @@ void updatePetTimeline() {
                 className="w-full mt-2 py-2 px-3 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="ui-icon-sm text-slate-950" aria-hidden="true" />
-                <span>Wygeneruj Harmonogram ({generatorMinutes} min)</span>
+                <span>{t('auto.generator.submit').replace('{n}', String(generatorMinutes))}</span>
               </button>
             </div>
 
@@ -2073,10 +2102,10 @@ void updatePetTimeline() {
               <div>
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                   <Code className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                  Kod C++ Osi Czasu dla ESP32 (Non-blocking state machine millis)
+                  {t('auto.cpp.title')}
                 </span>
                 <span className="text-xs text-slate-400 mt-0.5 block">
-                  Wklej ten fragment do pliku projektu .ino w Arduino IDE, aby automatycznie odtwarzać sekwencję w pętli loop().
+                  {t('auto.cpp.hint')}
                 </span>
               </div>
 
@@ -2085,7 +2114,7 @@ void updatePetTimeline() {
                 className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors"
               >
                 {copiedCpp ? <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" /> : <Copy className="ui-icon-sm text-slate-400" aria-hidden="true" />}
-                <span>{copiedCpp ? 'Skopiowano!' : 'Kopiuj kod C++'}</span>
+                <span>{copiedCpp ? t('action.copied') : t('auto.cpp.copy')}</span>
               </button>
             </div>
 
@@ -2100,8 +2129,8 @@ void updatePetTimeline() {
         /* ============================================================================== */
         <div className="flex flex-col gap-3 p-4 bg-slate-900 border border-slate-800 rounded-2xl">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
-            <span className="text-slate-400 font-mono">Skrypt zdarzeń ESP32 Automation DSL:</span>
-            <span className="ui-type-micro text-slate-500">Auto-kompilowane do pętli loop() w C++</span>
+            <span className="text-slate-400 font-mono">{t('auto.dsl.title')}</span>
+            <span className="ui-type-micro text-slate-500">{t('auto.dsl.subtitle')}</span>
           </div>
           <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed selection:bg-cyan-500/30">
             {generateDslText()}

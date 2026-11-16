@@ -19,6 +19,12 @@ assert(translate('en', 'ota.discover').toLowerCase().includes('mdns'), 'en ota d
 assert(translate('pl', 'ota.discover').toLowerCase().includes('mdns'), 'pl ota discover');
 assert(translate('en', 'settings.mdnsName').toLowerCase().includes('mdns'), 'en mdns settings');
 assert(translate('en', 'auto.ruleCreator').toLowerCase().includes('rule'), 'en rule creator');
+assert(translate('en', 'auto.triggerType.pir_motion').toLowerCase().includes('pir'), 'en trigger pir');
+assert(translate('pl', 'auto.actionType.set_brightness').toLowerCase().includes('jasność'), 'pl action brightness');
+assert(translate('en', 'auto.dsl.ruleHeader').toLowerCase().includes('rule'), 'en dsl rule header');
+assert(translate('en', 'auto.cpp.banner').toLowerCase().includes('timeline'), 'en cpp banner');
+assert(translate('pl', 'auto.generator.duration.3').includes('180'), 'pl generator duration');
+assert(translate('en', 'auto.personality.curious').toLowerCase().includes('curious'), 'en personality');
 assert(translate('en', 'pet.step.happy.name').toLowerCase().includes('smile'), 'en pet step');
 assert(translate('pl', 'integ.city.dortmund').toLowerCase().includes('dortmund'), 'pl city');
 assert(translate('en', 'pinout.title').toLowerCase().includes('pin'), 'en pinout');
