@@ -169,7 +169,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     }
     setBusy(true);
     setStatus(null);
-    setLogs(prev => [...prev, '--- start build ---']);
+    setLogs(prev => [...prev, t('flash.log.startBuild')]);
     try {
       const sources = buildSources();
       const { buildFirmwareFromSketch } = await import('../platform/firmwareBuild');
@@ -217,7 +217,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     }
     setBusy(true);
     setStatus(null);
-    setLogs(prev => [...prev, '--- start flash ---']);
+    setLogs(prev => [...prev, t('flash.log.startFlash')]);
     try {
       const { flashWriteFirmware } = await import('../platform/flash');
       const result = await flashWriteFirmware({
@@ -645,8 +645,8 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
               }}
               className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
             >
-              <option value="espota">espota (ArduinoOTA)</option>
-              <option value="http">HTTP /update</option>
+              <option value="espota">{t('ota.methodEspota')}</option>
+              <option value="http">{t('ota.methodHttp')}</option>
             </select>
           </label>
           {otaMethod === 'espota' && (

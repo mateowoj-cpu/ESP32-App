@@ -117,12 +117,20 @@ const pl: Dict = {
   'usb.applied': 'Pomyślnie Zastosowano do Projektu!',
   'usb.drivers': 'Pełna dokumentacja sterowników',
   'usb.backend.unavailable': 'Niedostępny',
+  'usb.backend.web': 'Web Serial',
+  'usb.backend.mock': 'Mock',
+  'usb.backend.native': 'Native COM',
+  'usb.backendLabel': 'Backend',
   'usb.log.ready': '--- ESP32 Display Studio Serial Monitor gotowy ({backend}) ---',
   'usb.log.disconnected': '[SYSTEM] Port szeregowy rozłączony',
   'usb.log.detected':
     '[SYSTEM] Wykryto urządzenie USB ({backend}): VID {vid} / PID {pid} · {label}',
   'usb.log.identified': '[IDENTYFIKACJA] Rodzina: {family} · Model: {model}',
   'usb.log.connected': 'Połączono z ESP32 przy 115200 baud',
+  'usb.log.portsAvailable': '[SYSTEM] Dostępne porty: {ports}',
+  'usb.log.select': '[WYBÓR] {name}',
+  'usb.log.applied':
+    '[KONFIGURACJA] Zastosowano piny dotyku ({touch} na SDA:{sda}, SCL:{scl}) oraz taktowanie {mhz} MHz do projektu.',
   'usb.err.unavailable':
     'Port szeregowy jest niedostępny. Wybierz model ESP32 z poniższej bazy sprzętowej.',
   'usb.err.noPorts':
@@ -136,6 +144,13 @@ const pl: Dict = {
   'usb.err.refresh': 'Nie udało się odświeżyć listy portów: {message}',
   'usb.err.unknown': 'Nieznany błąd',
   'usb.err.write': 'Nieznany błąd zapisu',
+  'usb.err.writePort': '[SYSTEM] Błąd zapisu na port: {message}',
+  'usb.mock.unknown': '> Nieznana komenda: "{cmd}". Dostępne: ping, info, touch, restart',
+  'usb.mock.pong': 'ESP32 PONG (RTT = 1.2ms, Heap free: 284120 B)',
+  'usb.mock.info': 'Chip: {model} | Flash: {flash}MB | MAC: {mac}',
+  'usb.mock.touch':
+    'Kontroler dotyku: {controller} (SDA: {sda}, SCL: {scl}, Status: OK)',
+  'usb.mock.restart': 'ESP-ROM: Restartowanie układu… Reboot OK',
   'usb.driversTitle': 'Sterowniki USB-UART na Windows',
   'usb.driversHintEmpty':
     'System nie widzi żadnego COMx. Zainstaluj sterownik mostka USB odpowiadający Twojej płytce, potem kliknij „Porty COM”.',
@@ -147,6 +162,8 @@ const pl: Dict = {
   'usb.spec.cores': 'Liczba Rdzeni & Zegar:',
   'usb.spec.coresValue': '{cores} rdzenie @ {mhz} MHz',
   'usb.spec.memory': 'Pamięć Flash & PSRAM:',
+  'usb.spec.memoryValue': '{flash} MB Flash{psram}',
+  'usb.spec.psramExtra': ' + {psram} MB PSRAM',
   'usb.spec.mac': 'Adres MAC / USB ID:',
   'usb.spec.features': 'Wbudowane Funkcje Układu:',
   'usb.catalogTitle': 'Baza Płytek ESP32 i Kontrolerów Dotyku',
@@ -265,6 +282,8 @@ const pl: Dict = {
   'flash.refreshTitle': 'Odśwież toolchain / porty',
   'flash.err.noSketch': 'Brak generatora szkicu — otwórz projekt w Studio.',
   'flash.err.needPortBin': 'Wybierz port COM i plik .bin (lub skompiluj firmware).',
+  'flash.log.startBuild': '--- start build ---',
+  'flash.log.startFlash': '--- start flash ---',
   'ota.title': 'OTA Wi‑Fi',
   'ota.hint':
     'Wgraj .bin przez sieć (ArduinoOTA/espota lub HTTP POST /update). Szkic musi mieć OTA włączone w Ustawieniach.',
@@ -272,6 +291,7 @@ const pl: Dict = {
   'ota.port': 'Port',
   'ota.password': 'Hasło OTA',
   'ota.method': 'Metoda',
+  'ota.methodEspota': 'espota (ArduinoOTA)',
   'ota.methodHttp': 'HTTP /update',
   'ota.upload': 'Wyślij OTA',
   'ota.checking': 'Sprawdzanie espota…',
@@ -732,6 +752,30 @@ const pl: Dict = {
   'common.lines': 'linii',
   'common.cancel': 'Anuluj',
   'common.save': 'Zapisz',
+  'common.close': 'Zamknij',
+  'a11y.mainNav': 'Główna nawigacja',
+  'a11y.mobileNav': 'Nawigacja mobilna',
+  'a11y.chipDetected': 'ESP32 wykryty',
+  'a11y.fontScale': 'Wielkość tekstu UI',
+  'a11y.fontScaleHint': 'Dostosuj wielkość czcionki w aplikacji',
+  'a11y.fontNormal': 'Standardowa wielkość (100%)',
+  'a11y.fontLarge': 'Powiększona czcionka (115%)',
+  'a11y.fontXLarge': 'Duża czcionka (130%)',
+  'a11y.fontLabel': 'Tekst:',
+  'a11y.checkUpdates': 'Sprawdź aktualizacje aplikacji (Tauri)',
+  'a11y.importProject': 'Importuj projekt (.esp32studio / .json)',
+  'a11y.exportProject': 'Zapisz projekt (.esp32studio) — skojarzony z aplikacją na Windows',
+  'a11y.closeUpdateBanner': 'Zamknij banner aktualizacji',
+  'a11y.closeNotice': 'Zamknij powiadomienie',
+  'a11y.closeFileNotice': 'Zamknij powiadomienie pliku',
+  'ino.modalTitle': 'Pobrano szkic Arduino IDE',
+  'ino.modalFile': 'Plik:',
+  'ino.modalRule': 'Ważna zasada Arduino IDE:',
+  'ino.modalRuleBody':
+    'Arduino IDE wymaga, aby plik szkicu znajdował się w folderze o identycznej nazwie:',
+  'ino.modalHint':
+    '(Jeśli otworzysz plik bezpośrednio, Arduino IDE wyświetli okienko z zapytaniem i utworzy ten folder automatycznie).',
+  'ino.modalRename': 'Zmień nazwę pliku przed wgraniem (opcjonalnie):',
 };
 
 const en: Dict = {
@@ -839,12 +883,20 @@ const en: Dict = {
   'usb.applied': 'Applied to project!',
   'usb.drivers': 'Full driver documentation',
   'usb.backend.unavailable': 'Unavailable',
+  'usb.backend.web': 'Web Serial',
+  'usb.backend.mock': 'Mock',
+  'usb.backend.native': 'Native COM',
+  'usb.backendLabel': 'Backend',
   'usb.log.ready': '--- ESP32 Display Studio Serial Monitor ready ({backend}) ---',
   'usb.log.disconnected': '[SYSTEM] Serial port disconnected',
   'usb.log.detected':
     '[SYSTEM] USB device detected ({backend}): VID {vid} / PID {pid} · {label}',
   'usb.log.identified': '[IDENTIFY] Family: {family} · Model: {model}',
   'usb.log.connected': 'Connected to ESP32 at 115200 baud',
+  'usb.log.portsAvailable': '[SYSTEM] Available ports: {ports}',
+  'usb.log.select': '[SELECT] {name}',
+  'usb.log.applied':
+    '[CONFIG] Applied touch pins ({touch} on SDA:{sda}, SCL:{scl}) and {mhz} MHz clock to the project.',
   'usb.err.unavailable':
     'Serial port is unavailable. Pick an ESP32 model from the hardware catalog below.',
   'usb.err.noPorts':
@@ -858,6 +910,13 @@ const en: Dict = {
   'usb.err.refresh': 'Failed to refresh port list: {message}',
   'usb.err.unknown': 'Unknown error',
   'usb.err.write': 'Unknown write error',
+  'usb.err.writePort': '[SYSTEM] Port write error: {message}',
+  'usb.mock.unknown': '> Unknown command: "{cmd}". Available: ping, info, touch, restart',
+  'usb.mock.pong': 'ESP32 PONG (RTT = 1.2ms, Heap free: 284120 B)',
+  'usb.mock.info': 'Chip: {model} | Flash: {flash}MB | MAC: {mac}',
+  'usb.mock.touch':
+    'Touch controller: {controller} (SDA: {sda}, SCL: {scl}, Status: OK)',
+  'usb.mock.restart': 'ESP-ROM: Restarting chip… Reboot OK',
   'usb.driversTitle': 'USB-UART drivers on Windows',
   'usb.driversHintEmpty':
     'No COMx ports visible. Install the USB bridge driver for your board, then click “COM ports”.',
@@ -869,6 +928,8 @@ const en: Dict = {
   'usb.spec.cores': 'Cores & clock:',
   'usb.spec.coresValue': '{cores} cores @ {mhz} MHz',
   'usb.spec.memory': 'Flash & PSRAM:',
+  'usb.spec.memoryValue': '{flash} MB Flash{psram}',
+  'usb.spec.psramExtra': ' + {psram} MB PSRAM',
   'usb.spec.mac': 'MAC / USB ID:',
   'usb.spec.features': 'On-chip features:',
   'usb.catalogTitle': 'ESP32 board & touch controller catalog',
@@ -987,6 +1048,8 @@ const en: Dict = {
   'flash.refreshTitle': 'Refresh toolchain / ports',
   'flash.err.noSketch': 'No sketch generator — open a project in Studio.',
   'flash.err.needPortBin': 'Select a COM port and .bin file (or build firmware).',
+  'flash.log.startBuild': '--- start build ---',
+  'flash.log.startFlash': '--- start flash ---',
   'ota.title': 'Wi‑Fi OTA',
   'ota.hint':
     'Upload a .bin over the network (ArduinoOTA/espota or HTTP POST /update). Enable OTA in Settings for the generated sketch.',
@@ -994,6 +1057,7 @@ const en: Dict = {
   'ota.port': 'Port',
   'ota.password': 'OTA password',
   'ota.method': 'Method',
+  'ota.methodEspota': 'espota (ArduinoOTA)',
   'ota.methodHttp': 'HTTP /update',
   'ota.upload': 'OTA Upload',
   'ota.checking': 'Checking espota…',
@@ -1454,6 +1518,30 @@ const en: Dict = {
   'common.lines': 'lines',
   'common.cancel': 'Cancel',
   'common.save': 'Save',
+  'common.close': 'Close',
+  'a11y.mainNav': 'Main navigation',
+  'a11y.mobileNav': 'Mobile navigation',
+  'a11y.chipDetected': 'ESP32 detected',
+  'a11y.fontScale': 'UI text size',
+  'a11y.fontScaleHint': 'Adjust the app font size',
+  'a11y.fontNormal': 'Standard size (100%)',
+  'a11y.fontLarge': 'Larger font (115%)',
+  'a11y.fontXLarge': 'Large font (130%)',
+  'a11y.fontLabel': 'Text:',
+  'a11y.checkUpdates': 'Check for app updates (Tauri)',
+  'a11y.importProject': 'Import project (.esp32studio / .json)',
+  'a11y.exportProject': 'Save project (.esp32studio) — file association on Windows',
+  'a11y.closeUpdateBanner': 'Close update banner',
+  'a11y.closeNotice': 'Close notification',
+  'a11y.closeFileNotice': 'Close file notification',
+  'ino.modalTitle': 'Arduino IDE sketch downloaded',
+  'ino.modalFile': 'File:',
+  'ino.modalRule': 'Important Arduino IDE rule:',
+  'ino.modalRuleBody':
+    'Arduino IDE requires the sketch file to live in a folder with the same name:',
+  'ino.modalHint':
+    '(If you open the file directly, Arduino IDE will prompt and create that folder automatically).',
+  'ino.modalRename': 'Rename the file before flashing (optional):',
 };
 
 const TABLES: Record<AppLocale, Dict> = { pl, en };

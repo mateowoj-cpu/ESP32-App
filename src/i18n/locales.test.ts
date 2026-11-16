@@ -45,6 +45,16 @@ assert(translate('pl', 'usb.identify.s3.model').toLowerCase().includes('s3'), 'p
 assert(translate('en', 'usb.identify.s3.arch').toLowerCase().includes('xtensa'), 'en identify s3 arch');
 assert(translate('pl', 'usb.identify.generic.model').includes('{vid}'), 'pl generic model placeholders');
 assert(translate('en', 'usb.identify.cp210x.boot').toLowerCase().includes('esp32'), 'en cp210x boot');
+assert(translate('pl', 'usb.identify.s3.boot').toLowerCase().includes('gotowy'), 'pl identify s3 boot');
+assert(translate('en', 'usb.identify.s3.boot').toLowerCase().includes('ready'), 'en identify s3 boot');
+assert(translate('pl', 'usb.mock.info').includes('{model}'), 'pl mock info placeholders');
+assert(translate('en', 'usb.mock.unknown').toLowerCase().includes('unknown'), 'en mock unknown');
+assert(translate('pl', 'usb.log.applied').toLowerCase().includes('konfigur'), 'pl usb applied log');
+assert(translate('en', 'ota.methodEspota').toLowerCase().includes('espota'), 'en ota method espota');
+assert(translate('pl', 'flash.log.startBuild').includes('build'), 'pl flash start build');
+assert(translate('en', 'a11y.mainNav').toLowerCase().includes('nav'), 'en a11y main nav');
+assert(translate('pl', 'ino.modalTitle').toLowerCase().includes('arduino'), 'pl ino modal');
+assert(translate('en', 'usb.spec.psramExtra').includes('{psram}'), 'en psram extra');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 
