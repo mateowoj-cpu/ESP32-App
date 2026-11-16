@@ -201,7 +201,9 @@ tools/pc-agent/      Agent monitora PC (Python)
 5. Testy: dodaj/aktualizuj `*.test.ts` przy logice w `src/platform/` / i18n.  
 6. Nowe komendy Rust → wpisz w [architecture.md](./architecture.md) (tabela IPC) i ewentualnie user-guide jeśli widać w UI.
 
-Roadmapa: [roadmap-next.md](./roadmap-next.md) — po zamknięciu full-compile następna jest **Faza 18** (ops live / human secrets).
+Board catalog PR: [board-catalog.md](./board-catalog.md) + szablon `.github/PULL_REQUEST_TEMPLATE/board-catalog.md`.
+
+Roadmapa: [roadmap-next.md](./roadmap-next.md) — board-catalog community validation done; następna **Faza 18** (ops live / human secrets).
 
 ## Przydatne linki
 

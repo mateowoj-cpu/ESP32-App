@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.10** (Faza 17 + full-build-closure). Następna: [Faza 18+](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.10** (Faza 17 + full-build-closure + board-catalog community validation). Następna: [Faza 18 ops / human](./roadmap-next.md).
 
 Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketplace mają treść **PL** z krótkim streszczeniem **EN** na górze.
 
@@ -11,7 +11,7 @@ Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketpla
 | [user-guide.md](./user-guide.md) | Użytkownik | Przeglądarka vs desktop, USB, Build/Flash/OTA, ustawienia |
 | [developer-setup.md](./developer-setup.md) | Contributor | Node/Rust, skrypty npm, `compile:full`, CI, env, konwencje PR |
 | [architecture.md](./architecture.md) | Contributor | Warstwy UI / platform / Tauri, **IPC commands**, eventy, przepływy serial/flash/OTA |
-| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–17 + plan 18+ (ops / human secrets) |
+| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan po board-catalog community validation + plan 18+ (ops / human) |
 
 ## Screenshoty UI
 
@@ -30,7 +30,7 @@ Oficjalne zrzuty (locale **PL**, web Vite, ~1440×900) — także w [README gł�
 
 | Dokument | Temat |
 |----------|--------|
-| [board-catalog.md](./board-catalog.md) | Community board PR + walidacja offsetów / VID:PID |
+| [board-catalog.md](./board-catalog.md) | Community board PR flow + walidacja offset ↔ esptool + bundled parity |
 | [marketplace-plugin-api.md](./marketplace-plugin-api.md) | Manifest v2, podpisy Ed25519, allowlista hostów, sandbox |
 | [marketplace-publishers.md](./marketplace-publishers.md) | Onboarding publisherów + sandbox demo (≠ live keys) |
 | [telemetry.md](./telemetry.md) | Opt-in telemetria, retencja, opt-out, collector ops |

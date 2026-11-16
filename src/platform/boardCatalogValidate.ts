@@ -1,8 +1,9 @@
 /**
- * Faza 16 — community board catalog validation (PR / CI).
+ * Community board catalog validation (PR / CI / sync).
  *
  * Checks `public/board-profiles/community.json` shape plus conservative
- * flash-offset rules vs esptool chip family. No network; no secrets.
+ * flash-offset rules vs esptool chip family, and bundled ↔ disk parity.
+ * No network; no secrets.
  */
 
 export const ESPTOOL_CHIP_FAMILIES = [
@@ -50,6 +51,18 @@ export interface BoardCatalogProfileInput {
   offset?: unknown;
   baud?: unknown;
   boardProfile?: unknown;
+}
+
+/** Comparable profile fields used for bundled ↔ disk parity. */
+export interface BoardCatalogProfileCore {
+  id: string;
+  label: string;
+  vid: string;
+  pid: string;
+  chip: string;
+  offset: string;
+  baud: number;
+  boardProfile: string;
 }
 
 export interface BoardCatalogInput {
@@ -283,4 +296,154 @@ export function validateCommunityBoardCatalog(
     warnings,
     profileCount: catalog.profiles.length,
   };
+}
+
+function asProfileCore(value: unknown): BoardCatalogProfileCore | null {
+  if (!isPlainObject(value)) return null;
+  if (typeof value.id !== 'string' || !value.id.trim()) return null;
+  if (typeof value.label !== 'string') return null;
+  if (typeof value.vid !== 'string') return null;
+  if (typeof value.pid !== 'string') return null;
+  if (typeof value.chip !== 'string') return null;
+  if (typeof value.offset !== 'string') return null;
+  if (typeof value.baud !== 'number' || !Number.isFinite(value.baud)) return null;
+  if (typeof value.boardProfile !== 'string') return null;
+  return {
+    id: value.id,
+    label: value.label,
+    vid: value.vid.toLowerCase(),
+    pid: value.pid.toLowerCase(),
+    chip: value.chip.trim().toLowerCase(),
+    offset: normalizeOffset(value.offset),
+    baud: value.baud,
+    boardProfile: value.boardProfile.trim().toLowerCase(),
+  };
+}
+
+function profileFingerprint(p: BoardCatalogProfileCore): string {
+  return [
+    p.id,
+    p.label,
+    p.vid,
+    p.pid,
+    p.chip,
+    p.offset,
+    String(p.baud),
+    p.boardProfile,
+  ].join('|');
+}
+
+/**
+ * Ensure the bundled fallback catalog mirrors `community.json` profiles
+ * (same ids + flash fields). Metadata like `source` / `sources` may differ.
+ */
+export function compareCatalogProfileParity(
+  disk: unknown,
+  bundled: unknown,
+): BoardCatalogValidationResult {
+  const errors: BoardCatalogIssue[] = [];
+  const warnings: BoardCatalogIssue[] = [];
+
+  if (!isPlainObject(disk) || !Array.isArray(disk.profiles)) {
+    return {
+      ok: false,
+      errors: [{ level: 'error', path: 'disk.profiles', message: 'disk catalog profiles missing' }],
+      warnings: [],
+      profileCount: 0,
+    };
+  }
+  if (!isPlainObject(bundled) || !Array.isArray(bundled.profiles)) {
+    return {
+      ok: false,
+      errors: [
+        { level: 'error', path: 'bundled.profiles', message: 'bundled catalog profiles missing' },
+      ],
+      warnings: [],
+      profileCount: 0,
+    };
+  }
+
+  const diskCores: BoardCatalogProfileCore[] = [];
+  const bundledCores: BoardCatalogProfileCore[] = [];
+  for (let i = 0; i < disk.profiles.length; i += 1) {
+    const core = asProfileCore(disk.profiles[i]);
+    if (!core) {
+      errors.push({
+        level: 'error',
+        path: `disk.profiles[${i}]`,
+        message: 'cannot normalize disk profile for parity',
+      });
+    } else {
+      diskCores.push(core);
+    }
+  }
+  for (let i = 0; i < bundled.profiles.length; i += 1) {
+    const core = asProfileCore(bundled.profiles[i]);
+    if (!core) {
+      errors.push({
+        level: 'error',
+        path: `bundled.profiles[${i}]`,
+        message: 'cannot normalize bundled profile for parity',
+      });
+    } else {
+      bundledCores.push(core);
+    }
+  }
+
+  if (diskCores.length !== bundledCores.length) {
+    errors.push({
+      level: 'error',
+      path: 'profiles',
+      message: `profile count mismatch: disk=${diskCores.length} bundled=${bundledCores.length} — update BUNDLED_COMMUNITY_CATALOG`,
+    });
+  }
+
+  const diskById = new Map(diskCores.map(p => [p.id, p]));
+  const bundledById = new Map(bundledCores.map(p => [p.id, p]));
+
+  for (const id of diskById.keys()) {
+    if (!bundledById.has(id)) {
+      errors.push({
+        level: 'error',
+        path: `bundled.profiles`,
+        message: `missing id "${id}" in BUNDLED_COMMUNITY_CATALOG`,
+      });
+    }
+  }
+  for (const id of bundledById.keys()) {
+    if (!diskById.has(id)) {
+      errors.push({
+        level: 'error',
+        path: `disk.profiles`,
+        message: `extra bundled id "${id}" not present in community.json`,
+      });
+    }
+  }
+
+  for (const [id, diskProfile] of diskById) {
+    const bundledProfile = bundledById.get(id);
+    if (!bundledProfile) continue;
+    if (profileFingerprint(diskProfile) !== profileFingerprint(bundledProfile)) {
+      errors.push({
+        level: 'error',
+        path: `profiles[${id}]`,
+        message: `disk/bundled mismatch for "${id}" (label/vid/pid/chip/offset/baud/boardProfile must match)`,
+      });
+    }
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    warnings,
+    profileCount: diskCores.length,
+  };
+}
+
+/**
+ * Validate a remote/synced catalog before applying into local cache.
+ * Returns the same result shape as `validateCommunityBoardCatalog`.
+ */
+export function validateCatalogForApply(value: unknown): BoardCatalogValidationResult {
+  return validateCommunityBoardCatalog(value);
 }
