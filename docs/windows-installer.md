@@ -79,7 +79,7 @@ Workflow: `.github/workflows/windows-release.yml`
 - Opcjonalny podpis updatera: baza `createUpdaterArtifacts: false`; CI włącza signed overlay tylko przy poprawnym `TAURI_SIGNING_PRIVATE_KEY` ([windows-updater.md](./windows-updater.md))
 - Upload artefaktów jako GitHub Actions artifacts / Release (przy tagu)
 
-**Ważne:** *Re-run* istniejącego `workflow_dispatch` trzyma **stary** `head_sha` (np. fail updatera po #31 to był Re-run `cd3c09b` / #30, nie tip z fixem). Po merge uruchom **nowy** dispatch na aktualnym `main` (albo tag `v*`). Samo „Re-run jobs” nie pobierze nowego workflow.
+**Ważne — nie używaj Re-run:** GitHub trzyma **oryginalny** `head_sha`. Fail updatera po #31/#32 to był wielokrotny Re-run runu [43885121452](https://github.com/mateowoj-cpu/ESP32-App/actions/runs/43885121452) na **`cd3c09b` (#30)**, podczas gdy tip `main` miał już fixy. Workflow wymaga inputu `confirm_fresh_dispatch=NEW`, `run_attempt==1` oraz `HEAD == origin/main`. Po merge: Actions → Windows Release → **Run workflow** (świeży), nie Re-run.
 
 Po udanym buildzie log musi zawierać tylko:
 

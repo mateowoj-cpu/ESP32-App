@@ -28,7 +28,7 @@ Sekrety GitHub Actions:
 
 Domyślnie `bundle.createUpdaterArtifacts` w `tauri.conf.json` jest **`false`** (jak Unix unsigned overlays). CI podpisuje updater **tylko** gdy sekret wygląda na prawdziwy klucz minisign / `tauri signer` (linia `untrusted comment:`) — wtedy dokłada `tauri.windows.updater-signed.json`. W przeciwnym razie (brak / blank / placeholder bez komentarza) czyści env i dokłada `tauri.windows.updater-unsigned.json` → NSIS/MSI bez `.sig` / `latest.json`, **bez** faila `Missing comment in secret key`.
 
-**Nie używaj Re-run** na starym `workflow_dispatch` — GitHub trzyma stary `head_sha`. Po merge fixów odpal **nowy** dispatch na tipie `main`.
+**Nie używaj Re-run.** Workflow Windows Release odmawia `run_attempt != 1` oraz SHA ≠ tip `origin/main`; wymaga `confirm_fresh_dispatch=NEW`. Ścieżka unsigned **nie wstrzykuje** `TAURI_SIGNING_*` do env kroku build (osobny job step).
 
 ### Regeneracja kluczy
 
