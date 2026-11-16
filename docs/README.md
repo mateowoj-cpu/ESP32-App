@@ -13,6 +13,19 @@ Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketpla
 | [architecture.md](./architecture.md) | Contributor | Warstwy UI / platform / Tauri, **IPC commands**, eventy, przepływy serial/flash/OTA |
 | [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–17 + plan 18+ (ops / human secrets) |
 
+## Screenshoty UI
+
+Oficjalne zrzuty (locale **PL**, web Vite, ~1440×900) — także w [README głównym](../README.md#screenshots):
+
+| Widok | Plik |
+|-------|------|
+| Symulator | [media/simulator.png](./media/simulator.png) |
+| Edytor UI | [media/editor.png](./media/editor.png) |
+| USB / flash | [media/usb-flash.png](./media/usb-flash.png) |
+| Automatyzacje | [media/automations.png](./media/automations.png) |
+| Marketplace | [media/marketplace.png](./media/marketplace.png) |
+| Ustawienia | [media/settings.png](./media/settings.png) |
+
 ## Platforma i dane
 
 | Dokument | Temat |
@@ -61,7 +74,7 @@ Te elementy są w repo jako **szablony / checklisty** — nie oznaczają live dy
 - Authenticode EV / reputacja SmartScreen (sekrety + podpis poza agentem)
 - Notaryzacja macOS / submit do store (docs + opcjonalne CI hooks; sekrety Apple u właściciela)
 - Live collector telemetrii + publisher private keys marketplace
-- Oficjalne screenshoty UI (`docs/media/` — brak assetów)
+- (zrobione) Oficjalne screenshoty UI — [`docs/media/`](./media/) (`simulator`, `editor`, `usb-flash`, `automations`, `marketplace`, `settings`)
 
 **Nie** dokumentuj wymyślonych URL releasów, SHA256 instalatorów ani wartości sekretów.
 

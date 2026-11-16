@@ -39,6 +39,22 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 - **Generator C++** — Arduino / PlatformIO + mapa pinów  
 - **i18n** — PL / EN (**Ustawienia → Aplikacja desktopowa → Język interfejsu**; w przeglądarce ten sam przełącznik w panelu Desktop)
 
+### Podgląd UI (screenshoty)
+
+Zrzuty z web UI (locale **PL**, motyw dark cyan/slate):
+
+![Symulator sprzętowy](./media/simulator.png)
+
+![Edytor graficzny UI](./media/editor.png)
+
+![Wykryj ESP32 (USB) / flash helper](./media/usb-flash.png)
+
+![Automatyzacje & zwierzak](./media/automations.png)
+
+![Marketplace społeczności](./media/marketplace.png)
+
+![Ustawienia](./media/settings.png)
+
 ## Build, Flash, OTA (desktop)
 
 1. Skonfiguruj wyświetlacz, Wi‑Fi (dla OTA) i automatyzacje.  
