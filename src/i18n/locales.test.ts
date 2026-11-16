@@ -45,6 +45,14 @@ assert(translate('pl', 'usb.identify.s3.model').toLowerCase().includes('s3'), 'p
 assert(translate('en', 'usb.identify.s3.arch').toLowerCase().includes('xtensa'), 'en identify s3 arch');
 assert(translate('pl', 'usb.identify.generic.model').includes('{vid}'), 'pl generic model placeholders');
 assert(translate('en', 'usb.identify.cp210x.boot').toLowerCase().includes('esp32'), 'en cp210x boot');
+assert(translate('pl', 'code.wiring.title').toLowerCase().includes('schemat'), 'pl code wiring');
+assert(translate('en', 'code.guide.step1.title').toLowerCase().includes('library'), 'en code guide');
+assert(translate('pl', 'settings.usb.sectionTitle').toLowerCase().includes('usb'), 'pl settings usb');
+assert(translate('en', 'settings.bluetooth.mode.ble').toLowerCase().includes('ble'), 'en settings ble');
+assert(translate('pl', 'sim.emulatorTitle').toLowerCase().includes('oled'), 'pl sim title');
+assert(translate('en', 'gpio.title').toLowerCase().includes('gpio'), 'en gpio title');
+assert(translate('pl', 'auto.saveRule').toLowerCase().includes('zapisz'), 'pl auto save rule');
+assert(translate('en', 'auto.tpl.blurb.pir').toLowerCase().includes('pir'), 'en auto tpl blurb');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 
