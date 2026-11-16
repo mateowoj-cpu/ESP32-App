@@ -26,7 +26,9 @@ Sekrety GitHub Actions:
 | `TAURI_SIGNING_PRIVATE_KEY` | Zawartość prywatnego klucza (minisign / tauri signer) |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Hasło klucza (jeśli ustawione) |
 
-Bez prywatnego klucza `createUpdaterArtifacts` w CI **nie podpisze** paczki aktualizacji — instalator NSIS/MSI i tak powstanie, ale auto-update nie zadziała.
+Bez prywatnego klucza CI **wyłącza** `createUpdaterArtifacts` (nakładka `src-tauri/tauri.windows.updater-unsigned.json`, jak Unix unsigned overlays) — instalator NSIS/MSI powstaje, bez `.sig` / `latest.json`. Pusty lub zły sekret w env powodował wcześniej fail po bundlach (`incorrect updater private key password: Missing comment in secret key`).
+
+Gdy `TAURI_SIGNING_PRIVATE_KEY` jest ustawiony (prawidłowy minisign / `tauri signer`), workflow zostawia `createUpdaterArtifacts: true` z `tauri.conf.json` i podpisuje artefakty updatera.
 
 ### Regeneracja kluczy
 

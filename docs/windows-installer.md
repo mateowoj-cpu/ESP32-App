@@ -76,6 +76,7 @@ Workflow: `.github/workflows/windows-release.yml`
 - Runner: `windows-latest`
 - Przed bundlem: assert `wix.language == en-US` + ASCII metadanych (+ obecność `Polish.nsh`)
 - Opcjonalny podpis Authenticode (sekrety — zob. [windows-signing.md](./windows-signing.md))
+- Opcjonalny podpis updatera: bez `TAURI_SIGNING_PRIVATE_KEY` CI buduje NSIS/MSI z `createUpdaterArtifacts: false` ([windows-updater.md](./windows-updater.md)); z kluczem — signed updater artifacts
 - Upload artefaktów jako GitHub Actions artifacts / Release (przy tagu)
 
 **Ważne:** *Re-run* istniejącego `workflow_dispatch` trzyma **stary** `head_sha`. Po merge fixów MSI uruchom **nowy** dispatch na aktualnym `main` (albo tag `v*`). Samo „Re-run jobs” na starym runie nie pobierze nowego `tauri.conf.json`.
