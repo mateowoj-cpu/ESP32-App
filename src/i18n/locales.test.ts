@@ -31,6 +31,12 @@ assert(translate('pl', 'usb.catalogTitle').toLowerCase().includes('płyt'), 'pl 
 assert(translate('en', 'usb.board.esp32_devkit_v1.name').includes('DevKit'), 'en board name');
 assert(translate('en', 'nav.marketplace').toLowerCase().includes('marketplace'), 'en marketplace nav');
 assert(translate('pl', 'market.sandboxHint').toLowerCase().includes('sandbox'), 'pl market sandbox');
+assert(translate('pl', 'market.title').toLowerCase().includes('marketplace'), 'pl market title');
+assert(translate('pl', 'action.update').toLowerCase().includes('aktual'), 'pl action update');
+assert(translate('pl', 'flash.build').toLowerCase().includes('kompil'), 'pl flash build');
+assert(translate('en', 'market.defaultWidgetPack').toLowerCase().includes('widget'), 'en default widget pack');
+assert(translate('pl', 'market.defaultRulePack').toLowerCase().includes('reguł'), 'pl default rule pack');
+assert(translate('pl', 'import.parseError').toLowerCase().includes('parsow'), 'pl import parse');
 assert(translate('en', 'market.importJson').toLowerCase().includes('import'), 'en market import');
 assert(translate('en', 'market.signed').toLowerCase().includes('sign'), 'en market signed');
 assert(translate('pl', 'flash.err.needPortBin').toLowerCase().includes('com'), 'pl flash need port');

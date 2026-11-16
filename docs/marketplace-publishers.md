@@ -1,43 +1,45 @@
-# Marketplace publishers (Faza 17)
+# Marketplace — publisherzy (Faza 17)
 
-Data-only packs remain **sandbox / no eval**. Signatures authenticate JSON; they never authorize code execution.
+Paczki danych pozostają w **sandboxie / bez eval**. Podpisy uwierzytelniają JSON; nigdy nie uprawniają do wykonywania kodu.
 
-## Trust model
+> **EN:** Publishers file holds Ed25519 **public** keys only. Sandbox `studio-sandbox` is demo/CI — replace before production. Never commit live private keys.
 
-| Layer | Role |
-|-------|------|
-| `public/marketplace/publishers.json` | Ed25519 **public** keys (`id`, `name`, `publicKeyB64`, optional `sandbox`) |
-| Pack `publisherId` + `signature` | Manifest v2 authenticity |
-| Catalog `requireSignature: true` | Install fails unless signature verifies |
+## Model zaufania
 
-Private keys: **offline only**. Never commit live PKCS8 material.
+| Warstwa | Rola |
+|---------|------|
+| `public/marketplace/publishers.json` | Klucze **publiczne** Ed25519 (`id`, `name`, `publicKeyB64`, opcjonalnie `sandbox`) |
+| `publisherId` + `signature` w paczce | Autentyczność manifestu v2 |
+| `requireSignature: true` w katalogu | Instalacja kończy się błędem bez weryfikacji podpisu |
 
-## Sandbox demo (`studio-sandbox`)
+Klucze prywatne: **tylko offline**. Nigdy nie commituj żywego materiału PKCS8.
 
-- Public key is committed and marked `"sandbox": true`.
-- Fixture pack: `public/marketplace/packs/status-strip-signed.json` (mirrored in `BUNDLED_MARKETPLACE_PACKS`).
-- Private key for that demo was generated once for fixtures and is **not** in git.
-- Regenerate: [scripts/marketplace/sandbox/README.md](../scripts/marketplace/sandbox/README.md).
+## Demo sandbox (`studio-sandbox`)
 
-Sandbox trust is for CI / docs / UI demos — replace with your own live publishers before production distribution.
+- Klucz publiczny jest w repo i oznaczony `"sandbox": true`.
+- Paczka fixture: `public/marketplace/packs/status-strip-signed.json` (lustrzanie w `BUNDLED_MARKETPLACE_PACKS`).
+- Klucz prywatny tego demo wygenerowano raz pod fixture i **nie** jest w gicie.
+- Regeneracja: [scripts/marketplace/sandbox/README.md](../scripts/marketplace/sandbox/README.md).
 
-## Live publisher onboarding (human)
+Zaufanie sandbox służy CI / docs / demo UI — przed dystrybucją produkcyjną zastąp własnymi publisherami live.
+
+## Onboarding publishera live (człowiek)
 
 1. Offline: `node scripts/marketplace/sign-pack.mjs --generate`
-2. Store PKCS8 private key in a password manager / HSM — **not** the repo.
-3. Open a PR adding only the **public** key to `publishers.json` (`sandbox` omitted or `false`).
-4. Sign community packs with `--publisher-id <your-id>` and place JSON under `public/marketplace/packs/` (allowlisted host path).
-5. Add catalog entry with `publisherId` and `requireSignature: true` when the pack must be signed.
-6. Mirror bundled catalog/packs/publishers in `src/platform/marketplace.ts` when shipping offline fallback.
-7. Reviewer: verify signature with Studio / unit tests; reject any private key files.
+2. Zapisz klucz prywatny PKCS8 w menedżerze haseł / HSM — **nie** w repo.
+3. Otwórz PR dodający wyłącznie klucz **publiczny** do `publishers.json` (`sandbox` pominięte lub `false`).
+4. Podpisz paczki społecznościowe z `--publisher-id <twoje-id>` i umieść JSON w `public/marketplace/packs/` (ścieżka z allowlisty).
+5. Dodaj wpis katalogu z `publisherId` i `requireSignature: true`, gdy paczka musi być podpisana.
+6. Zsynchronizuj bundled katalog/paczki/publisherów w `src/platform/marketplace.ts` przy offline fallback.
+7. Recenzent: zweryfikuj podpis w Studio / testach jednostkowych; odrzuć pliki z kluczem prywatnym.
 
-## Checklist (PR)
+## Checklista (PR)
 
-- [ ] No `.pkcs8`, `.pem`, or private key files in the diff
-- [ ] `publicKeyB64` is 32 raw Ed25519 bytes (base64)
-- [ ] Signed packs parse via `parseMarketplacePack` and verify after registering the publisher
-- [ ] Marketplace still data-only (no `script` / `eval` / WASM fields)
-- [ ] `npm run test:marketplace` green
+- [ ] Brak plików `.pkcs8`, `.pem` ani kluczy prywatnych w difie
+- [ ] `publicKeyB64` to 32 surowe bajty Ed25519 (base64)
+- [ ] Podpisane paczki przechodzą `parseMarketplacePack` i weryfikację po rejestracji publishera
+- [ ] Marketplace nadal tylko dane (bez pól `script` / `eval` / WASM)
+- [ ] `npm run test:marketplace` zielony
 
 ## Powiązane
 
