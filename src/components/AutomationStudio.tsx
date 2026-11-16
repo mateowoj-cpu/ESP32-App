@@ -63,6 +63,37 @@ interface AutomationStudioProps {
 
 type StudioTab = 'visual_blocks' | 'script_dsl' | 'timeline';
 
+const PET_MOOD_SELECT_VALUES: PetMood[] = [
+  'look_around',
+  'look_up',
+  'look_left',
+  'look_right',
+  'yawn',
+  'sleep',
+  'crazy',
+  'dizzy',
+  'happy',
+  'surprised',
+  'blink',
+  'angry',
+  'neutral',
+];
+
+const PET_BEHAVIOR_I18N_KEY: Partial<Record<PetBehaviorType, string>> = {
+  look_around: 'pet.gen.lookAround.name',
+  look_up: 'pet.gen.lookUp.name',
+  look_left: 'pet.gen.lookLeft.name',
+  look_right: 'pet.gen.lookRight.name',
+  yawn: 'pet.gen.yawn.name',
+  sleep: 'pet.gen.sleep.name',
+  crazy: 'pet.step.crazy.name',
+  dizzy: 'pet.step.dizzy.name',
+  happy: 'pet.gen.happy.name',
+  surprised: 'pet.gen.surprised.name',
+  blink: 'pet.gen.blink.name',
+  neutral: 'pet.gen.neutral.name',
+};
+
 // Szybkie presety czasu
 const TIME_PRESETS = [
   { label: '06:30 Rano', value: '06:30' },
@@ -106,6 +137,14 @@ export const AutomationStudio: React.FC<AutomationStudioProps> = ({
   setSimState,
 }) => {
   const { t } = useLocale();
+
+  const petMoodOptionLabel = (mood: PetMood): string => {
+    const key = PET_BEHAVIOR_I18N_KEY[mood as PetBehaviorType];
+    if (key) return t(key);
+    if (mood === 'angry') return 'Zły >_<';
+    return mood;
+  };
+
   const [activeTab, setActiveTab] = useState<StudioTab>('visual_blocks');
   const [isAddingRule, setIsAddingRule] = useState<boolean>(false);
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
@@ -777,7 +816,7 @@ void updatePetTimeline() {
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-slate-100">{t('auto.tpl.night')}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">22:00 → 15% + Sen</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t('auto.tpl.blurb.night')}</div>
                 </div>
               </button>
 
@@ -792,7 +831,7 @@ void updatePetTimeline() {
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-amber-300">{t('auto.tpl.morning')}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">07:00 → 85% + ^_^</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t('auto.tpl.blurb.morning')}</div>
                 </div>
               </button>
 
@@ -807,7 +846,7 @@ void updatePetTimeline() {
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-cyan-300">{t('auto.tpl.pir')}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">GPIO 14</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t('auto.tpl.blurb.pir')}</div>
                 </div>
               </button>
 
@@ -822,7 +861,7 @@ void updatePetTimeline() {
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-emerald-300">{t('auto.tpl.usb')}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">USB-C</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t('auto.tpl.blurb.usb')}</div>
                 </div>
               </button>
 
@@ -836,7 +875,7 @@ void updatePetTimeline() {
                   <Plus className="ui-icon-sm text-slate-500 group-hover:text-teal-400 transition-colors" aria-hidden="true" />
                 </div>
                 <div className="mt-2">
-                  <div className="text-xs font-bold text-slate-200 group-hover:text-teal-300">LDR &lt; 35 lx</div>
+                  <div className="text-xs font-bold text-slate-200 group-hover:text-teal-300">{t('auto.tpl.dusk')}</div>
                   <div className="text-xs text-slate-400 mt-0.5">→ 25%</div>
                 </div>
               </button>
@@ -852,7 +891,7 @@ void updatePetTimeline() {
                 </div>
                 <div className="mt-2">
                   <div className="text-xs font-bold text-slate-200 group-hover:text-rose-300">{t('auto.tpl.temp')}</div>
-                  <div className="text-xs text-slate-400 mt-0.5">&gt; 30°C</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{t('auto.tpl.blurb.temp')}</div>
                 </div>
               </button>
             </div>
@@ -891,7 +930,7 @@ void updatePetTimeline() {
                 {/* Trigger (Kiedy) */}
                 <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3">
                   <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono">
-                    1. KIEDY (Wyzwalacz / Trigger):
+                    1. {t('auto.trigger')}
                   </span>
                   <div>
                     <label className="ui-type-micro text-slate-400">Typ zdarzenia:</label>
@@ -1030,7 +1069,7 @@ void updatePetTimeline() {
                 {/* Action (To wtedy) */}
                 <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3">
                   <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider font-mono">
-                    2. TO WTEDY (Akcja / Action):
+                    2. {t('auto.action')}
                   </span>
                   <div>
                     <label className="ui-type-micro text-slate-400">Typ akcji:</label>
@@ -1088,19 +1127,11 @@ void updatePetTimeline() {
                         onChange={e => setNewActionMood(e.target.value as PetMood)}
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100"
                       >
-                        <option value="look_around">Rozglądanie się (Look around)</option>
-                        <option value="look_up">Patrzenie do góry (Look up)</option>
-                        <option value="look_left">Zerkanie w lewo (Look left)</option>
-                        <option value="look_right">Zerkanie w prawo (Look right)</option>
-                        <option value="yawn">Ziewanie (Yawn)</option>
-                        <option value="sleep">Zasypianie / Sen (Zzz)</option>
-                        <option value="crazy">Zaczyna wariować (Crazy)</option>
-                        <option value="dizzy">Zakręcone oczy (Dizzy)</option>
-                        <option value="happy">Szczęśliwy ^_^</option>
-                        <option value="surprised">Zaskoczony O_O</option>
-                        <option value="blink">Mruga</option>
-                        <option value="angry">Zły &gt;_&lt;</option>
-                        <option value="neutral">Neutralny</option>
+                        {PET_MOOD_SELECT_VALUES.map(mood => (
+                          <option key={mood} value={mood}>
+                            {petMoodOptionLabel(mood)}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   )}
@@ -1127,13 +1158,13 @@ void updatePetTimeline() {
                   onClick={() => setIsAddingRule(false)}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg"
                 >
-                  Anuluj
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleCreateRule}
                   className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-lg transition-colors shadow"
                 >
-                  Zapisz Regułę
+                  {t('auto.saveRule')}
                 </button>
               </div>
             </div>
@@ -1141,6 +1172,10 @@ void updatePetTimeline() {
 
           {/* Lista Klocków Reguł z Bezpośrednią Edycją Parametrów */}
           <div className="flex flex-col gap-3">
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <Layers className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+              {t('auto.rulesList')}
+            </span>
             {automations.map(rule => {
               const isExpanded = expandedRuleId === rule.id;
 
@@ -1175,7 +1210,7 @@ void updatePetTimeline() {
                       <span className={`ui-type-micro font-mono px-2 py-0.5 rounded ${
                         rule.enabled ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-slate-800 text-slate-400'
                       }`}>
-                        {rule.enabled ? 'AKTYWNA' : 'WYŁĄCZONA'}
+                        {rule.enabled ? t('auto.enabled') : t('auto.disabled')}
                       </span>
                     </div>
 
@@ -1224,7 +1259,7 @@ void updatePetTimeline() {
                         <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
                           <span className="text-xs font-bold text-cyan-400 uppercase font-mono flex items-center gap-2">
                             <Sparkles className="ui-icon-sm" aria-hidden="true" />
-                            JEŚLI (Wyzwalacz):
+                            {t('auto.trigger')}
                           </span>
                           <select
                             value={rule.trigger.type}
@@ -1404,7 +1439,7 @@ void updatePetTimeline() {
                         <div className="flex items-center justify-between pb-1.5 border-b border-slate-800/80">
                           <span className="text-xs font-bold text-emerald-400 uppercase font-mono flex items-center gap-2">
                             <Activity className="ui-icon-sm" aria-hidden="true" />
-                            TO WTEDY (Akcja):
+                            {t('auto.action')}
                           </span>
                           <select
                             value={rule.action.type}
@@ -1473,19 +1508,11 @@ void updatePetTimeline() {
                               }))}
                               className="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200"
                             >
-                              <option value="look_around">Rozglądanie się (Look around)</option>
-                              <option value="look_up">Patrzenie do góry (Look up)</option>
-                              <option value="look_left">Zerkanie w lewo (Look left)</option>
-                              <option value="look_right">Zerkanie w prawo (Look right)</option>
-                              <option value="yawn">Ziewanie (Yawn)</option>
-                              <option value="sleep">Sen (Zzz)</option>
-                              <option value="crazy">Zaczyna wariować (Crazy)</option>
-                              <option value="dizzy">Zakręcone oczy (Dizzy)</option>
-                              <option value="happy">Uśmiech ^_^</option>
-                              <option value="surprised">Zaskoczenie O_O</option>
-                              <option value="blink">Mruganie</option>
-                              <option value="angry">Zły &gt;_&lt;</option>
-                              <option value="neutral">Neutralny</option>
+                              {PET_MOOD_SELECT_VALUES.map(mood => (
+                                <option key={mood} value={mood}>
+                                  {petMoodOptionLabel(mood)}
+                                </option>
+                              ))}
                             </select>
                           </div>
                         )}
@@ -1853,7 +1880,7 @@ void updatePetTimeline() {
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                   <Layers className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                  Kroki Sekwencji Zachowań ({timelineSteps.length} kroków • {formatTime(totalDurationSec)})
+                  {t('auto.timelineTitle')} ({timelineSteps.length} • {formatTime(totalDurationSec)})
                 </span>
                 <span className="ui-type-micro text-slate-400">
                   Edytuj czas, kolejność lub zachowanie
@@ -1913,19 +1940,11 @@ void updatePetTimeline() {
                           onChange={e => handleBehaviorChange(step.id, e.target.value as PetBehaviorType)}
                           className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200"
                         >
-                          <option value="look_around">Rozglądanie się</option>
-                          <option value="look_up">Patrzenie do góry</option>
-                          <option value="look_left">Zerkanie w lewo</option>
-                          <option value="look_right">Zerkanie w prawo</option>
-                          <option value="yawn">Ziewanie</option>
-                          <option value="sleep">Sen (Zzz)</option>
-                          <option value="crazy">Zaczyna wariować</option>
-                          <option value="dizzy">Zakręcenie / Wirowanie</option>
-                          <option value="happy">Uśmiech ^_^</option>
-                          <option value="surprised">Zaskoczenie O_O</option>
-                          <option value="blink">Mruganie</option>
-                          <option value="angry">Groźne spojrzenie</option>
-                          <option value="neutral">Neutralne czuwanie</option>
+                          {PET_MOOD_SELECT_VALUES.map(mood => (
+                            <option key={mood} value={mood}>
+                              {petMoodOptionLabel(mood)}
+                            </option>
+                          ))}
                         </select>
 
                         {/* Reorder and Delete buttons */}
@@ -1968,7 +1987,7 @@ void updatePetTimeline() {
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                   <span className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                     <Plus className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                    Dodaj Krok do Osi
+                    {t('auto.addStep')}
                   </span>
                 </div>
 
@@ -1994,19 +2013,11 @@ void updatePetTimeline() {
                       }}
                       className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-100"
                     >
-                      <option value="look_around">Rozglądanie się (Look around)</option>
-                      <option value="look_up">Patrzenie do góry (Look up)</option>
-                      <option value="look_left">Zerkanie w lewo (Look left)</option>
-                      <option value="look_right">Zerkanie w prawo (Look right)</option>
-                      <option value="yawn">Ziewanie (Yawn)</option>
-                      <option value="sleep">Sen z Zzz (Sleep)</option>
-                      <option value="crazy">Zaczyna wariować (Crazy mode)</option>
-                      <option value="dizzy">Zakręcenie / Wirujące oczy (Dizzy)</option>
-                      <option value="happy">Uśmiech ^_^ (Happy)</option>
-                      <option value="surprised">Zaskoczenie O_O (Surprised)</option>
-                      <option value="blink">Mruganie (Blink)</option>
-                      <option value="angry">Zły robot (Angry)</option>
-                      <option value="neutral">Neutralne czuwanie (Neutral)</option>
+                      {PET_MOOD_SELECT_VALUES.map(mood => (
+                        <option key={mood} value={mood}>
+                          {petMoodOptionLabel(mood)}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -2051,7 +2062,7 @@ void updatePetTimeline() {
                 className="w-full py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow"
               >
                 <Plus className="ui-icon-sm" aria-hidden="true" />
-                <span>Dodaj ten krok na koniec</span>
+                <span>{t('auto.addStep')}</span>
               </button>
             </div>
           </div>
