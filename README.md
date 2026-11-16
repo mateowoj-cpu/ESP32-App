@@ -22,6 +22,7 @@ Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App
 - [Desktop (Tauri) — skrót techniczny](#desktop-tauri--skrót-techniczny)
 - [Status i roadmapa](#status-i-roadmapa)
 - [Contributing](#contributing)
+- [Screenshots](#screenshots)
 
 ## Stack
 
@@ -218,7 +219,7 @@ Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secre
 
 Szczegóły: [docs/roadmap-next.md](./docs/roadmap-next.md).
 
-**Uwaga dystrybucji:** draft winget i checklisty SmartScreen **nie** oznaczają live publish do `winget-pkgs` ani gotowej reputacji EV — to kroki człowieka po signed release. Brak oficjalnych screenshotów w repo (`docs/media/` — do uzupełnienia).
+**Uwaga dystrybucji:** draft winget i checklisty SmartScreen **nie** oznaczają live publish do `winget-pkgs` ani gotowej reputacji EV — to kroki człowieka po signed release.
 
 ## Contributing
 
@@ -236,4 +237,25 @@ Projekt bez wskazanej licencji w repozytorium — sprawdź ustawienia właścici
 
 ## Screenshots
 
-Zrzuty ekranu UI można dodać do `docs/media/` i podlinkować tutaj po pierwszym publicznym releasie wizualnym (obecnie brak oficjalnych assetów w repo).
+Oficjalne zrzuty UI (web, locale **PL**, motyw dark cyan/slate, ~1440×900) w [`docs/media/`](./docs/media/):
+
+| Widok | Plik |
+|-------|------|
+| Symulator sprzętowy | [`simulator.png`](./docs/media/simulator.png) |
+| Edytor graficzny UI | [`editor.png`](./docs/media/editor.png) |
+| USB / serial / flash helper | [`usb-flash.png`](./docs/media/usb-flash.png) |
+| Automatyzacje & zwierzak | [`automations.png`](./docs/media/automations.png) |
+| Marketplace | [`marketplace.png`](./docs/media/marketplace.png) |
+| Ustawienia | [`settings.png`](./docs/media/settings.png) |
+
+![Symulator sprzętowy](./docs/media/simulator.png)
+
+![Edytor graficzny UI](./docs/media/editor.png)
+
+![Wykryj ESP32 (USB)](./docs/media/usb-flash.png)
+
+![Automatyzacje](./docs/media/automations.png)
+
+![Marketplace](./docs/media/marketplace.png)
+
+![Ustawienia](./docs/media/settings.png)
