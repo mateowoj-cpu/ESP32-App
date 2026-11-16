@@ -53,6 +53,9 @@ jobs:
       - name: Board sync tests
         run: npm run test:board-sync
 
+      - name: Board catalog validation tests
+        run: npm run test:board-catalog
+
       - name: OTA host validation tests
         run: npm run test:ota
 

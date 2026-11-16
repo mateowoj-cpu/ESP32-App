@@ -1,30 +1,28 @@
-# Kolejny krok po Fazie 15
+# Kolejny krok po Fazie 16
 
-Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 16+ jako ukończonych** bez merge’a funkcji.
+Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 17+ jako ukończonych** bez merge’a funkcji.
 
-## Stan po Fazie 15
+## Stan po Fazie 16
 
-- **Plugin API marketplace** — manifest v2, Ed25519 podpisy paczek (data-only), allowlista hostów remote fetch (`src/platform/marketplace.ts`, [marketplace-plugin-api.md](./marketplace-plugin-api.md))
-- **Live winget prep** — szablon `0.2.8` + checklista merge do `microsoft/winget-pkgs` (SHA z CI draft; merge = human) ([windows-winget.md](./windows-winget.md))
-- **Telemetry ops** — `VITE_TELEMETRY_ENDPOINT`, retencja / opt-out / checklista collectora ([telemetry.md](./telemetry.md))
-- **Unix updater polish** — `tauri.*.signed.json` (`createUpdaterArtifacts: true` gdy sekret), job multi-platform `latest.json` bez wymyślanych signature
-- **i18n** — FlashHelper statusy + `identifyEsp32` feature keys (PL/EN)
-- Linia wersji **0.2.8**
+- **Board catalog PR validation** — `boardCatalogValidate` + `npm run test:board-catalog` + [board-catalog.md](./board-catalog.md) (offset ↔ esptool chip, community PR flow)
+- **Głębsze i18n identify** — `chipModelKey` / `architectureKey` / `bootLogKey` (PL/EN) w `identifyEsp32` + UsbDetectorView
+- **EV HSM / self-hosted Windows** — `Resolve-CodeSigningOverlay.ps1`, input/var `runner` / `WINDOWS_RUNNER`, thumbprint-only path ([windows-signing.md](./windows-signing.md))
+- **macOS notarize CI** — opcjonalny import `.p12` + `macos-notarize-dmg.sh` gdy sekrety Apple obecne ([macos-notarize.md](./macos-notarize.md))
+- Linia wersji **0.2.9**
 
-## Faza 16+ (backlog)
+## Priorytety dalej (kolejność)
 
-- Głębsze i18n pozostałych hardkodów (`chipModel` / `architecture` / boot-log PL w `identifyEsp32`, tytuły FlashHelper)
-- Self-hosted Windows runner + EV token / cloud HSM w `windows-release.yml`
-- macOS notarize kroki w CI gdy sekrety Apple obecne (dziś docs-only hooks)
-- Board catalog: community PR flow + automatyczna walidacja offsetów vs esptool chip family
-- Live publisher keys w `public/marketplace/publishers.json` + signed community packs w katalogu
-- Live merge `winget-pkgs` + hosting collectora telemetrii (ops poza repo)
+1. **Faza 17 — Marketplace live publisher bootstrap** — onboarding publisherów: docs + szablon `publishers.json`, przykładowe **sandbox** signed packs w katalogu (klucze demo wyraźnie oznaczone; prawdziwe live keys = human offline keygen). Marketplace nadal **data-only / no eval**.
+2. Live merge `winget-pkgs` + hosting collectora telemetrii (ops poza repo; checklisty już w docs).
+3. Authenticode EV na self-hosted / cloud HSM w praktyce (sekrety + runner — human).
+4. Apple notarize secrets na CI (human) + ewentualnie App Store Connect API key path.
+5. Dalsze i18n / UX polish poza identify USB.
 
-## Human-only (nie blokuje Fazy 15 w kodzie)
+## Human-only (nie blokuje Fazy 16 w kodzie)
 
 - Authenticode / EV + SmartScreen reputation
-- Apple notarize secrets
+- Apple notarize secrets / Team ID
 - `WINGET_GITHUB_TOKEN` + merge PR w `microsoft/winget-pkgs`
 - `TAURI_SIGNING_PRIVATE_KEY` na signed Unix updater artifacts
 - Live `VITE_TELEMETRY_ENDPOINT` + retencja po stronie collectora
-- Marketplace publisher private keys (offline keygen)
+- Marketplace publisher private keys (offline keygen — nie commituj)

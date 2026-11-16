@@ -42,7 +42,7 @@ npm run tauri:build -- --config src-tauri/tauri.windows-signing.local.json
 
 Tauri wywoła `signtool` dla binariów i instalatorów.
 
-## EV na tokenie / HSM (Faza 14)
+## EV na tokenie / HSM (Faza 14–16)
 
 1. Podłącz token USB (lub skonfiguruj HSM) i odblokuj PIN **tylko** na maszynie build.
 2. Upewnij się, że certyfikat pojawia się w `Cert:\CurrentUser\My` z EKU *Code Signing*.
@@ -52,19 +52,40 @@ Tauri wywoła `signtool` dla binariów i instalatorów.
    - cloud HSM / Key Vault wspierany przez CA + sekrety CI zgodne z polityką CA.
 5. Po buildzie zweryfikuj Subject (nazwa organizacji EV) i timestamp.
 
+### Self-hosted runner / cloud HSM (Faza 16)
+
+Workflow `.github/workflows/windows-release.yml`:
+
+| Mechanizm | Jak |
+|-----------|-----|
+| `workflow_dispatch` input `runner` | np. label self-hosted zamiast `windows-latest` |
+| Repo variable `WINDOWS_RUNNER` | domyślny label dla tagów `v*` (gdy brak inputu) |
+| Secret `WINDOWS_CERTIFICATE_THUMBPRINT` | SHA1 z **prawdziwego** certu na runnerze (bez PFX) — skrypt `Resolve-CodeSigningOverlay.ps1` sprawdza obecność w `Cert:\CurrentUser\My` |
+
+**Nie** commituj thumbprintów. Wartość secretu pochodzi wyłącznie z `Get-ChildItem Cert:\CurrentUser\My` na maszynie z tokenem/HSM.
+
+Checklista ops:
+
+- [ ] Self-hosted Windows runner zarejestrowany (label zgodny z `WINDOWS_RUNNER` / inputem)
+- [ ] Token EV / HSM odblokowany na sesji build (PIN poza logami CI)
+- [ ] Thumbprint skopiowany do secretu `WINDOWS_CERTIFICATE_THUMBPRINT` (40 hex)
+- [ ] Smoke: `Get-AuthenticodeSignature` na NSIS po tagu `v*`
+- [ ] Monitor SmartScreen po publikacji ([windows-smartscreen.md](./windows-smartscreen.md))
+
 Pełna checklista reputacji / SmartScreen: [windows-smartscreen.md](./windows-smartscreen.md).
 
 ## Sekrety GitHub Actions
 
 Workflow `.github/workflows/windows-release.yml` oczekuje (opcjonalnie):
 
-| Secret | Opis |
-|--------|------|
+| Secret / var | Opis |
+|--------------|------|
 | `WINDOWS_CERTIFICATE` | Zawartość `.pfx` zakodowana w Base64 (głównie OV; EV często nie eksportuje się do `.pfx`) |
 | `WINDOWS_CERTIFICATE_PASSWORD` | Hasło do `.pfx` |
-| `WINDOWS_CERTIFICATE_THUMBPRINT` | SHA1 thumbprint (bez spacji) |
+| `WINDOWS_CERTIFICATE_THUMBPRINT` | SHA1 thumbprint (bez spacji) — ścieżka EV/HSM bez PFX |
+| `WINDOWS_RUNNER` (variable) | Opcjonalny label self-hosted |
 
-Bez tych sekretów job **buduje niepodpisany** instalator (przydatne do smoke). Z sekretami importuje certyfikat i podpisuje.
+Bez tych sekretów job **buduje niepodpisany** instalator (przydatne do smoke). Z PFX importuje certyfikat; z samym thumbprintem używa certu już obecnego na runnerze.
 
 ### Jak przygotować Base64 z .pfx
 

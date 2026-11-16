@@ -31,7 +31,7 @@ export interface TelemetryPayload {
   ts: number;
 }
 
-const APP_VERSION = '0.2.8';
+const APP_VERSION = '0.2.9';
 
 function coarseOs(): string {
   if (typeof navigator === 'undefined') return 'unknown';

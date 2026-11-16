@@ -1,7 +1,18 @@
 name: Windows Release (NSIS / MSI / PC Agent / Updater)
 
+# Faza 16 — optional self-hosted runner / EV HSM:
+# - workflow_dispatch input `runner` (default windows-latest)
+# - or repository variable WINDOWS_RUNNER (e.g. self-hosted label)
+# - WINDOWS_CERTIFICATE_THUMBPRINT alone works when the cert is already in the
+#   runner store (USB token / cloud HSM). Never invent thumbprints in git.
+
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: "Runner label — windows-latest (hosted) or self-hosted EV/HSM label"
+        required: false
+        default: "windows-latest"
   push:
     tags:
       - "v*"
@@ -12,7 +23,7 @@ permissions:
 jobs:
   windows-installer:
     name: Build Windows installers
-    runs-on: windows-latest
+    runs-on: ${{ github.event.inputs.runner || vars.WINDOWS_RUNNER || 'windows-latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,14 +55,15 @@ jobs:
             throw "PC agent sidecar missing after build"
           }
 
-      - name: Import Authenticode certificate (optional)
+      - name: Resolve Authenticode overlay (PFX or EV thumbprint)
         id: codesign
         env:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          WINDOWS_CERTIFICATE_THUMBPRINT: ${{ secrets.WINDOWS_CERTIFICATE_THUMBPRINT }}
         shell: pwsh
         run: |
-          ./scripts/windows/Import-CodeSigningCertificate.ps1 `
+          ./scripts/windows/Resolve-CodeSigningOverlay.ps1 `
             -OutConfigPath "./src-tauri/tauri.windows-signing.local.json"
 
       - name: Build Tauri Windows bundles

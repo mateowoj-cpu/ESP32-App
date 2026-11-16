@@ -42,3 +42,4 @@ Przy kolejnym podłączeniu tej samej płytki wartości wracają automatycznie (
 **Synchronizuj profile płytek (community)** pobiera katalog z
 `public/board-profiles/community.json` (GitHub `main`) i scala do lokalnego cache.
 Bez sieci używa katalogu bundlowanego w aplikacji.
+Community PR + reguły offset ↔ chip: [board-catalog.md](./board-catalog.md).

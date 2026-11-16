@@ -469,6 +469,12 @@ export interface ConnectedEsp32Info {
   features: string[];
   /** Optional i18n keys; UI should prefer these over raw `features` when present. */
   featureKeys?: string[];
+  /** Optional i18n key for localized chip model label (Faza 16). */
+  chipModelKey?: string;
+  /** Optional i18n key for localized architecture string (Faza 16). */
+  architectureKey?: string;
+  /** Optional i18n key for localized demo boot log (Faza 16). */
+  bootLogKey?: string;
   rawBootLog?: string;
 }
 

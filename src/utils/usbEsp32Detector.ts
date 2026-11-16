@@ -194,8 +194,10 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         usbProductId: pidHex,
         chipFamily: 'ESP32-S3',
         chipModel: 'ESP32-S3 (Native USB / JTAG)',
+        chipModelKey: 'usb.identify.s3.model',
         coreCount: 2,
-        architecture: 'Xtensa Dual-Core 32-bit LX7 z instrukcjami wektorowymi AI',
+        architecture: 'Xtensa Dual-Core 32-bit LX7 with AI vector instructions',
+        architectureKey: 'usb.identify.s3.arch',
         maxCpuClockMhz: 240,
         flashSizeMb: 16,
         psramSizeMb: 8,
@@ -215,7 +217,8 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
           'Akceleracja AI / DSP',
           'Dotyk pojemnościowy do 14 pinów',
         ],
-        rawBootLog: `ESP-ROM:esp32s3-20210327\nBuild:Mar 27 2021\nrst:0x1 (POWERON),boot:0x2b (SPI_FAST_FLASH_BOOT)\nSPIWP:0xee\nmode:DIO, clock div:1\nload:0x3fce3808,len:0x44c\nload:0x403c9700,len:0xbe4\nentry 0x403c98d4\nI (24) boot: Chip: ESP32-S3 (QFN56) rev.0, Flash: 16MB, PSRAM: 8MB\n[ESP32 Display Studio] Gotowy do pracy!`,
+        bootLogKey: 'usb.identify.s3.boot',
+        rawBootLog: `ESP-ROM:esp32s3-20210327\nBuild:Mar 27 2021\nrst:0x1 (POWERON),boot:0x2b (SPI_FAST_FLASH_BOOT)\nSPIWP:0xee\nmode:DIO, clock div:1\nload:0x3fce3808,len:0x44c\nload:0x403c9700,len:0xbe4\nentry 0x403c98d4\nI (24) boot: Chip: ESP32-S3 (QFN56) rev.0, Flash: 16MB, PSRAM: 8MB\n[ESP32 Display Studio] Ready!`,
       };
     } else if (pidHex === '0x1002') {
       return {
@@ -224,8 +227,10 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         usbProductId: pidHex,
         chipFamily: 'ESP32-C3',
         chipModel: 'ESP32-C3 (RISC-V USB Serial)',
+        chipModelKey: 'usb.identify.c3.model',
         coreCount: 1,
         architecture: '32-bit RISC-V RV32IMC',
+        architectureKey: 'usb.identify.c3.arch',
         maxCpuClockMhz: 160,
         flashSizeMb: 4,
         psramSizeMb: 0,
@@ -243,7 +248,8 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
           'Niski pobór energii (Ultra-Low Power)',
           'Wbudowany konwerter USB JTAG/Serial',
         ],
-        rawBootLog: `ESP-ROM:esp32c3-api1-20210207\nBuild:Feb  7 2021\nrst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)\nSPIWP:0xee\nmode:DIO, clock div:1\nload:0x3fcd6100,len:0x1b4\nload:0x403ce000,len:0x6b0\nentry 0x403ce000\nI (22) boot: Chip: ESP32-C3 (QFN32) rev.3, Flash: 4MB\n[ESP32 Display Studio] Gotowy do pracy!`,
+        bootLogKey: 'usb.identify.c3.boot',
+        rawBootLog: `ESP-ROM:esp32c3-api1-20210207\nBuild:Feb  7 2021\nrst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)\nSPIWP:0xee\nmode:DIO, clock div:1\nload:0x3fcd6100,len:0x1b4\nload:0x403ce000,len:0x6b0\nentry 0x403ce000\nI (22) boot: Chip: ESP32-C3 (QFN32) rev.3, Flash: 4MB\n[ESP32 Display Studio] Ready!`,
       };
     } else if (pidHex === '0x1003') {
       return {
@@ -252,8 +258,10 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         usbProductId: pidHex,
         chipFamily: 'ESP32-C6',
         chipModel: 'ESP32-C6 (Wi-Fi 6 + Thread + Zigbee)',
+        chipModelKey: 'usb.identify.c6.model',
         coreCount: 1,
         architecture: '32-bit RISC-V High-Performance + Low-Power Core',
+        architectureKey: 'usb.identify.c6.arch',
         maxCpuClockMhz: 160,
         flashSizeMb: 8,
         psramSizeMb: 0,
@@ -271,7 +279,8 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
           'IEEE 802.15.4 (Zigbee 3.0 & Thread)',
           'Wsparcie protokołu Smart Home Matter',
         ],
-        rawBootLog: `ESP-ROM:esp32c6-20220919\nBuild:Sep 19 2022\nrst:0x1 (POWERON),boot:0xc\nChip: ESP32-C6 (QFN40) rev.0, Flash: 8MB\n[ESP32 Display Studio] Wi-Fi 6 + Matter gotowy!`,
+        bootLogKey: 'usb.identify.c6.boot',
+        rawBootLog: `ESP-ROM:esp32c6-20220919\nBuild:Sep 19 2022\nrst:0x1 (POWERON),boot:0xc\nChip: ESP32-C6 (QFN40) rev.0, Flash: 8MB\n[ESP32 Display Studio] Wi-Fi 6 + Matter ready!`,
       };
     } else if (pidHex === '0x0002') {
       return {
@@ -280,8 +289,10 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         usbProductId: pidHex,
         chipFamily: 'ESP32-S2',
         chipModel: 'ESP32-S2 (Native USB)',
+        chipModelKey: 'usb.identify.s2.model',
         coreCount: 1,
         architecture: 'Xtensa Single-Core 32-bit LX7',
+        architectureKey: 'usb.identify.s2.arch',
         maxCpuClockMhz: 240,
         flashSizeMb: 4,
         psramSizeMb: 2,
@@ -299,7 +310,8 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
           'Pojemnościowy dotyk 14x GPIO',
           'Interfejs LCD 8-bit równoległy',
         ],
-        rawBootLog: `ESP-ROM:esp32s2-rc4-20191025\nBuild:Oct 25 2019\nrst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)\nChip: ESP32-S2 rev.0, Flash: 4MB\n[ESP32 Display Studio] Gotowy!`,
+        bootLogKey: 'usb.identify.s2.boot',
+        rawBootLog: `ESP-ROM:esp32s2-rc4-20191025\nBuild:Oct 25 2019\nrst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)\nChip: ESP32-S2 rev.0, Flash: 4MB\n[ESP32 Display Studio] Ready!`,
       };
     }
   }
@@ -312,8 +324,10 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
       usbProductId: pidHex,
       chipFamily: 'ESP32',
       chipModel: 'ESP32 WROOM / DevKit V1 (Silicon Labs CP210x)',
+      chipModelKey: 'usb.identify.cp210x.model',
       coreCount: 2,
       architecture: 'Xtensa Dual-Core 32-bit LX6',
+      architectureKey: 'usb.identify.cp210x.arch',
       maxCpuClockMhz: 240,
       flashSizeMb: 4,
       psramSizeMb: 0,
@@ -333,7 +347,8 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         '10x pojemnościowe piny dotykowe Touch0-Touch9',
         'Sprzętowe I2C, SPI, UART, PWM',
       ],
-      rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nconfigsip: 0, SPIWP:0xee\nclk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00\nmode:DIO, clock div:1\nload:0x3fff0030,len:1184\nload:0x40078000,len:13824\nho 0 tail 12 room 4\nload:0x40080400,len:3880\nentry 0x40080640\nI (45) boot: Chip: ESP32-D0WD-V3 (revision 3), Flash: 4MB\n[ESP32 Display Studio] Uruchamianie...`,
+      bootLogKey: 'usb.identify.cp210x.boot',
+      rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nconfigsip: 0, SPIWP:0xee\nclk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00\nmode:DIO, clock div:1\nload:0x3fff0030,len:1184\nload:0x40078000,len:13824\nho 0 tail 12 room 4\nload:0x40080400,len:3880\nentry 0x40080640\nI (45) boot: Chip: ESP32-D0WD-V3 (revision 3), Flash: 4MB\n[ESP32 Display Studio] Starting...`,
     };
   }
 
@@ -345,8 +360,10 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
       usbProductId: pidHex,
       chipFamily: 'ESP32',
       chipModel: 'ESP32 NodeMCU / D1 Mini (WCH CH340 / CH9102)',
+      chipModelKey: 'usb.identify.ch340.model',
       coreCount: 2,
       architecture: 'Xtensa Dual-Core 32-bit LX6',
+      architectureKey: 'usb.identify.ch340.arch',
       maxCpuClockMhz: 240,
       flashSizeMb: 4,
       psramSizeMb: 0,
@@ -362,7 +379,8 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
         'Wi-Fi + BLE',
         'Obsługa ekranów I2C OLED SSD1306 i LCD SPI',
       ],
-      rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nmode:DIO, clock div:1\nload:0x3fff0030,len:1184\nload:0x40078000,len:13824\nentry 0x40080640\nI (42) boot: ESP32 Chip Revision 1, Flash: 4MB\n[ESP32 Display Studio] Uruchamianie...`,
+      bootLogKey: 'usb.identify.ch340.boot',
+      rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)\nmode:DIO, clock div:1\nload:0x3fff0030,len:1184\nload:0x40078000,len:13824\nentry 0x40080640\nI (42) boot: ESP32 Chip Revision 1, Flash: 4MB\n[ESP32 Display Studio] Starting...`,
     };
   }
 
@@ -372,9 +390,11 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
     usbVendorId: vidHex,
     usbProductId: pidHex,
     chipFamily: 'ESP32',
-    chipModel: `ESP32 Urządzenie USB (${vidHex}:${pidHex})`,
+    chipModel: `ESP32 USB device (${vidHex}:${pidHex})`,
+    chipModelKey: 'usb.identify.generic.model',
     coreCount: 2,
     architecture: 'Xtensa Dual-Core 32-bit',
+    architectureKey: 'usb.identify.generic.arch',
     maxCpuClockMhz: 240,
     flashSizeMb: 4,
     psramSizeMb: 0,
@@ -386,6 +406,7 @@ export function identifyEsp32FromUsbVidPid(vid: number | string, pid: number | s
       'usb.identify.generic.f2',
     ],
     features: ['Wi-Fi 802.11 b/g/n', 'Bluetooth / BLE', 'GPIO, ADC, DAC, I2C, SPI'],
-    rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13\nChip: Generic ESP32\n[ESP32 Display Studio] Połączono przez port USB Serial`,
+    bootLogKey: 'usb.identify.generic.boot',
+    rawBootLog: `rst:0x1 (POWERON_RESET),boot:0x13\nChip: Generic ESP32\n[ESP32 Display Studio] Connected via USB Serial`,
   };
 }

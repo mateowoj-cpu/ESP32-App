@@ -35,6 +35,10 @@ assert(translate('en', 'market.importJson').toLowerCase().includes('import'), 'e
 assert(translate('en', 'market.signed').toLowerCase().includes('sign'), 'en market signed');
 assert(translate('pl', 'flash.err.needPortBin').toLowerCase().includes('com'), 'pl flash need port');
 assert(translate('en', 'usb.identify.s3.f0').toLowerCase().includes('usb'), 'en identify s3');
+assert(translate('pl', 'usb.identify.s3.model').toLowerCase().includes('s3'), 'pl identify s3 model');
+assert(translate('en', 'usb.identify.s3.arch').toLowerCase().includes('xtensa'), 'en identify s3 arch');
+assert(translate('pl', 'usb.identify.generic.model').includes('{vid}'), 'pl generic model placeholders');
+assert(translate('en', 'usb.identify.cp210x.boot').toLowerCase().includes('esp32'), 'en cp210x boot');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 
