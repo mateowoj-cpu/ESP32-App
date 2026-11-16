@@ -188,7 +188,7 @@ Szczegóły UX: [windows-ota.md](./windows-ota.md), [windows-flash.md](./windows
 ### Marketplace / board catalog
 
 - Marketplace: `public/marketplace/` + `marketplace.ts` — walidacja schematu, allowlista hostów, opcjonalny podpis Ed25519; **bez** wykonywania kodu ([marketplace-plugin-api.md](./marketplace-plugin-api.md)).
-- Board catalog: `public/board-profiles/community.json` → `boardSync` / `boardCatalogValidate` ([board-catalog.md](./board-catalog.md)).
+- Board catalog: `public/board-profiles/community.json` → `boardSync` / `boardCatalogValidate` (offset ↔ esptool chip family, bundled parity, reject złego remote) — [board-catalog.md](./board-catalog.md).
 
 ### Deep link / pliki
 
