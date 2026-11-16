@@ -5,6 +5,13 @@ name: Windows Release (NSIS / MSI / PC Agent / Updater)
 # - or repository variable WINDOWS_RUNNER (e.g. self-hosted label)
 # - WINDOWS_CERTIFICATE_THUMBPRINT alone works when the cert is already in the
 #   runner store (USB token / cloud HSM). Never invent thumbprints in git.
+#
+# Updater signing: base tauri.conf.json has createUpdaterArtifacts:false.
+# Signed overlay is used ONLY when TAURI_SIGNING_PRIVATE_KEY looks like minisign.
+# Unsigned build step does NOT inject TAURI_SIGNING_* into the process env at all.
+#
+# NEVER click "Re-run" on an old workflow_dispatch — GitHub keeps the original
+# head_sha. After merging workflow fixes, start a NEW "Run workflow" on tip main.
 
 on:
   workflow_dispatch:
@@ -13,6 +20,10 @@ on:
         description: "Runner label — windows-latest (hosted) or self-hosted EV/HSM label"
         required: false
         default: "windows-latest"
+      confirm_fresh_dispatch:
+        description: "Type NEW (not Re-run). Re-run keeps a stale commit and will fail this guard."
+        required: true
+        default: ""
   push:
     tags:
       - "v*"
@@ -27,6 +38,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Refuse Re-run / stale SHA (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        env:
+          CONFIRM: ${{ github.event.inputs.confirm_fresh_dispatch }}
+        run: |
+          $confirm = ($env:CONFIRM ?? "").Trim().ToUpperInvariant()
+          if ($confirm -ne "NEW") {
+            throw "Set confirm_fresh_dispatch=NEW and start a NEW Run workflow (not Re-run). Got: '$($env:CONFIRM)'"
+          }
+
+          git fetch origin main --prune
+          $head = (git rev-parse HEAD).Trim()
+          $tip = (git rev-parse origin/main).Trim()
+          Write-Host "HEAD=$head"
+          Write-Host "origin/main tip=$tip"
+          Write-Host "run_attempt=$env:GITHUB_RUN_ATTEMPT"
+          Write-Host "run_id=$env:GITHUB_RUN_ID"
+
+          if ($env:GITHUB_RUN_ATTEMPT -ne "1") {
+            throw "Refusing Re-run (attempt $($env:GITHUB_RUN_ATTEMPT)). GitHub Re-run keeps the ORIGINAL head_sha and will never pick up workflow fixes. Actions → Windows Release → Run workflow (fresh) on tip of main."
+          }
+
+          if ($head -ne $tip) {
+            throw "Refusing stale SHA $head (origin/main tip is $tip). This usually means a Re-run of an old dispatch. Start a NEW workflow_dispatch."
+          }
+
+          Write-Host "OK: fresh dispatch on tip of main."
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -73,11 +115,6 @@ jobs:
           ./scripts/windows/Resolve-CodeSigningOverlay.ps1 `
             -OutConfigPath "./src-tauri/tauri.windows-signing.local.json"
 
-      # Base tauri.conf.json has createUpdaterArtifacts:false. Enable signing only
-      # when the secret looks like a real minisign key ("untrusted comment:").
-      # Empty / placeholder / wrong-password-shaped secrets must NOT fail NSIS/MSI.
-      # IMPORTANT: Re-run of an old workflow_dispatch keeps the old head_sha —
-      # after merging this fix, start a NEW dispatch on tip of main.
       - name: Select updater signing config
         id: updater
         env:
@@ -86,33 +123,32 @@ jobs:
         run: |
           . ./scripts/windows/Test-TauriUpdaterKey.ps1
           $valid = Test-TauriUpdaterKeyFormat -Key $env:TAURI_SIGNING_PRIVATE_KEY
+          # Drop key from this step's env before finishing (defense in depth).
+          Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue
           if ($valid) {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "signed=true"
-            Write-Host "Updater key format OK — will merge tauri.windows.updater-signed.json."
+            Write-Host "Updater key format OK — signed build step will run."
           } else {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "signed=false"
-            if ([string]::IsNullOrWhiteSpace($env:TAURI_SIGNING_PRIVATE_KEY)) {
-              Write-Host "TAURI_SIGNING_PRIVATE_KEY unset/blank — unsigned updater (NSIS/MSI only)."
-            } else {
-              Write-Host "TAURI_SIGNING_PRIVATE_KEY present but missing 'untrusted comment:' — treating as invalid; unsigned updater."
-            }
+            Write-Host "Updater key missing/invalid — UNSIGNED build (no TAURI_SIGNING_* in env)."
           }
 
-      - name: Build Tauri Windows bundles
+      # UNSIGNED: secrets must NOT appear in the step `env:` map at all.
+      # createUpdaterArtifacts stays false via base conf + unsigned overlay.
+      - name: Build Tauri Windows bundles (unsigned updater)
+        if: steps.updater.outputs.signed != 'true'
         shell: pwsh
-        env:
-          UPDATER_SIGNED: ${{ steps.updater.outputs.signed }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          Write-Host "HEAD=$(git rev-parse HEAD)"
-          Write-Host "updater.signed=$($env:UPDATER_SIGNED)"
-
-          # Never leave empty/invalid signing env — Tauri decode fails the job after bundles.
-          if ($env:UPDATER_SIGNED -ne 'true') {
-            Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue
-            Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD -ErrorAction SilentlyContinue
+          # Assert signing env is absent — Tauri must never see an empty/placeholder key.
+          if (Test-Path Env:TAURI_SIGNING_PRIVATE_KEY) {
+            throw "TAURI_SIGNING_PRIVATE_KEY unexpectedly set in unsigned build step"
           }
+          if (Test-Path Env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD) {
+            throw "TAURI_SIGNING_PRIVATE_KEY_PASSWORD unexpectedly set in unsigned build step"
+          }
+
+          Write-Host "HEAD=$(git rev-parse HEAD)"
+          Write-Host "updater.signed=false (unsigned path)"
 
           $cmd = "npm run tauri:build --"
           if (Test-Path "./src-tauri/tauri.windows-signing.local.json") {
@@ -121,12 +157,29 @@ jobs:
           if (Test-Path "./src-tauri/resources/windows/esp32-pc-agent.exe") {
             $cmd += " --config ./src-tauri/tauri.windows-agent.example.json"
           }
-          # Belt-and-suspenders: base conf is already false; force unsigned or signed overlay.
-          if ($env:UPDATER_SIGNED -eq 'true') {
-            $cmd += " --config ./src-tauri/tauri.windows.updater-signed.json"
-          } else {
-            $cmd += " --config ./src-tauri/tauri.windows.updater-unsigned.json"
+          $cmd += " --config ./src-tauri/tauri.windows.updater-unsigned.json"
+          Write-Host "Running: $cmd"
+          Invoke-Expression $cmd
+          if ($LASTEXITCODE -ne 0) { throw "tauri build failed with exit $LASTEXITCODE" }
+
+      - name: Build Tauri Windows bundles (signed updater)
+        if: steps.updater.outputs.signed == 'true'
+        shell: pwsh
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          Write-Host "HEAD=$(git rev-parse HEAD)"
+          Write-Host "updater.signed=true (signed path)"
+
+          $cmd = "npm run tauri:build --"
+          if (Test-Path "./src-tauri/tauri.windows-signing.local.json") {
+            $cmd += " --config ./src-tauri/tauri.windows-signing.local.json"
           }
+          if (Test-Path "./src-tauri/resources/windows/esp32-pc-agent.exe") {
+            $cmd += " --config ./src-tauri/tauri.windows-agent.example.json"
+          }
+          $cmd += " --config ./src-tauri/tauri.windows.updater-signed.json"
           Write-Host "Running: $cmd"
           Invoke-Expression $cmd
           if ($LASTEXITCODE -ne 0) { throw "tauri build failed with exit $LASTEXITCODE" }
