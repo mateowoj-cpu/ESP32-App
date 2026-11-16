@@ -55,7 +55,7 @@
     "publisher": "ESP32 Display Studio",
     "homepage": "https://github.com/mateowoj-cpu/ESP32-App",
     "category": "DeveloperTool",
-    "copyright": "Copyright © 2026 ESP32 Display Studio",
+    "copyright": "Copyright (C) 2026 ESP32 Display Studio",
     "shortDescription": "Visual environment for designing OLED/LCD interfaces for ESP32",
     "longDescription": "Visual environment for designing OLED/LCD interfaces for ESP32: hardware simulator, UI editor, automations, USB COM detection, PC agent, esptool flashing, and OTA/update tools.",
     "icon": [
@@ -99,6 +99,9 @@
       "nsis": {
         "installMode": "currentUser",
         "languages": ["Polish", "English"],
+        "customLanguageFiles": {
+          "Polish": "windows/nsis-languages/Polish.nsh"
+        },
         "displayLanguageSelector": true,
         "compression": "lzma",
         "startMenuFolder": "ESP32 Display Studio",
@@ -106,7 +109,7 @@
         "installerHooks": "windows/installer-hooks.nsh"
       },
       "wix": {
-        "language": ["en-US"],
+        "language": "en-US",
         "upgradeCode": "a7c3e9f1-5b2d-4e8a-9c1f-6d4b8a2e0f35"
       }
     }
