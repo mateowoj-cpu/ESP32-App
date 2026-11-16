@@ -6,6 +6,7 @@ Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 18+ jako ukończonych*
 
 - **Fazy 0–17** na `main` (marketplace sandbox publisher bootstrap, board catalog, Unix/Windows packaging CI).
 - **Full build closure** — udokumentowana i zweryfikowana ścieżka: `npm run smoke` + `cargo check` (+ Linux AppImage/deb w środowisku Linux). Checklist: [developer-setup.md](./developer-setup.md) § „Pełna kompilacja”; skrypt `npm run compile:full` / `scripts/full-compile.sh`.
+- **Docs** — README + [architecture.md](./architecture.md) opisują IPC / macierz build; indeks: [README.md](./README.md).
 
 ## Priorytety dalej (kolejność)
 
