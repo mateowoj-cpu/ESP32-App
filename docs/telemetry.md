@@ -1,40 +1,42 @@
-# Opt-in diagnostic telemetry
+# Telemetria diagnostyczna (opt-in)
 
-Studio keeps **local** flash/COM diagnostics (log + ZIP) separate from optional
-**network** telemetry (added in Phase 13; ops polish in Phase 15). Telemetry is
-**off by default**. Docs index: [README.md](./README.md) · local ZIP:
+Studio rozdziela **lokalną** diagnostykę flash/COM (log + ZIP) od opcjonalnej
+telemetrii **sieciowej** (Faza 13; dopracowanie ops w Fazie 15). Telemetria jest
+**domyślnie wyłączona**. Indeks docs: [README.md](./README.md) · lokalny ZIP:
 [windows-diagnostics.md](./windows-diagnostics.md).
 
-## What is sent (only when enabled)
+> **EN:** Opt-in network telemetry (off by default). Only coarse `v` / `os` / `event` / `ok` / `ts` when `VITE_TELEMETRY_ENDPOINT` is set at build time — never serial logs, paths, or PII.
 
-Preference: **Ustawienia → Desktop → Telemetria diagnostyczna (opt-in)**.
+## Co jest wysyłane (tylko po włączeniu)
 
-When the toggle is on **and** the build defines `VITE_TELEMETRY_ENDPOINT`
-(HTTPS URL), Studio may POST a tiny JSON body:
+Preferencja: **Ustawienia → Aplikacja desktopowa → Telemetria diagnostyczna (opt-in)**.
 
-| Field | Meaning |
-|-------|---------|
-| `v` | App version (e.g. `0.2.10`) |
-| `os` | Coarse OS: `windows` / `macos` / `linux` / `other` |
+Gdy przełącznik jest włączony **oraz** build definiuje `VITE_TELEMETRY_ENDPOINT`
+(URL HTTPS), Studio może wysłać małe ciało JSON metodą POST:
+
+| Pole | Znaczenie |
+|------|-----------|
+| `v` | Wersja aplikacji (np. `0.2.10`) |
+| `os` | Zgrubny system: `windows` / `macos` / `linux` / `other` |
 | `event` | `app_open`, `build_result`, `flash_result`, `ota_result`, `diag_export`, `board_sync` |
-| `ok` | Optional boolean for result events |
-| `ts` | Unix ms timestamp |
+| `ok` | Opcjonalny boolean dla zdarzeń wynikowych |
+| `ts` | Znacznik czasu Unix (ms) |
 
-## What is never sent
+## Czego nigdy nie wysyłamy
 
-- Serial monitor text, boot logs, MAC addresses, chip serial numbers
-- File paths, project JSON, Wi‑Fi credentials, OTA passwords
-- Personal identifiers, emails, machine names, IP addresses
-- Diagnostics ZIP contents (ZIP stays local — see [windows-diagnostics.md](./windows-diagnostics.md))
+- Tekst monitora serial, logi boot, adresy MAC, numery seryjne chipa
+- Ścieżki plików, JSON projektu, hasła Wi‑Fi, hasła OTA
+- Identyfikatory osobowe, e-maile, nazwy maszyn, adresy IP
+- Zawartość ZIP diagnostyki (ZIP zostaje lokalnie — [windows-diagnostics.md](./windows-diagnostics.md))
 
 ## Endpoint (`VITE_TELEMETRY_ENDPOINT`)
 
-- Set `VITE_TELEMETRY_ENDPOINT=https://…` at **build time** for desktop/web builds that should be able to report.
-- Without the env var, enabling the toggle stores consent only — **no network calls**.
-- Do **not** commit secrets or private collector tokens into git.
-- Documented in `.env.example` (commented). CI may inject the secret as a build env for release jobs only when the human configures it.
+- Ustaw `VITE_TELEMETRY_ENDPOINT=https://…` w czasie **buildu** desktop/web, jeśli ten build ma móc raportować.
+- Bez zmiennej środowiskowej włączenie przełącznika zapisuje tylko zgodę — **bez wywołań sieciowych**.
+- **Nie** commituj sekretów ani prywatnych tokenów collectora do gita.
+- Udokumentowane w `.env.example` (zakomentowane). CI może wstrzyknąć sekret jako env builda tylko gdy człowiek to skonfiguruje.
 
-Example (local / CI, never commit the real URL if it embeds a token):
+Przykład (lokalnie / CI — nigdy nie commituj prawdziwego URL z tokenem):
 
 ```bash
 VITE_TELEMETRY_ENDPOINT=https://telemetry.example.com/v1/ingest
@@ -42,43 +44,43 @@ VITE_TELEMETRY_ENDPOINT=https://telemetry.example.com/v1/ingest
 
 ## Opt-out
 
-| Layer | Behavior |
-|-------|----------|
-| Default | Preference off (`localStorage` key unset) |
-| UI toggle | **Ustawienia → Desktop → Telemetria** → off clears consent (`esp32_telemetry` ≠ `1`) |
-| Build without endpoint | Even with toggle on, client is a no-op |
-| Uninstall / clear site data | Removes `localStorage` consent |
+| Warstwa | Zachowanie |
+|---------|------------|
+| Domyślnie | Preferencja wyłączona (brak klucza w `localStorage`) |
+| Przełącznik UI | **Ustawienia → Desktop → Telemetria** → wyłączenie czyści zgodę (`esp32_telemetry` ≠ `1`) |
+| Build bez endpointu | Nawet przy włączonym przełączniku klient nic nie robi |
+| Odinstalowanie / czyszczenie danych witryny | Usuwa zgodę z `localStorage` |
 
-There is no background phone-home when the preference is off.
+Przy wyłączonej preferencji nie ma żadnego „phone-home” w tle.
 
-## Retention (collector ops — human)
+## Retencja (ops collectora — człowiek)
 
-Studio does **not** host a collector. Whoever runs `VITE_TELEMETRY_ENDPOINT` should publish retention publicly. Recommended baseline:
+Studio **nie** hostuje collectora. Kto uruchamia `VITE_TELEMETRY_ENDPOINT`, powinien opublikować retencję. Zalecany baseline:
 
-| Policy | Recommendation |
-|--------|----------------|
-| Retention | ≤ 90 days, then delete or aggregate to anonymous counters |
-| Access | Ops-only; no adtech / resale |
-| PII | Payload has none by design — still treat logs around the collector as sensitive |
-| Deletion | Support a “drop all events before date X” ops runbook |
-| Legal | Link privacy note from release notes if you ship a live endpoint |
+| Polityka | Rekomendacja |
+|----------|--------------|
+| Retencja | ≤ 90 dni, potem usunięcie lub agregacja do anonimowych liczników |
+| Dostęp | Tylko ops; bez adtech / odsprzedaży |
+| Dane osobowe | Payload z założenia ich nie zawiera — logi wokół collectora i tak traktuj jako wrażliwe |
+| Usuwanie | Runbook „usuń wszystkie zdarzenia przed datą X” |
+| Prawo | Link do noty prywatności w release notes, jeśli wysyłasz live endpoint |
 
-### Minimal collector checklist
+### Minimalna checklista collectora
 
-1. HTTPS-only ingest accepting `POST` JSON matching the table above (ignore unknown fields).
-2. Rate-limit by coarse IP; drop oversized bodies (>2 KiB).
-3. Store `v`, `os`, `event`, `ok`, `ts` only.
-4. Document retention + opt-out in your privacy page; link from app release notes.
-5. Rotate any ingest tokens out-of-band — never put them in this git repo.
+1. Ingest tylko HTTPS, `POST` JSON zgodny z tabelą powyżej (ignoruj nieznane pola).
+2. Rate-limit po zgrubnym IP; odrzucaj ciała >2 KiB.
+3. Przechowuj tylko `v`, `os`, `event`, `ok`, `ts`.
+4. Opisz retencję i opt-out na stronie prywatności; podlinkuj z release notes.
+5. Rotuj tokeny ingest poza repo — nigdy nie wkładaj ich do tego gita.
 
-### Example request body
+### Przykładowe ciało żądania
 
 ```json
 { "v": "0.2.10", "os": "windows", "event": "flash_result", "ok": true, "ts": 1730000000000 }
 ```
 
-## Implementation
+## Implementacja
 
-- Preference key: `localStorage` `esp32_telemetry` (`1` = on)
-- Client: `src/platform/telemetry.ts`
-- UI: Desktop settings panel
+- Klucz preferencji: `localStorage` `esp32_telemetry` (`1` = włączone)
+- Klient: `src/platform/telemetry.ts`
+- UI: panel ustawień desktop

@@ -2,7 +2,7 @@
 
 Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.10** (Faza 17 + full-build-closure). Następna: [Faza 18+](./roadmap-next.md).
 
-Język: głównie **PL** (jak README główne); telemetria i część marketplace po **EN**.
+Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketplace mają treść **PL** z krótkim streszczeniem **EN** na górze.
 
 ## Start tutaj
 

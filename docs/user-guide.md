@@ -37,7 +37,7 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 - **Marketplace** — gotowe paczki widgetów / reguł (import JSON, sandbox bez wykonywania kodu)  
 - **Integracje** — pogoda (Open-Meteo itd.), **Monitor PC** (CPU/RAM/dysk)  
 - **Generator C++** — Arduino / PlatformIO + mapa pinów  
-- **i18n** — PL / EN (Ustawienia lub chrome aplikacji)
+- **i18n** — PL / EN (**Ustawienia → Aplikacja desktopowa → Język interfejsu**; w przeglądarce ten sam przełącznik w panelu Desktop)
 
 ## Build, Flash, OTA (desktop)
 
@@ -52,10 +52,10 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 
 | Opcja | Opis |
 |-------|------|
-| Język | PL / EN |
+| Język interfejsu | Polski / English |
 | Zamykaj do zasobnika | Okno ukrywa się w tray |
 | Autostart Studio / agenta PC | Start z systemem |
-| Kanał aktualizacji | stable (`latest.json`) / beta (`latest-beta.json`) |
+| Kanał aktualizacji | Stabilny (`latest.json`) / Beta (`latest-beta.json`) |
 | Diagnostyka flash/COM | Lokalny log + eksport ZIP |
 | Synchronizuj profile płytek | Community catalog VID:PID |
 | Telemetria diagnostyczna | **Opt-in**, domyślnie off — [telemetry.md](./telemetry.md) |

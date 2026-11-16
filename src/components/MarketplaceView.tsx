@@ -178,7 +178,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
     }
     const pack = exportWidgetPack(screen.widgets as UIWidget[], {
       id: `local-widgets-${Date.now().toString(36)}`,
-      title: screen.name || 'Widget pack',
+      title: screen.name || t('market.defaultWidgetPack'),
       author: 'local',
     });
     downloadJson(`${pack.id}.json`, pack);
@@ -192,7 +192,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({
     }
     const pack = exportRulePack(automations, {
       id: `local-rules-${Date.now().toString(36)}`,
-      title: 'Automation rules',
+      title: t('market.defaultRulePack'),
       author: 'local',
     });
     downloadJson(`${pack.id}.json`, pack);

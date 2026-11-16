@@ -131,7 +131,7 @@ export default function App() {
     if (json.apiConfig) setApiConfig(json.apiConfig as typeof apiConfig);
     if (json.screens) setScreens(json.screens as typeof screens);
     if (json.automations) setAutomations(json.automations as typeof automations);
-    setImportNotice(`Zaimportowano projekt: ${sourceLabel}`);
+    setImportNotice(t('import.ok').replace('{name}', sourceLabel));
     setTimeout(() => setImportNotice(null), 4000);
   };
 
@@ -146,7 +146,7 @@ export default function App() {
             applyProjectPayload(json, file.fileName);
             setActiveTab('simulator');
           } catch {
-            setImportNotice(`Niepoprawny JSON projektu: ${file.fileName}`);
+            setImportNotice(t('import.badJson').replace('{name}', file.fileName));
           }
         } else if (file.kind === 'sketch') {
           setOpenFileNotice(file);
@@ -377,7 +377,7 @@ export default function App() {
         const json = JSON.parse(event.target?.result as string) as Record<string, unknown>;
         applyProjectPayload(json, file.name);
       } catch {
-        setImportNotice('Błąd podczas parsowania pliku projektu');
+        setImportNotice(t('import.parseError'));
       }
     };
     reader.readAsText(file);
