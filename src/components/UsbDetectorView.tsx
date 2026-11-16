@@ -167,8 +167,19 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     const identified = identifyEsp32FromUsbVidPid(vid, pid);
     identified.portName = port.info.label;
     identified.baudRate = 115200;
+    if (identified.chipModelKey) {
+      identified.chipModel = t(identified.chipModelKey)
+        .replace('{vid}', identified.usbVendorId || '')
+        .replace('{pid}', identified.usbProductId || '');
+    }
+    if (identified.architectureKey) {
+      identified.architecture = t(identified.architectureKey);
+    }
     if (identified.featureKeys?.length) {
       identified.features = identified.featureKeys.map(key => t(key));
+    }
+    if (identified.bootLogKey) {
+      identified.rawBootLog = t(identified.bootLogKey);
     }
     setDetectedChip(identified);
     attachOpenPort(port);
@@ -319,10 +330,16 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     const identified = identifyEsp32FromUsbVidPid(preset.vid, preset.pid);
     const localizedName = t(boardNameKey(preset.id));
     identified.chipModel = localizedName;
+    if (identified.architectureKey) {
+      identified.architecture = t(identified.architectureKey);
+    }
     identified.flashSizeMb = preset.flashMb;
     identified.psramSizeMb = preset.psramMb;
     identified.maxCpuClockMhz = preset.clockMhz;
     identified.features = preset.featureKeys.map(key => t(key));
+    if (identified.bootLogKey) {
+      identified.rawBootLog = t(identified.bootLogKey);
+    }
 
     setDetectedChip(identified);
 

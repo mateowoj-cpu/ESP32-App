@@ -78,7 +78,7 @@ Gdy masz **podpisane** fragmenty updatera z Windows / Linux / macOS:
 ```bash
 chmod +x scripts/unix/build-multiplatform-latest-json.sh
 ./scripts/unix/build-multiplatform-latest-json.sh \
-  --version 0.2.8 \
+  --version 0.2.9 \
   --notes "…" \
   --windows path/to/windows-platform.json \
   --linux path/to/linux-platform.json \

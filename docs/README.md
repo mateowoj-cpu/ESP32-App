@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.8** (Faza 15). Następna: [Faza 16+](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.9** (Faza 16). Następna: [Faza 17+](./roadmap-next.md).
 
 Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 
@@ -11,7 +11,8 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 | [user-guide.md](./user-guide.md) | Użytkownik | Przeglądarka vs desktop, USB, Build/Flash/OTA, ustawienia |
 | [developer-setup.md](./developer-setup.md) | Contributor | Node/Rust, skrypty, smoke, CI |
 | [architecture.md](./architecture.md) | Contributor | Warstwy UI / platform / Tauri |
-| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–15 + plan 16+ |
+| [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–16 + plan 17+ |
+| [board-catalog.md](./board-catalog.md) | Contributor | Community board PR + walidacja offsetów |
 | [marketplace-plugin-api.md](./marketplace-plugin-api.md) | Contributor | Manifest v2, podpisy, allowlista hostów |
 
 ## Desktop Windows
