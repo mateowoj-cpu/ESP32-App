@@ -1,0 +1,58 @@
+name: Board catalog (community PR)
+
+# Fast path for contributors who only touch board profiles / validator.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "public/board-profiles/**"
+      - "src/platform/boardCatalogValidate.ts"
+      - "src/platform/boardCatalogValidate.test.ts"
+      - "src/platform/boardSync.ts"
+      - "src/platform/boardSync.test.ts"
+      - "scripts/board-profiles/**"
+      - "docs/board-catalog.md"
+      - ".github/workflows/board-catalog.yml"
+      - ".github/PULL_REQUEST_TEMPLATE/board-catalog.md"
+  push:
+    branches: [main]
+    paths:
+      - "public/board-profiles/**"
+      - "src/platform/boardCatalogValidate.ts"
+      - "src/platform/boardCatalogValidate.test.ts"
+      - "src/platform/boardSync.ts"
+      - "src/platform/boardSync.test.ts"
+      - "scripts/board-profiles/**"
+      - "docs/board-catalog.md"
+      - ".github/workflows/board-catalog.yml"
+      - ".github/PULL_REQUEST_TEMPLATE/board-catalog.md"
+
+concurrency:
+  group: board-catalog-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Offset ↔ chip + bundled parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Board catalog unit tests
+        run: npm run test:board-catalog
+
+      - name: Board sync unit tests
+        run: npm run test:board-sync
+
+      - name: Validate community.json + bundled parity
+        run: npm run validate:board-catalog

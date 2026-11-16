@@ -1,22 +1,23 @@
-# Kolejny krok po full-compile closure
+# Kolejny krok po community board-catalog validation
 
 Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 18+ jako ukończonych** bez merge’a funkcji.
 
-## Stan (main · 0.2.10)
+## Stan (main · 0.2.10+)
 
 - **Fazy 0–17** na `main` (marketplace sandbox publisher bootstrap, board catalog, Unix/Windows packaging CI).
 - **Full build closure** — udokumentowana i zweryfikowana ścieżka: `npm run smoke` + `cargo check` (+ Linux AppImage/deb w środowisku Linux). Checklist: [developer-setup.md](./developer-setup.md) § „Pełna kompilacja”; skrypt `npm run compile:full` / `scripts/full-compile.sh`.
-- **Docs** — README + [architecture.md](./architecture.md) opisują IPC / macierz build; indeks: [README.md](./README.md).
+- **Docs** — README + [architecture.md](./architecture.md) opisują IPC / macierz build; oficjalne screenshoty w [media/](./media/); indeks: [README.md](./README.md).
+- **Board catalog community validation** — PR flow (szablon + path-filtered CI), walidacja offset ↔ esptool chip family, bundled ↔ disk parity, reject złego remote przed apply. Docs: [board-catalog.md](./board-catalog.md).
 
 ## Priorytety dalej (kolejność)
 
-1. **Faza 18 — Ops live path** — winget-pkgs merge checklist execution + telemetry collector hosting runbook (human secrets / infra; repo tylko checklisty i ewentualne CI draft polish).
+1. **Faza 18 — Ops live path** *(human-only)* — winget-pkgs merge checklist execution + telemetry collector hosting runbook (sekrety / infra; repo tylko checklisty i ewentualne CI draft polish).
 2. Authenticode EV na self-hosted / cloud HSM w praktyce (sekrety + runner — human).
 3. Apple notarize secrets na CI (human) + App Store Connect API key path w skrypcie.
 4. Dodatkowe signed community packs (live publishers, nie sandbox) + allowlista hostów gdy potrzeba.
 5. ~~Dalsze i18n / UX polish~~ — **done (kod):** Simulator / Automations / Settings / CodeView + GPIO chrome PL↔EN; Phase 18 human ops nadal deferred.
 
-## Human-only (nie blokuje compile w kodzie)
+## Human-only (nie blokuje compile w kodzie) — deferred
 
 - Authenticode / EV + SmartScreen reputation
 - Apple notarize secrets / Team ID
