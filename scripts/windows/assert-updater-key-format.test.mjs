@@ -2,11 +2,7 @@
  * Mirrors scripts/windows/Test-TauriUpdaterKey.ps1 format gate (no secrets).
  * Run: node scripts/windows/assert-updater-key-format.test.mjs
  */
-function looksLikeTauriUpdaterKey(raw) {
-  if (raw == null || String(raw).trim() === "") return false;
-  let content = String(raw).trim().replace(/\\n/g, "\n").replace(/\\r/g, "");
-  return /^untrusted comment:/m.test(content);
-}
+import { looksLikeTauriUpdaterKey } from "../ci/looks-like-tauri-updater-key.mjs";
 
 const cases = [
   ["", false],

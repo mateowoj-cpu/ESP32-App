@@ -1,15 +1,23 @@
-name: Desktop Unix Release (AppImage / deb / dmg)
+name: Desktop Unix — multiplatform latest.json (optional)
 
-# Faza 13–15 — packaging for Linux and macOS (no store submit by default).
-# Windows remains the primary signed release path (windows-release.yml).
-# Optional AppImage-only smoke: desktop-unix-appimage-smoke.yml (workflow_dispatch).
-# Optional macOS notarize: docs/macos-notarize.md + scripts/unix/macos-notarize-dmg.sh
-# Faza 15: when TAURI_SIGNING_PRIVATE_KEY is set, use *.signed.json overlays
-# (createUpdaterArtifacts: true) and optionally assemble multi-platform latest.json.
-# Faza 16: when APPLE_* secrets are present, import Developer ID + notarize dmg.
+# Linux and macOS installer builds moved to separate workflows (run each OS personally):
+#   - .github/workflows/linux-release.yml
+#   - .github/workflows/macos-release.yml
+# Windows remains: .github/workflows/windows-release.yml
+#
+# This workflow only assembles a multi-platform latest.json when signed platform
+# JSON fragments are available (see docs/desktop-unix.md). It does not build installers.
+#
+# Updater signing: never invents signatures; skips when TAURI_SIGNING_PRIVATE_KEY
+# is missing/invalid (minisign format gate).
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_fresh_dispatch:
+        description: "Type NEW (not Re-run). Re-run keeps a stale commit and will fail this guard."
+        required: true
+        default: ""
   push:
     tags:
       - "v*"
@@ -18,209 +26,70 @@ permissions:
   contents: write
 
 concurrency:
-  group: desktop-unix-${{ github.ref }}
+  group: desktop-unix-latest-json-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  linux-packages:
-    name: Linux AppImage + deb
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Setup Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Linux Tauri deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libudev-dev \
-            libssl-dev \
-            pkg-config \
-            file
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Select Linux Tauri config
-        id: cfg
-        run: |
-          if [ -n "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" ]; then
-            echo "config=src-tauri/tauri.linux.signed.json" >> "$GITHUB_OUTPUT"
-            echo "signed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "config=src-tauri/tauri.linux.json" >> "$GITHUB_OUTPUT"
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Build Tauri Linux bundles
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npm run tauri:build -- --config "${{ steps.cfg.outputs.config }}"
-
-      - name: Upload AppImage / deb artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: esp32-display-studio-linux
-          path: |
-            src-tauri/target/release/bundle/appimage/*
-            src-tauri/target/release/bundle/deb/*
-          if-no-files-found: warn
-
-      - name: Upload Linux updater signature fragments (signed builds only)
-        if: steps.cfg.outputs.signed == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: esp32-display-studio-linux-updater
-          path: |
-            src-tauri/target/release/bundle/appimage/*.sig
-            src-tauri/target/release/bundle/appimage/*.json
-          if-no-files-found: warn
-
-      - name: Attach to GitHub Release (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            src-tauri/target/release/bundle/appimage/*
-            src-tauri/target/release/bundle/deb/*
-          fail_on_unmatched_files: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  macos-dmg:
-    name: macOS dmg
-    runs-on: macos-14
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Setup Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Select macOS Tauri config
-        id: cfg
-        env:
-          HAS_TAURI_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
-          HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE != '' && secrets.APPLE_SIGNING_IDENTITY != '' }}
-          HAS_NOTARY: ${{ secrets.APPLE_ID != '' && secrets.APPLE_PASSWORD != '' && secrets.APPLE_TEAM_ID != '' }}
-        run: |
-          if [ "$HAS_TAURI_KEY" = "true" ]; then
-            echo "config=src-tauri/tauri.macos.signed.json" >> "$GITHUB_OUTPUT"
-            echo "signed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "config=src-tauri/tauri.macos.json" >> "$GITHUB_OUTPUT"
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "$HAS_APPLE_CERT" = "true" ]; then
-            echo "apple_codesign=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "apple_codesign=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "$HAS_NOTARY" = "true" ]; then
-            echo "notarize=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "notarize=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Import Apple Developer ID certificate (optional)
-        if: steps.cfg.outputs.apple_codesign == 'true'
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-        run: |
-          set -euo pipefail
-          CERT_PATH="$RUNNER_TEMP/apple-dev-id.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/esp32-apple-signing.keychain-db"
-          echo "$APPLE_CERTIFICATE" | base64 --decode > "$CERT_PATH"
-          KC_PASS="${KEYCHAIN_PASSWORD:-$APPLE_CERTIFICATE_PASSWORD}"
-          security create-keychain -p "$KC_PASS" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KC_PASS" "$KEYCHAIN_PATH"
-          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security list-keychain -d user -s "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KC_PASS" "$KEYCHAIN_PATH"
-          rm -f "$CERT_PATH"
-          echo "Imported Apple Developer ID certificate into temporary keychain."
-
-      - name: Build Tauri macOS dmg
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: npm run tauri:build -- --config "${{ steps.cfg.outputs.config }}"
-
-      - name: Notarize and staple dmg (optional)
-        if: steps.cfg.outputs.notarize == 'true' && steps.cfg.outputs.apple_codesign == 'true'
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          chmod +x scripts/unix/macos-notarize-dmg.sh
-          ./scripts/unix/macos-notarize-dmg.sh
-
-      - name: Upload dmg artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: esp32-display-studio-macos
-          path: |
-            src-tauri/target/release/bundle/dmg/*
-            src-tauri/target/release/bundle/macos/*
-          if-no-files-found: warn
-
-      - name: Upload macOS updater signature fragments (signed builds only)
-        if: steps.cfg.outputs.signed == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: esp32-display-studio-macos-updater
-          path: |
-            src-tauri/target/release/bundle/macos/*.sig
-            src-tauri/target/release/bundle/macos/*.tar.gz
-            src-tauri/target/release/bundle/macos/*.json
-          if-no-files-found: warn
-
-      - name: Attach to GitHub Release (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            src-tauri/target/release/bundle/dmg/*
-          fail_on_unmatched_files: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   multiplatform-latest-json:
     name: Assemble multi-platform latest.json (optional)
-    needs: [linux-packages, macos-dmg]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Refuse Re-run / stale SHA (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CONFIRM: ${{ github.event.inputs.confirm_fresh_dispatch }}
+        run: |
+          set -euo pipefail
+          confirm="$(echo "${CONFIRM:-}" | tr '[:lower:]' '[:upper:]' | xargs)"
+          if [ "$confirm" != "NEW" ]; then
+            echo "Set confirm_fresh_dispatch=NEW and start a NEW Run workflow (not Re-run). Got: '${CONFIRM}'" >&2
+            exit 1
+          fi
+          git fetch origin main --prune
+          head="$(git rev-parse HEAD)"
+          tip="$(git rev-parse origin/main)"
+          echo "HEAD=$head"
+          echo "origin/main tip=$tip"
+          echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Refusing Re-run (attempt ${GITHUB_RUN_ATTEMPT}). Start a NEW workflow_dispatch on tip of main." >&2
+            exit 1
+          fi
+          if [ "$head" != "$tip" ]; then
+            echo "Refusing stale SHA $head (origin/main tip is $tip)." >&2
+            exit 1
+          fi
+          echo "OK: fresh dispatch on tip of main."
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Resolve / assert app version
+        id: version
+        env:
+          APP_VERSION_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: node ./scripts/ci/assert-app-version.mjs --github-output
+
+      - name: Gate updater key format
+        id: updater
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          node ./scripts/ci/looks-like-tauri-updater-key.mjs --github-output
+          unset TAURI_SIGNING_PRIVATE_KEY || true
 
       - name: Download platform updater fragments (if any)
         uses: actions/download-artifact@v4
@@ -231,16 +100,16 @@ jobs:
       - name: Build multi-platform latest.json when fragments exist
         id: assemble
         env:
-          TAG: ${{ github.ref_name }}
-          HAS_SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+          TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SIGNED: ${{ steps.updater.outputs.signed }}
         run: |
           set -euo pipefail
-          if [ "$HAS_SIGNING_KEY" != "true" ]; then
-            echo "TAURI_SIGNING_PRIVATE_KEY unset — skip multi-platform latest.json."
+          if [ "$SIGNED" != "true" ]; then
+            echo "Updater key missing/invalid — skip multi-platform latest.json."
             echo "built=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          VERSION="${TAG#v}"
           chmod +x scripts/unix/build-multiplatform-latest-json.sh
           WIN=""
           LIN=""
@@ -270,7 +139,7 @@ jobs:
           echo "built=true" >> "$GITHUB_OUTPUT"
 
       - name: Attach latest.json to release
-        if: steps.assemble.outputs.built == 'true'
+        if: steps.assemble.outputs.built == 'true' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: latest.multiplatform.json

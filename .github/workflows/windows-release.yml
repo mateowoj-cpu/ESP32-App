@@ -89,12 +89,22 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Resolve / assert app version
+        id: version
+        shell: bash
+        env:
+          APP_VERSION_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: node ./scripts/ci/assert-app-version.mjs --github-output
+
       - name: Assert MSI WiX en-US / ASCII (LGHT0311 guard)
         shell: pwsh
         run: |
           Write-Host "HEAD=$(git rev-parse HEAD)"
           Write-Host "Ref=$env:GITHUB_REF"
+          Write-Host "Version=$env:APP_VERSION"
           node ./scripts/windows/assert-msi-ascii-config.mjs
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
 
       - name: Build PC agent (.exe)
         shell: pwsh
@@ -201,7 +211,7 @@ jobs:
       - name: Upload NSIS / MSI / PC Agent / updater artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: esp32-display-studio-windows
+          name: esp32-display-studio-windows-${{ steps.version.outputs.artifact_suffix }}
           path: |
             src-tauri/target/release/bundle/nsis/*
             src-tauri/target/release/bundle/msi/*

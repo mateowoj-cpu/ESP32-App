@@ -120,6 +120,8 @@ Po instalacji ustaw / wyeksportuj `ESP32_STUDIO_PIO` i `ESP32_STUDIO_ESPOTA` (sk
 | `npm run tauri:build:windows` | Target `x86_64-pc-windows-msvc` |
 | `npm run tauri:build:signed` | Build + nakładka `tauri.windows-signing.local.json` |
 | `npm run smoke` | Pełny frontend gate przed PR |
+| `npm run assert:app-version` | Wersja: `package.json` ≡ `tauri.conf.json` ≡ `Cargo.toml` ≡ lock |
+| `npm run assert:updater-key-format` | Gate formatu klucza minisign (bez sekretów) |
 | `npm run compile:cargo` | `cargo check` (`src-tauri`) |
 | `npm run compile:full` | `scripts/full-compile.sh` (smoke + cargo; `--release` / `--linux-bundle`) |
 | `npm run test:serial` | Mock serial |
