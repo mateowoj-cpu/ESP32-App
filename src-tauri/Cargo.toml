@@ -1,7 +1,7 @@
 [package]
 name = "esp32-display-studio"
 version = "0.2.10"
-description = "ESP32 Display Studio — desktop shell with native serial (COM) support"
+description = "ESP32 Display Studio - desktop shell with native serial (COM) support"
 authors = ["ESP32 Display Studio"]
 license = ""
 repository = "https://github.com/mateowoj-cpu/ESP32-App"

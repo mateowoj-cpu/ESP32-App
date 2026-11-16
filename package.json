@@ -28,7 +28,8 @@
     "validate:board-catalog": "tsx scripts/board-profiles/validate-community.ts",
     "smoke": "npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run test:board-sync && npm run test:board-catalog && npm run test:ota && npm run test:telemetry && npm run test:marketplace && npm run validate:board-catalog && npm run build",
     "compile:cargo": "cargo check --manifest-path src-tauri/Cargo.toml",
-    "compile:full": "bash scripts/full-compile.sh"
+    "compile:full": "bash scripts/full-compile.sh",
+    "assert:msi-ascii": "node scripts/windows/assert-msi-ascii-config.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

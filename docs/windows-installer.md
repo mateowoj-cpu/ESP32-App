@@ -10,12 +10,22 @@ ESP32 Display Studio buduje dwa cele Windows przez Tauri 2:
 ## Języki: aplikacja vs instalatory
 
 - **Aplikacja** (UI) — i18n PL/EN w `src/i18n/` (niezależne od instalatora).
-- **NSIS** — `Polish` + `English` z selektorem; własne stringi Tauri dla PL w `src-tauri/windows/nsis-languages/Polish.nsh` (`customLanguageFiles`).
+- **NSIS** — `Polish` + `English` z selektorem; własne stringi Tauri dla PL w `src-tauri/windows/nsis-languages/Polish.nsh` (`customLanguageFiles.Polish`, ścieżka względem `src-tauri/`).
 - **MSI (WiX)** — tylko `en-US`. WiX 3 `light.exe` używa codepage **1252** dla metadanych produktu; polskie znaki (ą, ć, ę, ł, ń, ó, ś, ź, ż) powodują **LGHT0311**. Dlatego:
-  - `bundle.windows.wix.language` = `en-US` (bez `pl-PL`),
-  - `copyright` / `shortDescription` / `longDescription` / opisy skojarzeń plików — ASCII (EN), bez diakrytyków i bez znaku `©` (używaj `(C)`).
+  - `bundle.windows.wix.language` = mapa `{ "en-US": {} }` (bez `pl-PL`) w `tauri.conf.json`,
+  - dodatkowo `src-tauri/tauri.windows.json` wymusza to samo przy merge platformowym Windows,
+  - `copyright` / `shortDescription` / `longDescription` / opisy skojarzeń plików — ASCII (EN), bez diakrytyków i bez znaku `©` (używaj `(C)`),
+  - preflight CI: `node scripts/windows/assert-msi-ascii-config.mjs`.
 
 Przywrócenie MSI `pl-PL` wymagałoby osobnego `.wxl` z `Codepage=1250` (`WixLanguageConfig.localePath`) — poza obecnym zakresem release.
+
+### Klucze Tauri 2 (zweryfikowane względem schema / bundler 2.12.x)
+
+| Cel | Klucz JSON | Uwagi |
+|-----|------------|--------|
+| Języki MSI | `bundle.windows.wix.language` | string, tablica **lub** mapa `{ "en-US": { "localePath"?: "..." } }` |
+| Języki NSIS | `bundle.windows.nsis.languages` | np. `["Polish","English"]` (nazwy NSIS, nie `pl-PL`) |
+| Tłumaczenia custom NSIS | `bundle.windows.nsis.customLanguageFiles.Polish` | ścieżka `.nsh` względem katalogu `tauri.conf.json` |
 
 ## Wymagania builda
 
@@ -64,8 +74,19 @@ Workflow: `.github/workflows/windows-release.yml`
 
 - Trigger: tag `v*` lub ręczne `workflow_dispatch`
 - Runner: `windows-latest`
+- Przed bundlem: assert `wix.language == en-US` + ASCII metadanych (+ obecność `Polish.nsh`)
 - Opcjonalny podpis Authenticode (sekrety — zob. [windows-signing.md](./windows-signing.md))
 - Upload artefaktów jako GitHub Actions artifacts / Release (przy tagu)
+
+**Ważne:** *Re-run* istniejącego `workflow_dispatch` trzyma **stary** `head_sha`. Po merge fixów MSI uruchom **nowy** dispatch na aktualnym `main` (albo tag `v*`). Samo „Re-run jobs” na starym runie nie pobierze nowego `tauri.conf.json`.
+
+Po udanym buildzie log musi zawierać tylko:
+
+```
+Running light to produce ..._x64_en-US.msi
+```
+
+i **nie** `..._pl-PL.msi` / `LGHT0311` / ostrzeżenia `Custom tauri messages for Polish`.
 
 ## Instalacja u użytkownika końcowego
 

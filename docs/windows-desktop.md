@@ -43,4 +43,4 @@ Przełącznik w **Ustawienia → Desktop**. CI tagów `v*-beta*` powinien publik
 4. Smoke: Update ze starszej instalacji linii 0.2.x → nowy tag
 5. Opcjonalnie: draft winget — [windows-winget.md](./windows-winget.md)
 
-Metadane MSI muszą pozostać ASCII / WiX `en-US` — zob. [windows-installer.md](./windows-installer.md) (LGHT0311 / codepage 1252).
+Metadane MSI muszą pozostać ASCII / WiX `en-US` — zob. [windows-installer.md](./windows-installer.md) (LGHT0311 / codepage 1252). Po merge fixów MSI uruchom **nowy** `workflow_dispatch` na aktualnym SHA (re-run starego runu nie pobiera nowego conf).
