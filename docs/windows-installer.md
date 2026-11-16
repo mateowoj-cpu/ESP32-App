@@ -5,7 +5,17 @@ ESP32 Display Studio buduje dwa cele Windows przez Tauri 2:
 | Target | Plik | Uwagi |
 |--------|------|--------|
 | **NSIS** | `.exe` | Interaktywny instalator, wybór języka PL/EN, tryb *current user* |
-| **MSI** | `.msi` | WiX, stały `upgradeCode` (aktualizacje in-place) |
+| **MSI** | `.msi` | WiX **en-US** only, stały `upgradeCode` (aktualizacje in-place) |
+
+## Języki: aplikacja vs instalatory
+
+- **Aplikacja** (UI) — i18n PL/EN w `src/i18n/` (niezależne od instalatora).
+- **NSIS** — `Polish` + `English` z selektorem; własne stringi Tauri dla PL w `src-tauri/windows/nsis-languages/Polish.nsh` (`customLanguageFiles`).
+- **MSI (WiX)** — tylko `en-US`. WiX 3 `light.exe` używa codepage **1252** dla metadanych produktu; polskie znaki (ą, ć, ę, ł, ń, ó, ś, ź, ż) powodują **LGHT0311**. Dlatego:
+  - `bundle.windows.wix.language` = `en-US` (bez `pl-PL`),
+  - `copyright` / `shortDescription` / `longDescription` / opisy skojarzeń plików — ASCII (EN), bez diakrytyków i bez znaku `©` (używaj `(C)`).
+
+Przywrócenie MSI `pl-PL` wymagałoby osobnego `.wxl` z `Codepage=1250` (`WixLanguageConfig.localePath`) — poza obecnym zakresem release.
 
 ## Wymagania builda
 

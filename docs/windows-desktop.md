@@ -42,3 +42,5 @@ Przełącznik w **Ustawienia → Desktop**. CI tagów `v*-beta*` powinien publik
 3. Zweryfikuj `latest.json` (+ `latest-beta.json` dla tagów beta) oraz podpis updatera
 4. Smoke: Update ze starszej instalacji linii 0.2.x → nowy tag
 5. Opcjonalnie: draft winget — [windows-winget.md](./windows-winget.md)
+
+Metadane MSI muszą pozostać ASCII / WiX `en-US` — zob. [windows-installer.md](./windows-installer.md) (LGHT0311 / codepage 1252).
