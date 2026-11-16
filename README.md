@@ -49,7 +49,8 @@ Szczegóły: [docs/developer-setup.md](./docs/developer-setup.md) · [docs/user-
 |--------|------|
 | `npm run dev` / `build` / `preview` | Vite |
 | `npm run lint` | TypeScript (`tsc --noEmit`) |
-| `npm run smoke` | Lint + testy platform + build |
+| `npm run smoke` | Lint + testy platform + board-catalog + build |
+| `npm run compile:full` | Smoke + `cargo check` (opcje: `--release`, `--linux-bundle`) |
 | `npm run tauri:dev` / `tauri:build` | Shell desktop |
 | `npm run tauri:build:signed` | Build + nakładka Authenticode (lokalny JSON) |
 
@@ -79,7 +80,7 @@ Pełny indeks: **[docs/README.md](./docs/README.md)**
 | [Przewodnik użytkownika](./docs/user-guide.md) | Jak korzystać z Studio |
 | [Setup developera](./docs/developer-setup.md) | Środowisko, skrypty, CI, PR |
 | [Architektura](./docs/architecture.md) | UI ↔ platform ↔ Tauri |
-| [Roadmapa](./docs/roadmap-next.md) | Po Fazie 14 → Faza 15 |
+| [Roadmapa](./docs/roadmap-next.md) | Po full-compile → Faza 18 (ops) |
 
 **Desktop / Windows:** [installer](./docs/windows-installer.md) · [drivers](./docs/windows-drivers.md) · [desktop polish](./docs/windows-desktop.md) · [updater](./docs/windows-updater.md) · [signing](./docs/windows-signing.md) · [SmartScreen](./docs/windows-smartscreen.md) · [winget](./docs/windows-winget.md) · [deep link](./docs/windows-deep-link.md) · [PC agent](./docs/windows-pc-agent.md) · [diagnostics](./docs/windows-diagnostics.md)
 

@@ -65,6 +65,9 @@ jobs:
       - name: Marketplace sandbox tests
         run: npm run test:marketplace
 
+      - name: Community board catalog validate
+        run: npm run validate:board-catalog
+
       - name: Production build
         run: npm run build
 

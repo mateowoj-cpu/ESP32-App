@@ -9,7 +9,7 @@ Język: głównie **PL** (jak README), wybrane tematy po **EN** (telemetria).
 | Dokument | Dla kogo | Opis |
 |----------|----------|------|
 | [user-guide.md](./user-guide.md) | Użytkownik | Przeglądarka vs desktop, USB, Build/Flash/OTA, ustawienia |
-| [developer-setup.md](./developer-setup.md) | Contributor | Node/Rust, skrypty, smoke, CI |
+| [developer-setup.md](./developer-setup.md) | Contributor | Node/Rust, full-compile checklist, smoke, CI |
 | [architecture.md](./architecture.md) | Contributor | Warstwy UI / platform / Tauri |
 | [roadmap-next.md](./roadmap-next.md) | Wszystkich | Stan Faz 0–17 + plan 18+ |
 | [board-catalog.md](./board-catalog.md) | Contributor | Community board PR + walidacja offsetów |
