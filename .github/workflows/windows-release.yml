@@ -73,32 +73,43 @@ jobs:
           ./scripts/windows/Resolve-CodeSigningOverlay.ps1 `
             -OutConfigPath "./src-tauri/tauri.windows-signing.local.json"
 
-      # Mirror desktop-unix-release: without TAURI_SIGNING_PRIVATE_KEY, disable
-      # createUpdaterArtifacts so NSIS/MSI still succeed (empty/malformed env used
-      # to fail after bundles with "Missing comment in secret key").
+      # Base tauri.conf.json has createUpdaterArtifacts:false. Enable signing only
+      # when the secret looks like a real minisign key ("untrusted comment:").
+      # Empty / placeholder / wrong-password-shaped secrets must NOT fail NSIS/MSI.
+      # IMPORTANT: Re-run of an old workflow_dispatch keeps the old head_sha —
+      # after merging this fix, start a NEW dispatch on tip of main.
       - name: Select updater signing config
         id: updater
         env:
-          HAS_TAURI_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         shell: pwsh
         run: |
-          if ($env:HAS_TAURI_KEY -eq 'true') {
-            "signed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-            Write-Host "TAURI_SIGNING_PRIVATE_KEY present — updater artifacts enabled (base conf)."
+          . ./scripts/windows/Test-TauriUpdaterKey.ps1
+          $valid = Test-TauriUpdaterKeyFormat -Key $env:TAURI_SIGNING_PRIVATE_KEY
+          if ($valid) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "signed=true"
+            Write-Host "Updater key format OK — will merge tauri.windows.updater-signed.json."
           } else {
-            "signed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-            Write-Host "TAURI_SIGNING_PRIVATE_KEY unset — will merge tauri.windows.updater-unsigned.json."
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "signed=false"
+            if ([string]::IsNullOrWhiteSpace($env:TAURI_SIGNING_PRIVATE_KEY)) {
+              Write-Host "TAURI_SIGNING_PRIVATE_KEY unset/blank — unsigned updater (NSIS/MSI only)."
+            } else {
+              Write-Host "TAURI_SIGNING_PRIVATE_KEY present but missing 'untrusted comment:' — treating as invalid; unsigned updater."
+            }
           }
 
       - name: Build Tauri Windows bundles
         shell: pwsh
         env:
-          HAS_TAURI_KEY: ${{ steps.updater.outputs.signed }}
+          UPDATER_SIGNED: ${{ steps.updater.outputs.signed }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          # Never leave empty signing env vars — Tauri treats them as a key and fails decode.
-          if ($env:HAS_TAURI_KEY -ne 'true') {
+          Write-Host "HEAD=$(git rev-parse HEAD)"
+          Write-Host "updater.signed=$($env:UPDATER_SIGNED)"
+
+          # Never leave empty/invalid signing env — Tauri decode fails the job after bundles.
+          if ($env:UPDATER_SIGNED -ne 'true') {
             Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue
             Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD -ErrorAction SilentlyContinue
           }
@@ -110,7 +121,10 @@ jobs:
           if (Test-Path "./src-tauri/resources/windows/esp32-pc-agent.exe") {
             $cmd += " --config ./src-tauri/tauri.windows-agent.example.json"
           }
-          if ($env:HAS_TAURI_KEY -ne 'true') {
+          # Belt-and-suspenders: base conf is already false; force unsigned or signed overlay.
+          if ($env:UPDATER_SIGNED -eq 'true') {
+            $cmd += " --config ./src-tauri/tauri.windows.updater-signed.json"
+          } else {
             $cmd += " --config ./src-tauri/tauri.windows.updater-unsigned.json"
           }
           Write-Host "Running: $cmd"

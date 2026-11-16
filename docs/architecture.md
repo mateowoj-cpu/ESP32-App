@@ -244,7 +244,7 @@ Bez konta użytkownika:
 | Draft winget | `winget-draft.yml` + `scripts/winget/prepare-draft-manifest.sh` |
 | Smoke PR | `smoke.yml` → frontend suite + `cargo check` |
 
-Updater Windows: endpointy `latest.json` / kanał beta przez `update_channel`. Nakładki Unix domyślnie `createUpdaterArtifacts: false`; signed overlays włączają artefakty gdy `TAURI_SIGNING_PRIVATE_KEY` — [desktop-unix.md](./desktop-unix.md).
+Updater: `createUpdaterArtifacts` w `tauri.conf.json` domyślnie **`false`** (NSIS/MSI bez `.sig`). Windows CI włącza `tauri.windows.updater-signed.json` tylko przy poprawnym `TAURI_SIGNING_PRIVATE_KEY` (minisign `untrusted comment:`). Unix: unsigned overlays + signed overlays gdy sekret — [desktop-unix.md](./desktop-unix.md), [windows-updater.md](./windows-updater.md).
 
 ## Granice odpowiedzialności
 
