@@ -86,13 +86,13 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
 
       setSimState(prev => ({
         ...prev,
-        lastTriggerFired: `Zegar RTC [${newTime}] -> Uruchomiono regułę: "${matchingRule.name}"`,
+        lastTriggerFired: `RTC [${newTime}] → ${t('sim.log.rtcRuleFired')}: "${matchingRule.name}"`,
       }));
       onTriggerAction(matchingRule.name, matchingRule.action.petMood);
     } else {
       setSimState(prev => ({
         ...prev,
-        lastTriggerFired: `Zegar RTC [${newTime}] (Brak przypisanej reguły)`,
+        lastTriggerFired: `RTC [${newTime}] (${t('sim.log.rtcNoRule')})`,
       }));
     }
   };
@@ -135,7 +135,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
       // Screen is off / deep sleep
       ctx.fillStyle = '#1e293b';
       ctx.font = '7px monospace';
-      ctx.fillText('[DEEP SLEEP - WAKE ON PIR/BOOT]', 4, display.height / 2);
+      ctx.fillText(t('sim.canvas.deepSleep'), 4, display.height / 2);
       return;
     }
 
@@ -145,7 +145,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
 
     // Check for active notification popup
     const activeNotif = apiConfig.notifications.list[0];
-    const isShowingNotif = apiConfig.notifications.enabled && activeNotif && simState.lastTriggerFired === 'Powiadomienie';
+    const isShowingNotif = apiConfig.notifications.enabled && activeNotif && simState.lastTriggerFired === t('integ.notifTrigger');
 
     if (isShowingNotif) {
       ctx.fillStyle = themeColors.bg;
@@ -166,7 +166,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
       ctx.fillText(activeNotif.message.slice(0, 22), 6, 28);
       ctx.fillText(activeNotif.message.slice(22, 44), 6, 38);
       ctx.font = '6px monospace';
-      ctx.fillText(`Czas: ${activeNotif.time}`, 6, 52);
+      ctx.fillText(`${t('sim.canvas.notifTime')} ${activeNotif.time}`, 6, 52);
       ctx.globalAlpha = 1.0;
       return;
     }
@@ -382,7 +382,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             ctx.font = widget.fontSize && widget.fontSize > 12 ? 'bold 12px monospace' : '8px monospace';
             let displayText = widget.label || '';
             if (widget.binding === 'pirActive' || widget.binding === 'pir') {
-              displayText = simState.pirActive ? (widget.sensorActiveLabel || 'RUCH WYKRYTY!') : (widget.sensorInactiveLabel || 'Brak ruchu');
+              displayText = simState.pirActive ? (widget.sensorActiveLabel || t('sim.canvas.motionOn')) : (widget.sensorInactiveLabel || t('sim.canvas.motionOff'));
             } else if (widget.binding === 'ambientLux' || widget.binding === 'lux') {
               displayText = `${simState.ambientLux} ${widget.unit || 'lx'}`;
             } else if (widget.binding === 'potAdc' || widget.binding === 'pot') {
@@ -398,7 +398,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             } else if (widget.binding === 'cpu') displayText = `CPU: ${apiConfig.pcMonitor.data.cpuUsage}%`;
             else if (widget.binding === 'ram') displayText = `RAM: ${apiConfig.pcMonitor.data.ramUsage}%`;
             else if (widget.binding === 'gpu') displayText = `GPU: ${apiConfig.pcMonitor.data.gpuUsage}%`;
-            else if (widget.binding === 'disk') displayText = `DYSK: ${apiConfig.pcMonitor.data.diskUsage ?? 64}%`;
+            else if (widget.binding === 'disk') displayText = `${t('sim.canvas.diskLabel')}: ${apiConfig.pcMonitor.data.diskUsage ?? 64}%`;
             else if (widget.binding === 'time') displayText = simState.simulatedTime;
             else if (widget.binding === 'date') displayText = simState.simulatedDate;
             ctx.fillText(displayText, widget.x, widget.y + 8);
@@ -488,7 +488,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
             const diskVal = pc.diskUsage ?? 64;
             ctx.font = '7px monospace';
             ctx.fillText(`CPU:${pc.cpuUsage}% RAM:${pc.ramUsage}%`, widget.x, widget.y + 7);
-            ctx.fillText(`GPU:${pc.gpuUsage}% DYSK:${diskVal}%`, widget.x, widget.y + 16);
+            ctx.fillText(`GPU:${pc.gpuUsage}% ${t('sim.canvas.diskLabel')}:${diskVal}%`, widget.x, widget.y + 16);
             
             // 4 mini resource bars: CPU, RAM, GPU, DISK
             const barW = Math.max(18, Math.floor((widget.width - 15) / 4));
@@ -555,7 +555,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
     }
 
     ctx.globalAlpha = 1.0;
-  }, [display, simState, activeScreen, apiConfig, themeColors]);
+  }, [display, simState, activeScreen, apiConfig, themeColors, t]);
 
   // Handle BOOT button press (GPIO 0)
   const handleBootButton = () => {
@@ -821,7 +821,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
           <div className="w-full flex items-center justify-between mb-4 pb-2 border-b border-slate-800/80 ui-type-micro font-mono text-slate-400">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" title="Power LED (3.3V)" />
-              <span>ESP32 I2C OLED & TOUCH EMULATOR</span>
+              <span>{t('sim.emulatorTitle')}</span>
             </span>
             <span className="text-slate-500">{display.width} x {display.height} px · {display.touchEnabled ? t('sim.capacitive') : t('sim.displayOnly')}</span>
           </div>
@@ -935,25 +935,25 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 onClick={() => handleSimulateGesture('tap')}
                 className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono ui-type-micro transition-colors"
               >
-                Tap (Dotknij)
+                {t('sim.gesture.tap')}
               </button>
               <button
                 onClick={() => handleSimulateGesture('swipe_left')}
                 className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono ui-type-micro transition-colors"
               >
-                Swipe &larr; (Następny)
+                {t('sim.gesture.swipeLeft')}
               </button>
               <button
                 onClick={() => handleSimulateGesture('swipe_right')}
                 className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono ui-type-micro transition-colors"
               >
-                Swipe &rarr; (Poprzedni)
+                {t('sim.gesture.swipeRight')}
               </button>
               <button
                 onClick={() => handleSimulateGesture('long_press')}
                 className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono ui-type-micro transition-colors"
               >
-                Long Press
+                {t('sim.gesture.longPress')}
               </button>
             </div>
           )}
@@ -973,7 +973,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 <span className="text-xs font-bold leading-tight">BOOT</span>
                 <span className={`ui-type-micro font-medium leading-none mt-0.5 ${simState.bootPressed ? 'text-slate-900' : 'text-slate-400'}`}>GPIO 0</span>
               </button>
-              <span className="text-xs font-medium text-slate-400">Przełącz ekran</span>
+              <span className="text-xs font-medium text-slate-400">{t('sim.bootSwitchScreen')}</span>
             </div>
 
             {/* Extra User Button 1 */}
@@ -989,7 +989,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 <span className="text-xs font-bold leading-tight">USER</span>
                 <span className={`ui-type-micro font-medium leading-none mt-0.5 ${simState.userBtn1Pressed ? 'text-slate-900' : 'text-slate-400'}`}>GPIO 35</span>
               </button>
-              <span className="text-xs font-medium text-slate-400">Przycisk 2</span>
+              <span className="text-xs font-medium text-slate-400">{t('sim.btn2')}</span>
             </div>
 
             {/* Rotary Encoder Widget */}
@@ -1021,7 +1021,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                   <RotateCw className="ui-icon-sm" aria-hidden="true" />
                 </button>
               </div>
-              <span className="text-xs font-medium text-slate-400">Impulsator obrotowy</span>
+              <span className="text-xs font-medium text-slate-400">{t('sim.encoder.label')}</span>
             </div>
 
             {/* USB-C Cable Plug / Unplug Simulator */}
@@ -1037,9 +1037,9 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                aria-label="Kliknij, aby symulować podłączenie kabla USB-C do komputera (automatyczne przełączenie na monitor PC)">
                 <Usb className="ui-icon-sm stroke-[2.3] shrink-0" aria-hidden="true" />
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-bold leading-tight">Kabel USB-C</span>
+                  <span className="text-xs font-bold leading-tight">{t('sim.usbCable.title')}</span>
                   <span className={`ui-type-micro font-semibold mt-0.5 tracking-wider uppercase ${simState.usbConnected ? 'text-slate-950' : 'text-slate-400'}`}>
-                    {simState.usbConnected ? 'PODŁĄCZONY' : 'ODŁĄCZONY'}
+                    {simState.usbConnected ? t('sim.connected') : 'ODŁĄCZONY'}
                   </span>
                 </div>
               </button>
@@ -1060,9 +1060,9 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                  aria-label="Symuluj połączenie bezprzewodowe Bluetooth BLE z komputerem">
                   <Bluetooth className="ui-icon-sm shrink-0" aria-hidden="true" />
                   <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold leading-tight">Bluetooth</span>
+                    <span className="text-xs font-bold leading-tight">{t('sim.ble.title')}</span>
                     <span className={`ui-type-micro font-semibold mt-0.5 tracking-wider uppercase ${simState.bluetoothConnected ? 'text-blue-100' : 'text-slate-400'}`}>
-                      {simState.bluetoothConnected ? 'POŁĄCZONY' : 'ROZŁĄCZONY'}
+                      {simState.bluetoothConnected ? t('sim.connected') : 'ROZŁĄCZONY'}
                     </span>
                   </div>
                 </button>
@@ -1075,7 +1075,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
           {simState.lastTriggerFired && (
             <div className="mt-4 px-3.5 py-2 bg-cyan-950/50 border border-cyan-800/60 rounded-lg text-xs font-mono text-cyan-300 flex items-center gap-2.5">
               <Sparkles className="ui-icon-sm text-cyan-400 shrink-0" aria-hidden="true" />
-              <span>Zdarzenie: <strong className="text-white">{simState.lastTriggerFired}</strong></span>
+              <span>{t('sim.eventLabel')} <strong className="text-white">{simState.lastTriggerFired}</strong></span>
             </div>
           )}
         </div>
@@ -1088,7 +1088,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 <Radio className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                 {t('sim.sensors')}
               </h3>
-              <span className="ui-type-micro font-mono text-slate-500">Symulacja na żywo</span>
+              <span className="ui-type-micro font-mono text-slate-500">{t('sim.liveSimulation')}</span>
             </div>
 
             {/* Wirtualny Zegar Czasu Rzeczywistego RTC / Symulacja Pory Dnia */}
@@ -1096,7 +1096,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   <Clock className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                  Wirtualny Czas RTC (Zegar ESP32):
+                  {t('sim.rtcVirtual')}:
                 </span>
                 <div className="flex items-center gap-1.5">
                   <input
@@ -1111,10 +1111,10 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               {/* Szybkie przyciski symulacji pory dnia do testowania reguł automatyzacji */}
               <div className="flex flex-wrap gap-1">
                 {[
-                  { label: '07:00 Rano', val: '07:00' },
-                  { label: '12:00 Południe', val: '12:00' },
-                  { label: '18:00 Wieczór', val: '18:00' },
-                  { label: '22:00 Noc', val: '22:00' },
+                  { label: t('sim.rtcPreset.morning'), val: '07:00' },
+                  { label: t('sim.rtcPreset.noon'), val: '12:00' },
+                  { label: t('sim.rtcPreset.evening'), val: '18:00' },
+                  { label: t('sim.rtcPreset.night'), val: '22:00' },
                   { label: '23:30 Cisza', val: '23:30' },
                 ].map(p => (
                   <button
@@ -1154,7 +1154,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {simState.pirActive ? 'ON' : 'OFF'}
+                {simState.pirActive ? t('sim.on') : t('sim.off')}
               </button>
             </div>
 
@@ -1180,9 +1180,9 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
               />
               <div className="flex justify-between ui-type-micro font-mono text-slate-500">
-                <span>0 lx (Noc / Ciemno)</span>
-                <span>500 lx (Biuro)</span>
-                <span>1000 lx (Słońce)</span>
+                <span>0 lx ({t('sim.ldrScale.dark')})</span>
+                <span>500 lx ({t('sim.ldrScale.office')})</span>
+                <span>1000 lx ({t('sim.ldrScale.sun')})</span>
               </div>
             </div>
 
@@ -1214,7 +1214,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   <Gauge className="ui-icon-sm text-emerald-400" aria-hidden="true" />
-                  Potencjometr Analogowy (GPIO 34 / ADC1)
+                  {t('sim.pot.title')} (GPIO 34 / ADC1)
                 </span>
                 <span className="font-mono text-emerald-400 font-semibold">{simState.potAdc} / 4095</span>
               </div>
@@ -1276,7 +1276,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   <Eye className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                  Ręczny Nastrój Cyber-Zwierzaka
+                  {t('sim.petMoodManual')}
                 </span>
                 <span className="font-mono text-cyan-400">{simState.activePetMood}</span>
               </div>
@@ -1314,7 +1314,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               }`}
             >
               <Cpu className="ui-icon-sm" aria-hidden="true" />
-              <span>Interaktywna Mapa Pinów ESP32 (Konfigurator)</span>
+              <span>{t('sim.tab.pinout')}</span>
             </button>
 
             <button
@@ -1326,14 +1326,14 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               }`}
             >
               <Activity className="ui-icon-sm" aria-hidden="true" />
-              <span>Monitor Sygnałów GPIO & Zadawanie Stanów</span>
+              <span>{t('sim.tab.gpioMonitor')}</span>
             </button>
           </div>
 
           <span className="text-xs font-mono text-slate-400 hidden sm:inline px-3">
             {hardwareStationTab === 'pinout'
-              ? 'Wizualne przypisywanie pinów: I2C, SPI, PWM, ADC, Touch'
-              : 'Wymuszanie sygnałów logicznych HIGH / LOW na żywo'}
+              ? t('sim.tab.pinoutHint')
+              : t('sim.tab.gpioHint')}
           </span>
         </div>
 

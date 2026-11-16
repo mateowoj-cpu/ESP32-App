@@ -106,10 +106,12 @@ export const CodeView: React.FC<CodeViewProps> = ({
                   {t('code.title')}
                 </h2>
                 <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold">
-                  Arduino IDE 1.8 & 2.x
+                  {t('code.badge.arduinoIde')}
                 </span>
                 <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  {lineCount} {t('common.lines')} · ~{approxSizeKb} KB
+                  {t('code.meta.sizeKb')
+                    .replace('{lines}', String(lineCount))
+                    .replace('{kb}', approxSizeKb)}
                 </span>
               </div>
               <p className="ui-type-caption text-slate-300 leading-relaxed max-w-prose">
@@ -214,7 +216,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-colors"
           >
             {copied ? <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" /> : <Copy className="ui-icon-sm" aria-hidden="true" />}
-            <span>{copied ? 'Skopiowano!' : 'Kopiuj Kod'}</span>
+            <span>{copied ? t('action.copied') : t('code.copy')}</span>
           </button>
 
           {activeTab === 'ino' ? (
@@ -223,7 +225,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-sm"
             >
               <Download className="ui-icon-sm" aria-hidden="true" />
-              <span>Pobierz {cleanSketchName}.ino</span>
+              <span>{t('code.downloadIno').replace('{name}', cleanSketchName)}</span>
             </button>
           ) : (
             <button
@@ -231,7 +233,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-sm"
             >
               <Download className="ui-icon-sm" aria-hidden="true" />
-              <span>Pobierz platformio.ini</span>
+              <span>{t('code.downloadPio')}</span>
             </button>
           )}
         </div>
@@ -241,8 +243,12 @@ export const CodeView: React.FC<CodeViewProps> = ({
       {activeTab === 'ino' && (
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
           <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800 font-mono">
-            <span>esp32_display_studio.ino ({cppCode.split('\n').length} linii kodu)</span>
-            <span className="text-cyan-400">Gotowy do skompilowania w Arduino IDE</span>
+            <span>
+              {t('code.ino.fileMeta')
+                .replace('{name}', cleanSketchName)
+                .replace('{lines}', String(lineCount))}
+            </span>
+            <span className="text-cyan-400">{t('code.ino.readyToCompile')}</span>
           </div>
           <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 overflow-x-auto max-h-[620px] overflow-y-auto leading-relaxed select-text">
             <code>{cppCode}</code>
@@ -254,8 +260,8 @@ export const CodeView: React.FC<CodeViewProps> = ({
       {activeTab === 'platformio' && (
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
           <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800 font-mono">
-            <span>platformio.ini</span>
-            <span className="text-cyan-400">Automatyczne pobieranie bibliotek lib_deps</span>
+            <span>{t('code.tabPio')}</span>
+            <span className="text-cyan-400">{t('code.pio.libDepsHint')}</span>
           </div>
           <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-cyan-300 overflow-x-auto leading-relaxed select-text">
             <code>{platformIoCode}</code>
@@ -269,10 +275,10 @@ export const CodeView: React.FC<CodeViewProps> = ({
           <div className="pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
               <Cpu className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-              Schemat Podłączenia Fizycznych Elementów do Płytki ESP32
+              {t('code.wiring.title')}
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Podłącz przewody zgodnie z poniższą tabelą pinów GPIO:
+              {t('code.wiring.subtitle')}
             </p>
           </div>
 
@@ -280,92 +286,100 @@ export const CodeView: React.FC<CodeViewProps> = ({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400 font-mono uppercase ui-type-micro">
-                  <th className="py-2.5 px-3">Moduł / Element</th>
-                  <th className="py-2.5 px-3">Pin Modułu</th>
-                  <th className="py-2.5 px-3">Pin ESP32</th>
-                  <th className="py-2.5 px-3">Opis i Uwagi</th>
+                  <th className="py-2.5 px-3">{t('code.wiring.col.module')}</th>
+                  <th className="py-2.5 px-3">{t('code.wiring.col.modulePin')}</th>
+                  <th className="py-2.5 px-3">{t('code.wiring.col.espPin')}</th>
+                  <th className="py-2.5 px-3">{t('code.wiring.col.notes')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-mono">
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Wyświetlacz OLED</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
                   <td className="py-2.5 px-3 text-rose-400">VCC</td>
                   <td className="py-2.5 px-3 text-rose-400">3.3V</td>
-                  <td className="py-2.5 px-3 text-slate-400">Zasilanie 3.3V (nie podłączaj do 5V!)</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledVcc')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Wyświetlacz OLED</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
                   <td className="py-2.5 px-3 text-slate-400">GND</td>
                   <td className="py-2.5 px-3 text-slate-400">GND</td>
-                  <td className="py-2.5 px-3 text-slate-400">Masa układu</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledGnd')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Wyświetlacz OLED</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
                   <td className="py-2.5 px-3 text-amber-400">SCL</td>
                   <td className="py-2.5 px-3 text-amber-400 font-bold">GPIO {display.sclPin}</td>
-                  <td className="py-2.5 px-3 text-slate-400">Zegar magistrali I2C</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledScl')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Wyświetlacz OLED</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
                   <td className="py-2.5 px-3 text-cyan-400">SDA</td>
                   <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sdaPin}</td>
-                  <td className="py-2.5 px-3 text-slate-400">Linia danych magistrali I2C</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledSda')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Czujnik Ruchu PIR</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.pir')}</td>
                   <td className="py-2.5 px-3 text-emerald-400">OUT</td>
                   <td className="py-2.5 px-3 text-emerald-400 font-bold">GPIO {system.pirPin ?? 14}</td>
-                  <td className="py-2.5 px-3 text-slate-400">Sygnał cyfrowy (HIGH po wykryciu ruchu)</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.pir')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Fotorezystor LDR</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.ldr')}</td>
                   <td className="py-2.5 px-3 text-yellow-400">SIG / ADC</td>
                   <td className="py-2.5 px-3 text-yellow-400 font-bold">GPIO {system.ldrPin ?? 36}</td>
-                  <td className="py-2.5 px-3 text-slate-400">Wejście analogowe ADC1 (pomiar natężenia światła)</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.ldr')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Potencjometr Analogowy</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.pot')}</td>
                   <td className="py-2.5 px-3 text-yellow-400">SIG / ADC</td>
                   <td className="py-2.5 px-3 text-yellow-400 font-bold">GPIO {system.potPin ?? 34}</td>
-                  <td className="py-2.5 px-3 text-slate-400">Wejście analogowe ADC1 (0 - 4095)</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.pot')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">PWM Buzzer / Sygnalizator</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.buzzer')}</td>
                   <td className="py-2.5 px-3 text-amber-400">PWM IN</td>
                   <td className="py-2.5 px-3 text-amber-400 font-bold">GPIO {system.buzzerPin ?? 18}</td>
-                  <td className="py-2.5 px-3 text-slate-400">Sprzętowy kanał PWM LEDC (tony, powiadomienia)</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.buzzer')}</td>
                 </tr>
                 <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">Przycisk BOOT</td>
-                  <td className="py-2.5 px-3 text-slate-300">Wbudowany</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.boot')}</td>
+                  <td className="py-2.5 px-3 text-slate-300">{t('code.wiring.pin.builtin')}</td>
                   <td className="py-2.5 px-3 text-slate-300 font-bold">GPIO 0</td>
-                  <td className="py-2.5 px-3 text-slate-400">Przycisk na płytce ESP32 (przełącza ekrany)</td>
+                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.boot')}</td>
                 </tr>
                 {display.touchEnabled && (
                   <>
                     <tr className="hover:bg-slate-950/40 bg-rose-950/10">
-                      <td className="py-2.5 px-3 font-semibold text-rose-300">Ekran Dotykowy ({display.touchController.toUpperCase()})</td>
+                      <td className="py-2.5 px-3 font-semibold text-rose-300">
+                        {t('code.wiring.module.touch').replace('{controller}', display.touchController.toUpperCase())}
+                      </td>
                       <td className="py-2.5 px-3 text-rose-400">Touch SDA / MOSI</td>
                       <td className="py-2.5 px-3 text-rose-400 font-bold">GPIO {display.touchSdaPin}</td>
-                      <td className="py-2.5 px-3 text-slate-400">Linia danych magistrali dotyku I2C/SPI</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.touchSda')}</td>
                     </tr>
                     <tr className="hover:bg-slate-950/40 bg-rose-950/10">
-                      <td className="py-2.5 px-3 font-semibold text-rose-300">Ekran Dotykowy ({display.touchController.toUpperCase()})</td>
+                      <td className="py-2.5 px-3 font-semibold text-rose-300">
+                        {t('code.wiring.module.touch').replace('{controller}', display.touchController.toUpperCase())}
+                      </td>
                       <td className="py-2.5 px-3 text-rose-400">Touch SCL / SCK</td>
                       <td className="py-2.5 px-3 text-rose-400 font-bold">GPIO {display.touchSclPin}</td>
-                      <td className="py-2.5 px-3 text-slate-400">Zegar magistrali dotyku I2C/SPI</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.touchScl')}</td>
                     </tr>
                     <tr className="hover:bg-slate-950/40 bg-rose-950/10">
-                      <td className="py-2.5 px-3 font-semibold text-rose-300">Ekran Dotykowy ({display.touchController.toUpperCase()})</td>
+                      <td className="py-2.5 px-3 font-semibold text-rose-300">
+                        {t('code.wiring.module.touch').replace('{controller}', display.touchController.toUpperCase())}
+                      </td>
                       <td className="py-2.5 px-3 text-rose-300">Touch INT (IRQ)</td>
                       <td className="py-2.5 px-3 text-rose-300 font-bold">GPIO {display.touchIntPin}</td>
-                      <td className="py-2.5 px-3 text-slate-400">Sygnał przerwania dotknięcia (Input Pullup)</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.touchInt')}</td>
                     </tr>
                     <tr className="hover:bg-slate-950/40 bg-rose-950/10">
-                      <td className="py-2.5 px-3 font-semibold text-rose-300">Ekran Dotykowy ({display.touchController.toUpperCase()})</td>
+                      <td className="py-2.5 px-3 font-semibold text-rose-300">
+                        {t('code.wiring.module.touch').replace('{controller}', display.touchController.toUpperCase())}
+                      </td>
                       <td className="py-2.5 px-3 text-rose-300">Touch RST</td>
                       <td className="py-2.5 px-3 text-rose-300 font-bold">GPIO {display.touchRstPin}</td>
-                      <td className="py-2.5 px-3 text-slate-400">Linia resetu kontrolera dotykowego</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.touchRst')}</td>
                     </tr>
                   </>
                 )}
@@ -381,10 +395,10 @@ export const CodeView: React.FC<CodeViewProps> = ({
           <div className="pb-3 border-b border-slate-800">
             <h3 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
               <BookOpen className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-              Instrukcja Wgrania Programu Krok po Kroku
+              {t('code.guide.title')}
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Jak szybko skompilować i wgrać ten kod na ESP32 za pomocą Arduino IDE lub PlatformIO.
+              {t('code.guide.subtitle')}
             </p>
           </div>
 
@@ -392,46 +406,45 @@ export const CodeView: React.FC<CodeViewProps> = ({
             <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400">
                 <span className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">1</span>
-                <span>Zainstaluj Biblioteki w Arduino IDE</span>
+                <span>{t('code.guide.step1.title')}</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                W menu Arduino IDE wybierz <strong>Sketch -&gt; Include Library -&gt; Manage Libraries...</strong> i wyszukaj:
+                {t('code.guide.step1.body')}
               </p>
               <ul className="text-xs font-mono text-slate-300 space-y-1 list-disc list-inside">
-                <li><code>Adafruit SSD1306</code> (kliknij "Install All" z zależnościami)</li>
-                <li><code>Adafruit GFX Library</code></li>
-                <li><code>ArduinoJson</code> (autor: Benoit Blanchon)</li>
+                <li>{t('code.guide.step1.libSsd')}</li>
+                <li>{t('code.guide.step1.libGfx')}</li>
+                <li>{t('code.guide.step1.libJson')}</li>
               </ul>
             </div>
 
             <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400">
                 <span className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">2</span>
-                <span>Wybierz Płytkę i Port COM</span>
+                <span>{t('code.guide.step2.title')}</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                W menu <strong>Tools -&gt; Board</strong> wybierz <strong>ESP32 Arduino -&gt; ESP32 Dev Module</strong>.
-                Następnie w <strong>Tools -&gt; Port</strong> wybierz port szeregowy przypisany do Twojego kabla USB.
+                {t('code.guide.step2.body')}
               </p>
             </div>
 
             <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">3</span>
-                <span>Wgraj Kod (Upload)</span>
+                <span>{t('code.guide.step3.title')}</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Kliknij strzałkę <strong>Upload (Wgraj)</strong>. Jeśli w konsoli pojawi się <code>Connecting.......____</code>, przytrzymaj na 1 sekundę przycisk <strong>BOOT</strong> na płytce ESP32.
+                {t('code.guide.step3.body')}
               </p>
             </div>
 
             <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
                 <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">4</span>
-                <span>Otwórz Monitor Szeregowy</span>
+                <span>{t('code.guide.step4.title')}</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Ustaw prędkość monitora na <strong>115200 baud</strong>. Zobaczysz komunikat o przydzielonym adresie IP Wi-Fi, inicjalizacji serwera HTTP oraz odczyty z sensorów!
+                {t('code.guide.step4.body')}
               </p>
             </div>
           </div>
