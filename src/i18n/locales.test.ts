@@ -61,6 +61,14 @@ assert(translate('pl', 'flash.log.startBuild').includes('build'), 'pl flash star
 assert(translate('en', 'a11y.mainNav').toLowerCase().includes('nav'), 'en a11y main nav');
 assert(translate('pl', 'ino.modalTitle').toLowerCase().includes('arduino'), 'pl ino modal');
 assert(translate('en', 'usb.spec.psramExtra').includes('{psram}'), 'en psram extra');
+assert(translate('pl', 'code.wiring.title').toLowerCase().includes('schemat'), 'pl code wiring');
+assert(translate('en', 'code.guide.step1.title').toLowerCase().includes('libraries'), 'en code guide');
+assert(translate('pl', 'settings.usb.sectionTitle').toLowerCase().includes('usb'), 'pl settings usb');
+assert(translate('en', 'settings.bluetooth.mode.ble').toLowerCase().includes('ble'), 'en settings ble');
+assert(translate('pl', 'sim.emulatorTitle').toLowerCase().includes('oled'), 'pl sim title');
+assert(translate('en', 'gpio.title').toLowerCase().includes('gpio'), 'en gpio title');
+assert(translate('pl', 'auto.saveRule').toLowerCase().includes('zapisz'), 'pl auto save rule');
+assert(translate('en', 'auto.tpl.blurb.pir').toLowerCase().includes('pir'), 'en auto tpl blurb');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

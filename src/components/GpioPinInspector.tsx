@@ -20,6 +20,7 @@ import {
   ToggleRight,
   Info
 } from 'lucide-react';
+import { useLocale } from '../i18n/LocaleContext';
 
 interface GpioPinInspectorProps {
   display: DisplayConfig;
@@ -78,6 +79,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
   automations,
   onTriggerAction,
 }) => {
+  const { t } = useLocale();
   const [filterMode, setFilterMode] = useState<'all' | 'active' | 'inputs' | 'outputs' | 'adc'>('all');
   const [pinOverrides, setPinOverrides] = useState<Record<number, GpioLevel>>({});
   const [lastActionLog, setLastActionLog] = useState<string | null>(null);
@@ -111,14 +113,14 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
 
   // Get active role text
   const getPinActiveRole = (p: PinDefinition): string => {
-    if (p.pin === display.sdaPin) return `I2C SDA (Wyświetlacz ${display.i2cAddress})`;
-    if (p.pin === display.sclPin) return 'I2C SCL (Wyświetlacz OLED)';
-    if (display.touchEnabled && p.pin === display.touchSdaPin) return `Touch SDA (${display.touchController.toUpperCase()})`;
-    if (display.touchEnabled && p.pin === display.touchSclPin) return `Touch SCL (${display.touchController.toUpperCase()})`;
-    if (display.touchEnabled && p.pin === display.touchIntPin) return 'Touch INT (Przerwanie dotyku)';
-    if (p.pin === display.rstPin) return 'OLED RST (Reset)';
-    if (p.pin === display.dcPin) return 'OLED DC (Data/Command)';
-    return p.defaultRole;
+    if (p.pin === display.sdaPin) return `${t('pinout.fn.i2cSda')} (${display.i2cAddress})`;
+    if (p.pin === display.sclPin) return t('pinout.fn.i2cScl');
+    if (display.touchEnabled && p.pin === display.touchSdaPin) return `${t('pinout.fn.touchSda')} (${display.touchController.toUpperCase()})`;
+    if (display.touchEnabled && p.pin === display.touchSclPin) return `${t('pinout.fn.touchScl')} (${display.touchController.toUpperCase()})`;
+    if (display.touchEnabled && p.pin === display.touchIntPin) return t('pinout.fn.touchInt');
+    if (p.pin === display.rstPin) return t('pinout.fn.oledRst');
+    if (p.pin === display.dcPin) return t('pinout.fn.oledDc');
+    return t(`pinout.role.${p.pin}`);
   };
 
   // Determine if pin is used in current project
@@ -259,10 +261,10 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              Panel Monitorowania & Zadawania Sygnałów GPIO ESP32
+              {t('gpio.title')}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Klikaj przyciski [HIGH/LOW] lub [IMPULS], aby ręcznie wymuszać sygnały logiczne na wirtualnych pinach procesora.
+              {t('gpio.subtitle')}
             </p>
           </div>
         </div>
@@ -277,7 +279,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
                 filterMode === 'all' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Wszystkie ({ESP32_PIN_LAYOUT.length})
+              {t('gpio.filter.all')} ({ESP32_PIN_LAYOUT.length})
             </button>
             <button
               onClick={() => setFilterMode('active')}
@@ -285,7 +287,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
                 filterMode === 'active' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Aktywne w projekcie
+              {t('gpio.filter.active')}
             </button>
             <button
               onClick={() => setFilterMode('inputs')}
@@ -293,7 +295,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
                 filterMode === 'inputs' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Wejścia (Input)
+              {t('gpio.filter.inputs')}
             </button>
             <button
               onClick={() => setFilterMode('outputs')}
@@ -301,7 +303,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
                 filterMode === 'outputs' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              Wyjścia
+              {t('gpio.filter.outputs')}
             </button>
           </div>
 
@@ -311,7 +313,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
             title="Resetuj wszystkie wymuszone stany pinów"
            aria-label="Resetuj wszystkie wymuszone stany pinów">
             <RotateCcw className="ui-icon-sm" aria-hidden="true" />
-            <span>Reset Stanów</span>
+            <span>{t('gpio.resetStates')}</span>
           </button>
         </div>
       </div>
@@ -330,7 +332,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
           <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
             <span className="font-mono text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400" />
-              Lewa Szyna Pinów ESP32 (Header J1)
+              {t('gpio.leftRail')}
             </span>
             <span className="ui-type-micro text-slate-500 font-mono">ADC1 / RTC / Touch / PIR</span>
           </div>
@@ -347,7 +349,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
           <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
             <span className="font-mono text-slate-300 font-semibold uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
-              Prawa Szyna Pinów ESP32 (Header J2)
+              {t('gpio.rightRail')}
             </span>
             <span className="ui-type-micro text-slate-500 font-mono">I2C / SPI / BOOT / UART</span>
           </div>
@@ -365,11 +367,11 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
         <div className="flex items-center gap-4 text-slate-400 font-mono ui-type-micro">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#06b6d4]" />
-            <strong className="text-slate-200">HIGH (3.3V)</strong>
+            <strong className="text-slate-200">{t('gpio.legend.high')} (3.3V)</strong>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-slate-800 border border-slate-600" />
-            <strong className="text-slate-400">LOW (0.0V)</strong>
+            <strong className="text-slate-400">{t('gpio.legend.low')} (0.0V)</strong>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
@@ -382,7 +384,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
         </div>
 
         <div className="ui-type-micro text-slate-500 font-mono">
-          *Piny GPIO 34, 35, 36, 39 są wyłącznie pinami wejściowymi (Input-Only) w procesorach ESP32.
+          *{t('gpio.legend.inputOnly')}
         </div>
       </div>
     </div>
@@ -431,7 +433,7 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
               </span>
               {isOverridden && (
                 <span className="ui-type-micro bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono px-1.5 py-0.5 rounded font-medium">
-                  FORCED
+                  {t('gpio.badge.forced')}
                 </span>
               )}
             </div>
@@ -455,9 +457,9 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
                 ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
                 : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700/60'
             }`}
-            title="Przełącz stan logiczny HIGH / LOW"
+            title={isHigh ? t('gpio.level.low') : t('gpio.level.high')}
           >
-            {isHigh ? 'HIGH (1)' : 'LOW (0)'}
+            {isHigh ? `${t('gpio.legend.high')} (1)` : `${t('gpio.legend.low')} (0)`}
           </button>
 
           {/* Momentary Pulse Button */}

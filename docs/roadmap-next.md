@@ -15,7 +15,7 @@ Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 18+ jako ukończonych*
 2. Authenticode EV na self-hosted / cloud HSM w praktyce (sekrety + runner — human).
 3. Apple notarize secrets na CI (human) + App Store Connect API key path w skrypcie.
 4. Dodatkowe signed community packs (live publishers, nie sandbox) + allowlista hostów gdy potrzeba.
-5. ~~Dalsze i18n / UX polish~~ — **done (kod):** identifyEsp32 + FlashHelper + USB/App chrome (PR #28) + Automations option-list/DSL residual; product UI i18n backlog exhausted; **Phase 18 ops remains human-only.**
+5. ~~Dalsze i18n / UX polish~~ — **done (kod):** identifyEsp32 + FlashHelper + USB/App chrome (#28), Simulator / Automations / Settings / CodeView + GPIO (#29), Automations option-list/DSL residual (#30); product UI i18n backlog exhausted; **Phase 18 ops remains human-only.**
 
 ## Human-only (nie blokuje compile w kodzie) — deferred
 

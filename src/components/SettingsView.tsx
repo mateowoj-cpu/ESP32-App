@@ -92,57 +92,57 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {t('settings.display')}
             </h3>
             <span className="ui-type-micro font-mono text-cyan-400">
-              {display.width}x{display.height} px
+              {t('settings.displayResolution').replace('{w}', String(display.width)).replace('{h}', String(display.height))}
             </span>
           </div>
 
           {/* Model Display */}
           <div>
-            <label className="text-xs text-slate-400 block mb-1">Model Wyświetlacza:</label>
+            <label className="text-xs text-slate-400 block mb-1">{t('settings.displayModelLabel')}</label>
             <select
               value={display.model}
               onChange={e => handleModelChange(e.target.value as DisplayModel)}
               className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100"
             >
-              <option value="ssd1306_128x64">SSD1306 OLED (128x64) - Najpopularniejszy</option>
-              <option value="ssd1306_128x32">SSD1306 OLED (128x32) - Wąski pasek</option>
-              <option value="sh1106_128x64">SH1106 OLED (128x64)</option>
-              <option value="st7789_240x240">ST7789 IPS LCD (240x240) - Kolorowy kwadrat</option>
-              <option value="st7789_135x240">ST7789 TTGO T-Display (135x240)</option>
-              <option value="ili9341_320x240">ILI9341 TFT LCD (320x240) - Duży ekran</option>
-              <option value="gc9a01_240x240_round">GC9A01 Okrągły Smartwatch (240x240)</option>
+              <option value="ssd1306_128x64">{t('settings.displayModel.ssd1306_128x64')}</option>
+              <option value="ssd1306_128x32">{t('settings.displayModel.ssd1306_128x32')}</option>
+              <option value="sh1106_128x64">{t('settings.displayModel.sh1106_128x64')}</option>
+              <option value="st7789_240x240">{t('settings.displayModel.st7789_240x240')}</option>
+              <option value="st7789_135x240">{t('settings.displayModel.st7789_135x240')}</option>
+              <option value="ili9341_320x240">{t('settings.displayModel.ili9341_320x240')}</option>
+              <option value="gc9a01_240x240_round">{t('settings.displayModel.gc9a01_240x240_round')}</option>
             </select>
           </div>
 
           {/* Bus Type (I2C vs SPI) */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Magistrala:</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.busLabel')}</label>
               <select
                 value={display.bus}
                 onChange={e => setDisplay(prev => ({ ...prev, bus: e.target.value as BusType }))}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100"
               >
-                <option value="i2c">I2C (2 piny: SDA + SCL)</option>
-                <option value="spi">SPI (Szybki 4-Wire)</option>
+                <option value="i2c">{t('settings.bus.i2c')}</option>
+                <option value="spi">{t('settings.bus.spi')}</option>
               </select>
             </div>
 
             {display.bus === 'i2c' ? (
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Adres I2C:</label>
+                <label className="text-xs text-slate-400 block mb-1">{t('settings.i2cAddressLabel')}</label>
                 <select
                   value={display.i2cAddress}
                   onChange={e => setDisplay(prev => ({ ...prev, i2cAddress: e.target.value }))}
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono"
                 >
-                  <option value="0x3C">0x3C (Domyślny)</option>
-                  <option value="0x3D">0x3D (Alternatywny)</option>
+                  <option value="0x3C">{t('settings.i2cAddr.0x3C')}</option>
+                  <option value="0x3D">{t('settings.i2cAddr.0x3D')}</option>
                 </select>
               </div>
             ) : (
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Pin CS:</label>
+                <label className="text-xs text-slate-400 block mb-1">{t('settings.csPinLabel')}</label>
                 <input
                   type="number"
                   value={display.csPin}
@@ -157,7 +157,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {display.bus === 'i2c' ? (
             <div className="grid grid-cols-2 gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800">
               <div>
-                <label className="ui-type-micro text-slate-400 font-mono">Pin SDA (Dane):</label>
+                <label className="ui-type-micro text-slate-400 font-mono">{t('settings.pinSdaLabel')}</label>
                 <input
                   type="number"
                   value={display.sdaPin}
@@ -166,7 +166,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 />
               </div>
               <div>
-                <label className="ui-type-micro text-slate-400 font-mono">Pin SCL (Zegar):</label>
+                <label className="ui-type-micro text-slate-400 font-mono">{t('settings.pinSclLabel')}</label>
                 <input
                   type="number"
                   value={display.sclPin}
@@ -178,7 +178,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           ) : (
             <div className="grid grid-cols-3 gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800">
               <div>
-                <label className="ui-type-micro text-slate-400 font-mono">MOSI:</label>
+                <label className="ui-type-micro text-slate-400 font-mono">{t('settings.pinMosiLabel')}</label>
                 <input
                   type="number"
                   value={display.mosiPin}
@@ -187,7 +187,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 />
               </div>
               <div>
-                <label className="ui-type-micro text-slate-400 font-mono">SCK:</label>
+                <label className="ui-type-micro text-slate-400 font-mono">{t('settings.pinSckLabel')}</label>
                 <input
                   type="number"
                   value={display.sckPin}
@@ -196,7 +196,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 />
               </div>
               <div>
-                <label className="ui-type-micro text-slate-400 font-mono">DC:</label>
+                <label className="ui-type-micro text-slate-400 font-mono">{t('settings.pinDcLabel')}</label>
                 <input
                   type="number"
                   value={display.dcPin}
@@ -211,16 +211,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div>
             <label className="text-xs text-slate-300 block mb-2 flex items-center gap-2 font-medium">
               <Palette className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-              Motyw Kolorystyczny Wyświetlacza:
+              {t('settings.themeLabel')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { id: 'oled_neon_blue', name: 'OLED Neon Blue', hex: '#00f0ff', desc: 'Błękit neonowy' },
-                { id: 'oled_pure_white', name: 'OLED Pure White', hex: '#ffffff', desc: 'Czysta biel' },
-                { id: 'crt_amber', name: 'Retro Amber CRT', hex: '#ffb000', desc: 'Ciepły bursztyn' },
-                { id: 'terminal_green', name: 'Matrix Terminal', hex: '#00ff66', desc: 'Zielony hakerski' },
-                { id: 'cyberpunk_cyan_pink', name: 'Cyberpunk Neon', hex: '#ff007f', desc: 'Cyjan & Róż' },
-                { id: 'epaper_bw', name: 'E-Paper Minimalist', hex: '#0f172a', desc: 'Matowy e-ink' },
+                { id: 'oled_neon_blue', hex: '#00f0ff' },
+                { id: 'oled_pure_white', hex: '#ffffff' },
+                { id: 'crt_amber', hex: '#ffb000' },
+                { id: 'terminal_green', hex: '#00ff66' },
+                { id: 'cyberpunk_cyan_pink', hex: '#ff007f' },
+                { id: 'epaper_bw', hex: '#0f172a' },
               ].map(theme => (
                 <button
                   key={theme.id}
@@ -236,8 +236,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     style={{ backgroundColor: theme.hex }}
                   />
                   <div>
-                    <div className="text-xs font-semibold text-slate-200">{theme.name}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{theme.desc}</div>
+                    <div className="text-xs font-semibold text-slate-200">{t(`settings.theme.${theme.id}.name`)}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{t(`settings.theme.${theme.id}.desc`)}</div>
                   </div>
                 </button>
               ))}
@@ -249,7 +249,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-300 font-medium flex items-center gap-2">
                 <Sun className="ui-icon-sm text-amber-400" aria-hidden="true" />
-                Jasność ekranu / Kontrast PWM:
+                {t('settings.brightnessLabel')}
               </span>
               <div className="flex items-center gap-2">
                 <input
@@ -276,13 +276,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* Szybkie presety jasności */}
             <div className="flex flex-wrap gap-1.5">
-              {[
-                { label: '10% Noc', val: 10 },
-                { label: '25% Ciemno', val: 25 },
-                { label: '50% Średnia', val: 50 },
-                { label: '75% Jasno', val: 75 },
-                { label: '100% Maks', val: 100 },
-              ].map(p => (
+              {(
+                [
+                  { key: 'night', val: 10 },
+                  { key: 'dark', val: 25 },
+                  { key: 'medium', val: 50 },
+                  { key: 'bright', val: 75 },
+                  { key: 'max', val: 100 },
+                ] as const
+              ).map(p => (
                 <button
                   key={p.val}
                   type="button"
@@ -293,13 +295,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                   }`}
                 >
-                  {p.label}
+                  {t(`settings.brightnessPreset.${p.key}`)}
                 </button>
               ))}
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-              <span className="ui-type-micro text-slate-400">Inteligentna auto-jasność (czujnik LDR):</span>
+              <span className="ui-type-micro text-slate-400">{t('settings.autoBrightnessLabel')}</span>
               <label className="flex items-center gap-1.5 cursor-pointer ui-type-micro">
                 <input
                   type="checkbox"
@@ -308,13 +310,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   className="rounded accent-cyan-400"
                 />
                 <span className="font-mono text-slate-300">
-                  {system.autoBrightnessEnabled ? 'WŁĄCZONA' : 'WYŁĄCZONA'}
+                  {system.autoBrightnessEnabled ? t('settings.toggleOn') : t('settings.toggleOff')}
                 </span>
               </label>
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="ui-type-micro text-slate-400">Efekt siatki pikseli (Matrix):</span>
+              <span className="ui-type-micro text-slate-400">{t('settings.pixelGridLabel')}</span>
               <input
                 type="checkbox"
                 checked={display.pixelGridEffect}
@@ -329,7 +331,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
               <span className="text-xs font-semibold text-rose-400 flex items-center gap-2">
                 <Sliders className="ui-icon-sm text-rose-400" aria-hidden="true" />
-                Obsługa Ekranu Dotykowego (Touchscreen)
+                {t('settings.touch.sectionTitle')}
               </span>
               <label className="flex items-center gap-1.5 cursor-pointer text-xs">
                 <input
@@ -338,30 +340,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onChange={e => setDisplay(prev => ({ ...prev, touchEnabled: e.target.checked }))}
                   className="rounded accent-rose-500"
                 />
-                <span className="font-mono ui-type-micro text-slate-300">Włączony</span>
+                <span className="font-mono ui-type-micro text-slate-300">{t('settings.touch.enabled')}</span>
               </label>
             </div>
 
             {display.touchEnabled && (
               <div className="flex flex-col gap-3 text-xs">
                 <div>
-                  <label className="ui-type-micro text-slate-400 block mb-1">Kontroler Dotykowy:</label>
+                  <label className="ui-type-micro text-slate-400 block mb-1">{t('settings.touch.controllerLabel')}</label>
                   <select
                     value={display.touchController}
                     onChange={e => setDisplay(prev => ({ ...prev, touchController: e.target.value as any }))}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100"
                   >
-                    <option value="cst816s">CST816S / CST816T (Pojemnościowy I2C - T-Display S3 / Waveshare)</option>
-                    <option value="ft6236">FT6236 / FT6336U (Pojemnościowy I2C - M5Stack Core2)</option>
-                    <option value="xpt2046">XPT2046 (Oporowy SPI - ILI9341 2.8"/3.2")</option>
-                    <option value="gt911">GT911 (Pojemnościowy 5-punktowy I2C)</option>
-                    <option value="capacitive_gpio">Wbudowane sensory dotykowe ESP32 (Touch0-Touch9 GPIO)</option>
+                    <option value="cst816s">{t('settings.touch.controller.cst816s')}</option>
+                    <option value="ft6236">{t('settings.touch.controller.ft6236')}</option>
+                    <option value="xpt2046">{t('settings.touch.controller.xpt2046')}</option>
+                    <option value="gt911">{t('settings.touch.controller.gt911')}</option>
+                    <option value="capacitive_gpio">{t('settings.touch.controller.capacitive_gpio')}</option>
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 font-mono ui-type-micro">
                   <div>
-                    <label className="text-slate-400 ui-type-micro">Pin Touch SDA/MOSI:</label>
+                    <label className="text-slate-400 ui-type-micro">{t('settings.touch.pinSdaMosi')}</label>
                     <input
                       type="number"
                       value={display.touchSdaPin}
@@ -370,7 +372,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="text-slate-400 ui-type-micro">Pin Touch SCL/SCK:</label>
+                    <label className="text-slate-400 ui-type-micro">{t('settings.touch.pinSclSck')}</label>
                     <input
                       type="number"
                       value={display.touchSclPin}
@@ -379,7 +381,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="text-slate-400 ui-type-micro">Pin INT (Przerwanie):</label>
+                    <label className="text-slate-400 ui-type-micro">{t('settings.touch.pinInt')}</label>
                     <input
                       type="number"
                       value={display.touchIntPin}
@@ -388,7 +390,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="text-slate-400 ui-type-micro">Pin RST (Reset):</label>
+                    <label className="text-slate-400 ui-type-micro">{t('settings.touch.pinRst')}</label>
                     <input
                       type="number"
                       value={display.touchRstPin}
@@ -406,7 +408,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onChange={e => setDisplay(prev => ({ ...prev, touchInvertX: e.target.checked }))}
                       className="rounded accent-rose-500"
                     />
-                    <span>Odwróć oś X</span>
+                    <span>{t('settings.touch.invertX')}</span>
                   </label>
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
@@ -415,7 +417,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       onChange={e => setDisplay(prev => ({ ...prev, touchInvertY: e.target.checked }))}
                       className="rounded accent-rose-500"
                     />
-                    <span>Odwróć oś Y</span>
+                    <span>{t('settings.touch.invertY')}</span>
                   </label>
                 </div>
               </div>
@@ -431,7 +433,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {t('settings.wifiSection')}
             </h3>
             <span className="ui-type-micro font-mono text-emerald-400">
-              {system.cpuFrequencyMhz} MHz
+              {t('settings.cpuFreqBadge').replace('{mhz}', String(system.cpuFrequencyMhz))}
             </span>
           </div>
 
@@ -518,7 +520,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-slate-400">{t('settings.idleSleep')}</span>
                 <span className="font-mono text-indigo-300 font-bold">
-                  {system.deepSleepTimeoutSec === 0 ? 'Wyłączone (Zawsze włączony)' : `${system.deepSleepTimeoutSec} sekund`}
+                  {system.deepSleepTimeoutSec === 0
+                    ? t('settings.deepSleep.disabled')
+                    : t('settings.deepSleep.seconds').replace('{n}', String(system.deepSleepTimeoutSec))}
                 </span>
               </div>
               <input
@@ -531,13 +535,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 className="w-full accent-indigo-400 cursor-pointer"
               />
               <div className="flex flex-wrap gap-1.5 mt-2">
-                {[
-                  { label: 'Nigdy (0s)', val: 0 },
-                  { label: '30 sek', val: 30 },
-                  { label: '1 min', val: 60 },
-                  { label: '2 min', val: 120 },
-                  { label: '5 min', val: 300 },
-                ].map(p => (
+                {(
+                  [
+                    { key: 'never', val: 0 },
+                    { key: '30s', val: 30 },
+                    { key: '1m', val: 60 },
+                    { key: '2m', val: 120 },
+                    { key: '5m', val: 300 },
+                  ] as const
+                ).map(p => (
                   <button
                     key={p.val}
                     type="button"
@@ -548,14 +554,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
                     }`}
                   >
-                    {p.label}
+                    {t(`settings.deepSleepPreset.${p.key}`)}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1">
-              <span className="text-slate-300">Wybudzanie przerwaniem na pinie PIR (GPIO 14):</span>
+              <span className="text-slate-300">{t('settings.wakeOnMotionLabel')}</span>
               <input
                 type="checkbox"
                 checked={system.wakeOnMotion}
@@ -565,15 +571,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Taktowanie procesora ESP32:</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.cpuFreqLabel')}</label>
               <select
                 value={system.cpuFrequencyMhz}
                 onChange={e => setSystem(prev => ({ ...prev, cpuFrequencyMhz: Number(e.target.value) as any }))}
                 className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-xs text-slate-200"
               >
-                <option value={240}>240 MHz - Maksymalna wydajność i FPS</option>
-                <option value={160}>160 MHz - Zrównoważony</option>
-                <option value={80}>80 MHz - Ultra energooszczędny</option>
+                <option value={240}>{t('settings.cpuFreq.240')}</option>
+                <option value={160}>{t('settings.cpuFreq.160')}</option>
+                <option value={80}>{t('settings.cpuFreq.80')}</option>
               </select>
             </div>
           </div>
@@ -583,7 +589,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between pb-1 border-b border-slate-800/80">
               <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
                 <Clock className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                Synchronizacja Zegara i Strefy Czasowej (NTP)
+                {t('settings.ntp.sectionTitle')}
               </h4>
 
               <button
@@ -599,16 +605,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   }));
                 }}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-xs text-cyan-400 border border-cyan-800/50 rounded-lg transition-colors font-medium"
-                title="Pobierz strefę i serwer NTP z ustawień przeglądarki"
+                title={t('settings.ntp.fromBrowserTitle')}
               >
                 <Globe className="ui-icon-sm" aria-hidden="true" />
-                <span>Pobierz z przeglądarki</span>
+                <span>{t('settings.ntp.fromBrowser')}</span>
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="ui-type-micro text-slate-400 block mb-1">Popularne strefy czasowe:</label>
+                <label className="ui-type-micro text-slate-400 block mb-1">{t('settings.ntp.popularZones')}</label>
                 <select
                   value={
                     system.timezone.includes('CET-1CEST') ? 'warsaw' :
@@ -630,30 +636,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   }}
                   className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-200"
                 >
-                  <option value="warsaw">Warszawa / Berlin (UTC+1/+2)</option>
-                  <option value="london">Londyn / Dublin (UTC+0/+1)</option>
-                  <option value="new_york">Nowy Jork / Wschód USA (UTC-5/-4)</option>
-                  <option value="los_angeles">Los Angeles / Zachód USA (UTC-8/-7)</option>
-                  <option value="tokyo">Tokio / Japonia (UTC+9)</option>
-                  <option value="utc">Czas uniwersalny UTC</option>
-                  <option value="custom">Własny ciąg POSIX TZ</option>
+                  <option value="warsaw">{t('settings.ntp.zone.warsaw')}</option>
+                  <option value="london">{t('settings.ntp.zone.london')}</option>
+                  <option value="new_york">{t('settings.ntp.zone.new_york')}</option>
+                  <option value="los_angeles">{t('settings.ntp.zone.los_angeles')}</option>
+                  <option value="tokyo">{t('settings.ntp.zone.tokyo')}</option>
+                  <option value="utc">{t('settings.ntp.zone.utc')}</option>
+                  <option value="custom">{t('settings.ntp.zone.custom')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="ui-type-micro text-slate-400 block mb-1">Ciąg POSIX strefy czasowej:</label>
+                <label className="ui-type-micro text-slate-400 block mb-1">{t('settings.ntp.posixLabel')}</label>
                 <input
                   type="text"
                   value={system.timezone}
                   onChange={e => setSystem(prev => ({ ...prev, timezone: e.target.value }))}
                   className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 font-mono ui-type-micro"
-                  placeholder="np. CET-1CEST,M3.5.0,M10.5.0/3"
+                  placeholder={t('settings.ntp.posixPlaceholder')}
                 />
               </div>
             </div>
 
             <div>
-              <label className="ui-type-micro text-slate-400 block mb-1">Serwer NTP do synchronizacji:</label>
+              <label className="ui-type-micro text-slate-400 block mb-1">{t('settings.ntp.serverLabel')}</label>
               <input
                 type="text"
                 value={system.ntpServer}
@@ -679,7 +685,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
-              <span className="text-slate-400">Format zegara:</span>
+              <span className="text-slate-400">{t('settings.ntp.clockFormat')}</span>
               <div className="flex items-center gap-1 p-0.5 bg-slate-900 rounded border border-slate-800">
                 <button
                   type="button"
@@ -688,7 +694,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     (system.clockFormat || '24h') === '24h' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'
                   }`}
                 >
-                  24h (14:30)
+                  {t('settings.ntp.format24')}
                 </button>
                 <button
                   type="button"
@@ -697,7 +703,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     system.clockFormat === '12h' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'
                   }`}
                 >
-                  12h (2:30 PM)
+                  {t('settings.ntp.format12')}
                 </button>
               </div>
             </div>
@@ -713,10 +719,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
               <Usb className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-              Wykrywanie Kabla USB-C & Auto-Przełączanie Monitora PC
+              {t('settings.usb.sectionTitle')}
             </h3>
             <span className="ui-type-micro font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
-              {system.usbAutoSwitchToPcMonitor ? 'Aktywne' : 'Wyłączone'}
+              {system.usbAutoSwitchToPcMonitor ? t('settings.status.active') : t('settings.status.disabled')}
             </span>
           </div>
 
@@ -731,10 +737,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-bold text-slate-200">
-                  Automatycznie przełącz na Monitor Zasobów PC po podłączeniu kabla USB-C
+                  {t('settings.usb.autoSwitchTitle')}
                 </span>
                 <span className="ui-type-micro text-slate-400 leading-relaxed">
-                  Gdy kabel USB-C zostanie wpięty do komputera PC, ESP32 natychmiast przełączy ekran na podgląd zasobów sprzętowych (CPU, RAM, GPU, Dysk).
+                  {t('settings.usb.autoSwitchDesc')}
                 </span>
               </div>
             </label>
@@ -742,7 +748,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* Target Screen Selector */}
             <div>
               <label className="text-xs text-slate-400 block mb-1">
-                Ekran docelowy po wykryciu połączenia USB:
+                {t('settings.usb.targetScreenLabel')}
               </label>
               <select
                 value={system.usbSwitchScreenIndex ?? 2}
@@ -752,14 +758,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {screens.length > 0 ? (
                   screens.map((s, idx) => (
                     <option key={s.id || idx} value={idx}>
-                      Ekran {idx + 1}: {s.name}
+                      {t('settings.usb.screenOption')
+                        .replace('{n}', String(idx + 1))
+                        .replace('{name}', s.name)}
                     </option>
                   ))
                 ) : (
                   <>
-                    <option value={0}>Ekran 1: Cyber-Zwierzak</option>
-                    <option value={1}>Ekran 2: Pulpit Główny & Pogoda</option>
-                    <option value={2}>Ekran 3: Monitor Zasobów PC (CPU, RAM, GPU, Dysk)</option>
+                    <option value={0}>{t('settings.usb.fallbackScreen.0')}</option>
+                    <option value={1}>{t('settings.usb.fallbackScreen.1')}</option>
+                    <option value={2}>{t('settings.usb.fallbackScreen.2')}</option>
                   </>
                 )}
               </select>
@@ -769,10 +777,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
               <div className="flex flex-col">
                 <span className="text-slate-200 font-medium">
-                  Powrót do poprzedniego ekranu po odłączeniu kabla USB:
+                  {t('settings.usb.revertTitle')}
                 </span>
                 <span className="ui-type-micro text-slate-400">
-                  Po wyjęciu wtyczki USB-C przywraca ekran, który był wyświetlany wcześniej.
+                  {t('settings.usb.revertDesc')}
                 </span>
               </div>
               <input
@@ -786,22 +794,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* Detection Method */}
             <div>
               <label className="text-xs text-slate-400 block mb-1">
-                Metoda wykrywania podłączenia do komputera:
+                {t('settings.usb.detectLabel')}
               </label>
               <select
                 value={system.usbDetectMethod}
                 onChange={e => setSystem(prev => ({ ...prev, usbDetectMethod: e.target.value as any }))}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100"
               >
-                <option value="serial_handshake">
-                  Handshake z agentem PC / WebSerial (Rekomendowane dla wszystkich ESP32)
-                </option>
-                <option value="cdc_dtr">
-                  Sygnał DTR/RTS portu CDC USB (ESP32-S3 / ESP32-C3 Native USB)
-                </option>
-                <option value="vbus_power">
-                  Pomiar napięcia VBUS 5V linii USB (Hardware GPIO)
-                </option>
+                <option value="serial_handshake">{t('settings.usb.detect.serial_handshake')}</option>
+                <option value="cdc_dtr">{t('settings.usb.detect.cdc_dtr')}</option>
+                <option value="vbus_power">{t('settings.usb.detect.vbus_power')}</option>
               </select>
             </div>
 
@@ -809,23 +811,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex flex-col gap-2">
               <span className="text-xs font-mono text-slate-300 uppercase font-semibold flex items-center gap-2">
                 <Activity className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                Monitorowane parametry komputera na ekranie:
+                {t('settings.usb.metricsTitle')}
               </span>
               <div className="flex flex-wrap gap-1.5 ui-type-micro font-mono">
                 <span className="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
-                  CPU (Obciążenie procesora %)
+                  {t('settings.usb.metric.cpu')}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  RAM (Pamięć operacyjna %)
+                  {t('settings.usb.metric.ram')}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
-                  Karta Graficzna (GPU %)
+                  {t('settings.usb.metric.gpu')}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
-                  Zajęty Dysk (Disk C/D %)
+                  {t('settings.usb.metric.disk')}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800">
-                  Temperatura CPU (°C)
+                  {t('settings.usb.metric.temp')}
                 </span>
               </div>
             </div>
@@ -837,14 +839,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="ui-type-title text-slate-100 flex items-center gap-2">
               <Bluetooth className="ui-icon-sm text-blue-400" aria-hidden="true" />
-              Łączność Bezprzewodowa Bluetooth & BLE (ESP32)
+              {t('settings.bluetooth.sectionTitle')}
             </h3>
             <span className={`ui-type-micro font-mono px-2 py-0.5 rounded border ${
               system.bluetoothEnabled
                 ? 'bg-blue-950 text-blue-400 border-blue-800'
                 : 'bg-slate-950 text-slate-500 border-slate-800'
             }`}>
-              {system.bluetoothEnabled ? system.bluetoothMode.toUpperCase() : 'Wyłączone'}
+              {system.bluetoothEnabled ? system.bluetoothMode.toUpperCase() : t('settings.status.disabled')}
             </span>
           </div>
 
@@ -859,41 +861,33 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-bold text-slate-200">
-                  Włącz moduł Bluetooth w oprogramowaniu ESP32
+                  {t('settings.bluetooth.enableTitle')}
                 </span>
                 <span className="ui-type-micro text-slate-400 leading-relaxed">
-                  Umożliwia bezprzewodowe przesyłanie danych z komputera, odczyt telemetrii PC przez Bluetooth lub sterowanie aplikacją ze smartfona.
+                  {t('settings.bluetooth.enableDesc')}
                 </span>
               </div>
             </label>
 
             {/* Bluetooth Mode */}
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Tryb pracy Bluetooth:</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.bluetooth.modeLabel')}</label>
               <select
                 disabled={!system.bluetoothEnabled}
                 value={system.bluetoothMode}
                 onChange={e => setSystem(prev => ({ ...prev, bluetoothMode: e.target.value as any }))}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 disabled:opacity-50"
               >
-                <option value="ble">
-                  BLE (Bluetooth Low Energy) - Energooszczędny profil GATT
-                </option>
-                <option value="classic_spp">
-                  Bluetooth Classic SPP - Wirtualny bezprzewodowy port szeregowy COM
-                </option>
-                <option value="ble_keyboard">
-                  BLE HID - Bezprzewodowa klawiatura / media controller dla komputera
-                </option>
-                <option value="disabled">
-                  Wyłączony (Oszczędność pamięci RAM)
-                </option>
+                <option value="ble">{t('settings.bluetooth.mode.ble')}</option>
+                <option value="classic_spp">{t('settings.bluetooth.mode.classic_spp')}</option>
+                <option value="ble_keyboard">{t('settings.bluetooth.mode.ble_keyboard')}</option>
+                <option value="disabled">{t('settings.bluetooth.mode.disabled')}</option>
               </select>
             </div>
 
             {/* Bluetooth Device Name */}
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Nazwa rozgłaszana urządzenia (Bluetooth Device Name):</label>
+              <label className="text-xs text-slate-400 block mb-1">{t('settings.bluetooth.deviceNameLabel')}</label>
               <input
                 type="text"
                 disabled={!system.bluetoothEnabled}
@@ -907,32 +901,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* BLE Service Profile and TX Power */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Profil Usług BLE:</label>
+                <label className="text-xs text-slate-400 block mb-1">{t('settings.bluetooth.serviceLabel')}</label>
                 <select
                   disabled={!system.bluetoothEnabled}
                   value={system.bleServiceType}
                   onChange={e => setSystem(prev => ({ ...prev, bleServiceType: e.target.value as any }))}
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-100 disabled:opacity-50"
                 >
-                  <option value="pc_telemetry">Telemetria PC (CPU/RAM/Dysk)</option>
-                  <option value="serial_spp">Serial Nordic UART</option>
-                  <option value="battery_env">Bateria & Sensory</option>
+                  <option value="pc_telemetry">{t('settings.bluetooth.service.pc_telemetry')}</option>
+                  <option value="serial_spp">{t('settings.bluetooth.service.serial_spp')}</option>
+                  <option value="battery_env">{t('settings.bluetooth.service.battery_env')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Moc nadawania (TX Power):</label>
+                <label className="text-xs text-slate-400 block mb-1">{t('settings.bluetooth.txPowerLabel')}</label>
                 <select
                   disabled={!system.bluetoothEnabled}
                   value={system.bleTxPower}
                   onChange={e => setSystem(prev => ({ ...prev, bleTxPower: Number(e.target.value) }))}
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-100 disabled:opacity-50 font-mono"
                 >
-                  <option value={9}>+9 dBm (Maksymalny zasięg)</option>
-                  <option value={6}>+6 dBm</option>
-                  <option value={3}>+3 dBm (Domyślny)</option>
-                  <option value={0}>0 dBm (Standard)</option>
-                  <option value={-6}>-6 dBm (Oszczędny)</option>
+                  {([9, 6, 3, 0, -6] as const).map(power => (
+                    <option key={power} value={power}>
+                      {t(`settings.bluetooth.tx.${power}`)}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -940,7 +934,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* PIN Code and Advertising */}
             <div className="grid grid-cols-2 gap-3 items-center">
               <div>
-                <label className="ui-type-micro text-slate-400 block mb-1">Kod PIN parowania (opcjonalny):</label>
+                <label className="ui-type-micro text-slate-400 block mb-1">{t('settings.bluetooth.pairingPinLabel')}</label>
                 <input
                   type="text"
                   disabled={!system.bluetoothEnabled}
@@ -952,7 +946,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
 
               <div className="flex items-center justify-between p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-xs mt-4">
-                <span className="text-slate-300 ui-type-micro">Auto-rozgłaszanie:</span>
+                <span className="text-slate-300 ui-type-micro">{t('settings.bluetooth.advertisingLabel')}</span>
                 <input
                   type="checkbox"
                   disabled={!system.bluetoothEnabled}
@@ -965,7 +959,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* RAM Tip */}
             <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl ui-type-micro text-slate-400 leading-relaxed">
-              💡 <strong>Wskazówka RAM:</strong> Włączenie Bluetooth Classic SPP alokuje ok. 60 KB pamięci RAM. W trybie BLE zużycie spada do ~30 KB.
+              <strong>{t('settings.bluetooth.ramTip')}</strong>
             </div>
           </div>
         </div>
