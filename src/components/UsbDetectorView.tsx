@@ -66,19 +66,39 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   setSystem,
   buildSources,
 }) => {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const backendLabel = (kind: SerialBackendKind): string => {
     switch (kind) {
       case 'web':
-        return 'Web Serial';
+        return t('usb.backend.web');
       case 'mock':
-        return 'Mock';
+        return t('usb.backend.mock');
       case 'native':
-        return 'Native COM';
+        return t('usb.backend.native');
       default:
         return t('usb.backend.unavailable');
     }
   };
+  const localizeChipModel = (chip: ConnectedEsp32Info): string => {
+    if (chip.chipModelKey) {
+      return t(chip.chipModelKey)
+        .replace('{vid}', chip.usbVendorId || '')
+        .replace('{pid}', chip.usbProductId || '');
+    }
+    return chip.chipModel;
+  };
+  const localizeArchitecture = (chip: ConnectedEsp32Info): string =>
+    chip.architectureKey ? t(chip.architectureKey) : chip.architecture;
+  const localizeFeatures = (chip: ConnectedEsp32Info): string[] => {
+    if (chip.featureKeys?.length) {
+      return chip.featureKeys.map(key => t(key));
+    }
+    return chip.features.map(f =>
+      f.startsWith('usb.board.') || f.startsWith('usb.identify.') ? t(f) : f,
+    );
+  };
+  const localizeBootLog = (chip: ConnectedEsp32Info): string =>
+    chip.bootLogKey ? t(chip.bootLogKey) : chip.rawBootLog || t('usb.log.connected');
   const serialAdapter = getSerialAdapter();
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
@@ -89,7 +109,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     {
       id: 'log-1',
       timestamp: '00:00:01',
-      text: t('usb.log.ready').replace('{backend}', backendLabel(serialAdapter.kind)),
+      text: '',
       direction: 'system',
     },
   ]);
@@ -104,6 +124,18 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   const logEndRef = useRef<HTMLDivElement | null>(null);
   const openPortRef = useRef<OpenSerialPort | null>(null);
   const rxBufferRef = useRef('');
+
+  // Keep the initial ready banner in sync with locale / backend label.
+  useEffect(() => {
+    setSerialLogs(prev => {
+      if (prev.length === 0 || prev[0].id !== 'log-1') return prev;
+      const nextText = t('usb.log.ready').replace('{backend}', backendLabel(serialAdapter.kind));
+      if (prev[0].text === nextText) return prev;
+      return [{ ...prev[0], text: nextText }, ...prev.slice(1)];
+    });
+    // backendLabel / t close over locale
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
 
   // Auto-scroll logs
   useEffect(() => {
@@ -167,20 +199,12 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     const identified = identifyEsp32FromUsbVidPid(vid, pid);
     identified.portName = port.info.label;
     identified.baudRate = 115200;
-    if (identified.chipModelKey) {
-      identified.chipModel = t(identified.chipModelKey)
-        .replace('{vid}', identified.usbVendorId || '')
-        .replace('{pid}', identified.usbProductId || '');
-    }
-    if (identified.architectureKey) {
-      identified.architecture = t(identified.architectureKey);
-    }
-    if (identified.featureKeys?.length) {
-      identified.features = identified.featureKeys.map(key => t(key));
-    }
-    if (identified.bootLogKey) {
-      identified.rawBootLog = t(identified.bootLogKey);
-    }
+    // Keep *Key fields; localize at render time so locale switches refresh chip chrome.
+    const modelLabel = localizeChipModel(identified);
+    identified.chipModel = modelLabel;
+    identified.architecture = localizeArchitecture(identified);
+    identified.features = localizeFeatures(identified);
+    identified.rawBootLog = localizeBootLog(identified);
     setDetectedChip(identified);
     attachOpenPort(port);
     setShowPortPicker(false);
@@ -200,7 +224,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         timestamp: timeStr,
         text: t('usb.log.identified')
           .replace('{family}', identified.chipFamily)
-          .replace('{model}', identified.chipModel),
+          .replace('{model}', modelLabel),
         direction: 'system',
       },
       {
@@ -253,7 +277,10 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           appendLogs([
             {
               timestamp: formatClockTimestamp(),
-              text: `[SYSTEM] Dostępne porty: ${ports.map(p => p.label).join(' | ')}`,
+              text: t('usb.log.portsAvailable').replace(
+                '{ports}',
+                ports.map(p => p.label).join(' | '),
+              ),
               direction: 'system',
             },
           ]);
@@ -328,30 +355,27 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   // Select board preset manually
   const handleSelectPreset = (preset: BoardPreset) => {
     const identified = identifyEsp32FromUsbVidPid(preset.vid, preset.pid);
-    const localizedName = t(boardNameKey(preset.id));
-    identified.chipModel = localizedName;
-    if (identified.architectureKey) {
-      identified.architecture = t(identified.architectureKey);
-    }
+    identified.chipModelKey = boardNameKey(preset.id);
+    identified.featureKeys = preset.featureKeys;
     identified.flashSizeMb = preset.flashMb;
     identified.psramSizeMb = preset.psramMb;
     identified.maxCpuClockMhz = preset.clockMhz;
-    identified.features = preset.featureKeys.map(key => t(key));
-    if (identified.bootLogKey) {
-      identified.rawBootLog = t(identified.bootLogKey);
-    }
+    const localizedName = localizeChipModel(identified);
+    identified.chipModel = localizedName;
+    identified.architecture = localizeArchitecture(identified);
+    identified.features = localizeFeatures(identified);
+    identified.rawBootLog = localizeBootLog(identified);
 
     setDetectedChip(identified);
 
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const timeStr = formatClockTimestamp();
 
     setSerialLogs(prev => [
       ...prev,
       {
         id: `log-${Date.now()}`,
         timestamp: timeStr,
-        text: `[SELECT] ${localizedName}`,
+        text: t('usb.log.select').replace('{name}', localizedName),
         direction: 'system',
       },
     ]);
@@ -379,17 +403,20 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       cpuFrequencyMhz: detectedChip.maxCpuClockMhz as any,
     }));
 
-    setAppliedPresetId(detectedChip.chipModel);
+    setAppliedPresetId(detectedChip.chipModelKey || detectedChip.chipModel);
     setTimeout(() => setAppliedPresetId(null), 2500);
 
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    const timeStr = formatClockTimestamp();
     setSerialLogs(prev => [
       ...prev,
       {
         id: `log-${Date.now()}`,
         timestamp: timeStr,
-        text: `[KONFIGURACJA] Zastosowano piny dotyku (${preset.touchController.toUpperCase()} na SDA:${preset.touchSda}, SCL:${preset.touchScl}) oraz taktowanie ${detectedChip.maxCpuClockMhz} MHz do projektu.`,
+        text: t('usb.log.applied')
+          .replace('{touch}', preset.touchController.toUpperCase())
+          .replace('{sda}', String(preset.touchSda))
+          .replace('{scl}', String(preset.touchScl))
+          .replace('{mhz}', String(detectedChip.maxCpuClockMhz)),
         direction: 'system',
       },
     ]);
@@ -413,11 +440,11 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
         // Live / mock RX arrives via onData subscribers.
         return;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Nieznany błąd zapisu';
+        const message = err instanceof Error ? err.message : t('usb.err.write');
         appendLogs([
           {
             timestamp: formatClockTimestamp(),
-            text: `[SYSTEM] Błąd zapisu na port: ${message}`,
+            text: t('usb.err.writePort').replace('{message}', message),
             direction: 'system',
           },
         ]);
@@ -425,15 +452,21 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
       }
     }
 
-    let reply = `> Nieznana komenda: "${cmd}". Dostępne: ping, info, touch, restart`;
+    let reply = t('usb.mock.unknown').replace('{cmd}', cmd);
     if (cmd.toLowerCase() === 'ping') {
-      reply = `ESP32 PONG (RTT = 1.2ms, Heap free: 284120 B)`;
+      reply = t('usb.mock.pong');
     } else if (cmd.toLowerCase() === 'info') {
-      reply = `Chip: ${detectedChip?.chipModel || 'ESP32'} | Flash: ${detectedChip?.flashSizeMb || 4}MB | MAC: ${detectedChip?.macAddress || '24:0A:C4:58:3B:A0'}`;
+      reply = t('usb.mock.info')
+        .replace('{model}', detectedChip ? localizeChipModel(detectedChip) : 'ESP32')
+        .replace('{flash}', String(detectedChip?.flashSizeMb || 4))
+        .replace('{mac}', detectedChip?.macAddress || '24:0A:C4:58:3B:A0');
     } else if (cmd.toLowerCase() === 'touch') {
-      reply = `Touch Controller: ${display.touchController.toUpperCase()} (SDA: ${display.touchSdaPin}, SCL: ${display.touchSclPin}, Status: OK)`;
+      reply = t('usb.mock.touch')
+        .replace('{controller}', display.touchController.toUpperCase())
+        .replace('{sda}', String(display.touchSdaPin))
+        .replace('{scl}', String(display.touchSclPin));
     } else if (cmd.toLowerCase() === 'restart') {
-      reply = `ESP-ROM: Restartowanie układu... Reboot OK`;
+      reply = t('usb.mock.restart');
     }
 
     appendLogs([{ timestamp: timeStr, text: reply, direction: 'rx' }]);
@@ -452,7 +485,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             {t('usb.noDeviceHint')}
           </p>
           <p className="ui-type-micro text-slate-500 mt-1 font-mono">
-            Backend: {backendLabel(serialBackend)}
+            {t('usb.backendLabel')}: {backendLabel(serialBackend)}
             {portConnected ? ` · ${t('usb.portOpen')}` : ` · ${t('usb.portClosed')}`}
           </p>
         </div>
@@ -598,7 +631,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                     <Cpu className="ui-icon-md" aria-hidden="true" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-100">{detectedChip.chipModel}</h3>
+                    <h3 className="text-sm font-bold text-slate-100">{localizeChipModel(detectedChip)}</h3>
                     <span className="ui-type-micro font-mono text-cyan-400 font-semibold">{detectedChip.chipFamily}</span>
                   </div>
                 </div>
@@ -613,7 +646,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
                   <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.arch')}</span>
-                  <span className="font-semibold text-slate-200">{detectedChip.architecture}</span>
+                  <span className="font-semibold text-slate-200">{localizeArchitecture(detectedChip)}</span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
                   <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.cores')}</span>
@@ -621,7 +654,16 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
                   <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.memory')}</span>
-                  <span className="font-semibold text-cyan-300 font-mono">{detectedChip.flashSizeMb} MB Flash {detectedChip.psramSizeMb > 0 ? `+ ${detectedChip.psramSizeMb} MB PSRAM` : ''}</span>
+                  <span className="font-semibold text-cyan-300 font-mono">
+                    {t('usb.spec.memoryValue')
+                      .replace('{flash}', String(detectedChip.flashSizeMb))
+                      .replace(
+                        '{psram}',
+                        detectedChip.psramSizeMb > 0
+                          ? t('usb.spec.psramExtra').replace('{psram}', String(detectedChip.psramSizeMb))
+                          : '',
+                      )}
+                  </span>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex flex-col gap-1">
                   <span className="ui-type-micro uppercase font-mono text-slate-400">{t('usb.spec.mac')}</span>
@@ -633,9 +675,9 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
               <div className="flex flex-col gap-2">
                 <span className="ui-type-micro font-mono text-slate-400 uppercase">{t('usb.spec.features')}</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {detectedChip.features.map(f => (
+                  {localizeFeatures(detectedChip).map(f => (
                     <span key={f} className="px-2.5 py-1 bg-slate-950 border border-slate-800 text-slate-300 rounded ui-type-micro">
-                      {f.startsWith('usb.board.') ? t(f) : f}
+                      {f}
                     </span>
                   ))}
                 </div>

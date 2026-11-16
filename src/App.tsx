@@ -412,7 +412,7 @@ export default function App() {
         </div>
 
         {/* Zone 2: Navigation — consistent icon-sm + caption type */}
-        <nav className="hidden lg:flex items-center gap-2" aria-label="Główna nawigacja">
+        <nav className="hidden lg:flex items-center gap-2" aria-label={t('a11y.mainNav')}>
           {[
             { id: 'simulator', label: t('nav.simulator'), icon: Tv },
             { id: 'editor', label: t('nav.editor'), icon: Layers },
@@ -441,7 +441,7 @@ export default function App() {
                 <Icon className={`ui-icon-sm shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} aria-hidden="true" />
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className="ui-status-dot" title="ESP32 Wykryty" aria-label="ESP32 wykryty" />
+                  <span className="ui-status-dot" title={t('a11y.chipDetected')} aria-label={t('a11y.chipDetected')} />
                 )}
               </button>
             );
@@ -454,16 +454,16 @@ export default function App() {
           <div
             className="ui-cluster gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl"
             role="group"
-            aria-label="Wielkość tekstu UI"
-            title="Dostosuj wielkość czcionki w aplikacji (UI Accessibility)"
+            aria-label={t('a11y.fontScale')}
+            title={t('a11y.fontScaleHint')}
           >
             <Type className="ui-icon-sm text-cyan-400 ml-1 shrink-0" aria-hidden="true" />
-            <span className="hidden xl:inline text-slate-400 ui-type-micro font-medium mr-0.5">Tekst:</span>
+            <span className="hidden xl:inline text-slate-400 ui-type-micro font-medium mr-0.5">{t('a11y.fontLabel')}</span>
             <div className="ui-cluster gap-1">
               {[
-                { key: 'normal', label: 'A', title: 'Standardowa wielkość (100%)' },
-                { key: 'large', label: 'A+', title: 'Powiększona czcionka (115%)' },
-                { key: 'xlarge', label: 'A++', title: 'Duża czcionka (130%)' },
+                { key: 'normal', label: 'A', title: t('a11y.fontNormal') },
+                { key: 'large', label: 'A+', title: t('a11y.fontLarge') },
+                { key: 'xlarge', label: 'A++', title: t('a11y.fontXLarge') },
               ].map(scale => (
                 <button
                   key={scale.key}
@@ -489,7 +489,7 @@ export default function App() {
               type="button"
               onClick={() => void handleCheckUpdates()}
               disabled={updateBusy}
-              title="Sprawdź aktualizacje aplikacji (Tauri)"
+              title={t('a11y.checkUpdates')}
               aria-label={t('action.update')}
               className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ui-type-micro font-medium disabled:opacity-50 gap-1.5 px-2.5"
             >
@@ -498,8 +498,8 @@ export default function App() {
             </button>
             <label
               className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
-              title="Importuj projekt (.esp32studio / .json)"
-              aria-label="Importuj projekt"
+              title={t('a11y.importProject')}
+              aria-label={t('a11y.importProject')}
             >
               <Upload className="ui-icon-sm" aria-hidden="true" />
               <input type="file" accept=".esp32studio,.json,application/json" onChange={handleImportProjectJson} className="hidden" />
@@ -507,7 +507,7 @@ export default function App() {
             <button
               type="button"
               onClick={handleExportProjectJson}
-              title="Zapisz projekt (.esp32studio) — skojarzony z aplikacją na Windows"
+              title={t('a11y.exportProject')}
               aria-label={t('action.exportProject')}
               className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ui-type-micro font-medium gap-1.5 px-2.5"
             >
@@ -550,7 +550,7 @@ export default function App() {
             )}
             {updateResult.status === 'up-to-date' && <span>{t('update.upToDate')}</span>}
             {updateResult.status === 'error' && (
-              <span>Update: {updateResult.message}</span>
+              <span>{t('action.update')}: {updateResult.message}</span>
             )}
             {updateResult.status === 'unavailable' && (
               <span>{t('update.unavailable')}</span>
@@ -571,8 +571,8 @@ export default function App() {
               type="button"
               onClick={() => setShowUpdateBanner(false)}
               className="ui-btn-icon text-cyan-300/80 hover:bg-cyan-900/50"
-              title="Zamknij"
-              aria-label="Zamknij banner aktualizacji"
+              title={t('common.close')}
+              aria-label={t('a11y.closeUpdateBanner')}
             >
               <X className="ui-icon-sm" aria-hidden="true" />
             </button>
@@ -591,7 +591,7 @@ export default function App() {
             type="button"
             onClick={() => setImportNotice(null)}
             className="ui-btn-icon hover:bg-emerald-900/50"
-            aria-label="Zamknij powiadomienie"
+            aria-label={t('a11y.closeNotice')}
           >
             <X className="ui-icon-sm" aria-hidden="true" />
           </button>
@@ -622,7 +622,7 @@ export default function App() {
             type="button"
             onClick={() => setOpenFileNotice(null)}
             className="ui-btn-icon text-amber-200/80 hover:bg-amber-900/40"
-            aria-label="Zamknij powiadomienie pliku"
+            aria-label={t('a11y.closeFileNotice')}
           >
             <X className="ui-icon-sm" aria-hidden="true" />
           </button>
@@ -637,7 +637,7 @@ export default function App() {
               type="button"
               onClick={() => setDownloadInoModal(false)}
               className="absolute top-4 right-4 ui-btn-icon text-slate-400 hover:text-white hover:bg-slate-800"
-              aria-label="Zamknij"
+              aria-label={t('common.close')}
             >
               <X className="ui-icon-sm" aria-hidden="true" />
             </button>
@@ -648,13 +648,13 @@ export default function App() {
               </div>
               <div className="ui-stack gap-1 min-w-0">
                 <h3 id="ino-download-title" className="ui-type-title text-white flex flex-wrap items-center gap-2">
-                  <span>Pobrano Szkic Arduino IDE</span>
+                  <span>{t('ino.modalTitle')}</span>
                   <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     .ino
                   </span>
                 </h3>
                 <p className="ui-type-caption text-slate-400 font-mono">
-                  Plik: <span className="text-cyan-300 font-bold ui-token">{customSketchName}.ino</span>
+                  {t('ino.modalFile')} <span className="text-cyan-300 font-bold ui-token">{customSketchName}.ino</span>
                 </p>
               </div>
             </div>
@@ -663,10 +663,10 @@ export default function App() {
             <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl ui-stack gap-3 ui-type-caption">
               <div className="font-semibold text-slate-200 ui-cluster gap-2">
                 <FolderArchive className="ui-icon-sm text-amber-400" aria-hidden="true" />
-                <span>Ważna zasada Arduino IDE:</span>
+                <span>{t('ino.modalRule')}</span>
               </div>
               <p className="text-slate-300 leading-relaxed">
-                Arduino IDE wymaga, aby plik szkicu znajdował się w folderze o identycznej nazwie:
+                {t('ino.modalRuleBody')}
               </p>
               <div className="p-2.5 bg-slate-900 rounded-lg border border-slate-800 font-mono text-cyan-300 select-all ui-token">
                 <div className="ui-cluster gap-2">
@@ -680,14 +680,14 @@ export default function App() {
                 </div>
               </div>
               <p className="text-slate-400 leading-relaxed">
-                (Jeśli otworzysz plik bezpośrednio, Arduino IDE wyświetli okienko z zapytaniem i utworzy ten folder automatycznie).
+                {t('ino.modalHint')}
               </p>
             </div>
 
             {/* Custom file name quick re-download */}
             <div className="ui-stack gap-1.5">
               <label htmlFor="sketch-name-input" className="ui-type-caption text-slate-300 font-medium">
-                Zmień nazwę pliku przed wgraniem (opcjonalnie):
+                {t('ino.modalRename')}
               </label>
               <div className="ui-cluster gap-2">
                 <div className="flex-1 flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 focus-within:border-cyan-500 min-w-0">
@@ -751,7 +751,7 @@ export default function App() {
       )}
 
       {/* Mobile Navigation Bar */}
-      <nav className="lg:hidden flex items-center overflow-x-auto gap-2 p-2 bg-slate-900 border-b border-slate-800 scrollbar-none" aria-label="Nawigacja mobilna">
+      <nav className="lg:hidden flex items-center overflow-x-auto gap-2 p-2 bg-slate-900 border-b border-slate-800 scrollbar-none" aria-label={t('a11y.mobileNav')}>
         {[
           { id: 'simulator' as const, label: t('nav.mobile.simulator'), icon: Tv },
           { id: 'editor' as const, label: t('nav.mobile.editor'), icon: Layers },
