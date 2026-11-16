@@ -1,6 +1,6 @@
 # Architektura — ESP32 Display Studio
 
-Przegląd warstw aplikacji w stanie **0.2.9** (po Fazach 0–16). Szczegóły wdrożeniowe: dokumenty tematyczne w tym katalogu.
+Przegląd warstw aplikacji w stanie **0.2.10** (po Fazach 0–16). Szczegóły wdrożeniowe: dokumenty tematyczne w tym katalogu.
 
 ## Stack
 

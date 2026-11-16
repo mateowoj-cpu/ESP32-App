@@ -14,7 +14,7 @@ When the toggle is on **and** the build defines `VITE_TELEMETRY_ENDPOINT`
 
 | Field | Meaning |
 |-------|---------|
-| `v` | App version (e.g. `0.2.9`) |
+| `v` | App version (e.g. `0.2.10`) |
 | `os` | Coarse OS: `windows` / `macos` / `linux` / `other` |
 | `event` | `app_open`, `build_result`, `flash_result`, `ota_result`, `diag_export`, `board_sync` |
 | `ok` | Optional boolean for result events |
@@ -74,7 +74,7 @@ Studio does **not** host a collector. Whoever runs `VITE_TELEMETRY_ENDPOINT` sho
 ### Example request body
 
 ```json
-{ "v": "0.2.9", "os": "windows", "event": "flash_result", "ok": true, "ts": 1730000000000 }
+{ "v": "0.2.10", "os": "windows", "event": "flash_result", "ok": true, "ts": 1730000000000 }
 ```
 
 ## Implementation

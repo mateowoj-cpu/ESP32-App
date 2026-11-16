@@ -1,5 +1,5 @@
 /**
- * Community marketplace — data-only sandbox (Faza 14 → 15).
+ * Community marketplace — data-only sandbox (Faza 14 → 17).
  *
  * Safety rules:
  * - JSON catalog + import/export of widgets and automation rules only
@@ -7,6 +7,8 @@
  * - NEVER eval, Function(), dynamic import of user code, or script fields
  * - Faza 15: manifest v2 + Ed25519 pack signatures + HTTPS host allowlist
  *   for remote fetches (still data-only — signatures authenticate JSON, not code)
+ * - Faza 17: sandbox demo publisher public key + signed fixture pack
+ *   (live private keys stay offline — never commit)
  */
 
 import type {
@@ -52,6 +54,8 @@ export interface MarketplacePublisher {
   name: string;
   /** Raw 32-byte Ed25519 public key, base64. */
   publicKeyB64: string;
+  /** When true, this is a disposable demo key — not a live community publisher. */
+  sandbox?: boolean;
 }
 
 export interface MarketplaceWidgetPack {
@@ -454,7 +458,7 @@ export function sandboxImportRules(
 
 export const BUNDLED_MARKETPLACE_CATALOG: MarketplaceCatalog = {
   version: 2,
-  updatedAt: '2026-11-13T00:00:00.000Z',
+  updatedAt: '2026-11-16T00:00:00.000Z',
   source: 'esp32-display-studio/marketplace-bundled',
   entries: [
     {
@@ -468,6 +472,21 @@ export const BUNDLED_MARKETPLACE_CATALOG: MarketplaceCatalog = {
       tags: ['oled', 'clock', 'status'],
       packId: 'status-strip',
       requireSignature: false,
+    },
+    {
+      id: 'pack-status-strip-signed',
+      kind: 'widget_pack',
+      title: 'Pasek statusu (podpis sandbox)',
+      titleEn: 'Status strip (sandbox signed)',
+      description:
+        'Ta sama zawartość co pasek statusu, podpisana kluczem studio-sandbox (demo — nie live).',
+      descriptionEn:
+        'Same content as status strip, signed with the studio-sandbox demo key (not live).',
+      author: 'ESP32 Display Studio',
+      tags: ['oled', 'clock', 'status', 'signed', 'sandbox'],
+      packId: 'status-strip-signed',
+      publisherId: 'studio-sandbox',
+      requireSignature: true,
     },
     {
       id: 'pack-night-rules',
@@ -496,6 +515,16 @@ export const BUNDLED_MARKETPLACE_CATALOG: MarketplaceCatalog = {
   ],
 };
 
+/** Public keys mirrored from public/marketplace/publishers.json (public only). */
+export const BUNDLED_MARKETPLACE_PUBLISHERS: MarketplacePublisher[] = [
+  {
+    id: 'studio-sandbox',
+    name: 'ESP32 Display Studio (sandbox demo)',
+    sandbox: true,
+    publicKeyB64: 'Bhw2FJmZy0hF0C61NXHfkhvv6Qv4tkjp76UREuNl4Zc=',
+  },
+];
+
 export const BUNDLED_MARKETPLACE_PACKS: Record<string, MarketplacePack> = {
   'status-strip': {
     format: 'esp32studio-marketplace',
@@ -504,6 +533,41 @@ export const BUNDLED_MARKETPLACE_PACKS: Record<string, MarketplacePack> = {
     id: 'status-strip',
     title: 'Status strip',
     author: 'ESP32 Display Studio',
+    widgets: [
+      {
+        id: 'm_clock',
+        type: 'clock',
+        x: 4,
+        y: 4,
+        width: 72,
+        height: 20,
+        clockFormat: '24h',
+        showSeconds: false,
+        showDate: false,
+        binding: 'time',
+      },
+      {
+        id: 'm_batt_wifi',
+        type: 'battery_wifi',
+        x: 80,
+        y: 4,
+        width: 44,
+        height: 20,
+      },
+    ],
+  },
+  'status-strip-signed': {
+    format: 'esp32studio-marketplace',
+    kind: 'widget_pack',
+    version: 2,
+    id: 'status-strip-signed',
+    title: 'Status strip (sandbox signed)',
+    author: 'ESP32 Display Studio',
+    description:
+      'SANDBOX demo — signed with studio-sandbox disposable key. Not a live publisher.',
+    publisherId: 'studio-sandbox',
+    signature:
+      'NkAhqZiCrzbMdKpEHr93cDe4ZFIorDzYOh/viRTiu5K+N4tKJTg2SdwP9L4zoepF//4ObaQqJeLuGG6NEIezBg==',
     widgets: [
       {
         id: 'm_clock',
@@ -597,8 +661,8 @@ export const MARKETPLACE_ALLOWED_PATH_PREFIXES = [
 
 /**
  * Trusted Ed25519 publishers (public keys only).
- * Humans add keys after `scripts/marketplace/sign-pack.mjs --generate`.
- * Never commit private keys. Empty by default until a publisher is registered.
+ * Humans add live keys after `scripts/marketplace/sign-pack.mjs --generate`.
+ * Never commit private keys. Sandbox demo public key is bundled for fixtures.
  */
 const trustedPublishers = new Map<string, MarketplacePublisher>();
 
@@ -623,7 +687,45 @@ export function registerTrustedPublisher(publisher: MarketplacePublisher): void 
     id: publisher.id,
     name: publisher.name || publisher.id,
     publicKeyB64: publisher.publicKeyB64,
+    sandbox: !!publisher.sandbox,
   });
+}
+
+/** Register bundled sandbox / fixture publisher public keys (no network). */
+export function registerBundledMarketplacePublishers(): number {
+  let n = 0;
+  for (const p of BUNDLED_MARKETPLACE_PUBLISHERS) {
+    try {
+      registerTrustedPublisher(p);
+      n += 1;
+    } catch {
+      // skip malformed bundled entries
+    }
+  }
+  return n;
+}
+
+function registerPublishersFromDocument(json: unknown): number {
+  if (!isPlainObject(json) || !Array.isArray(json.publishers)) return 0;
+  let n = 0;
+  for (const item of json.publishers) {
+    if (!isPlainObject(item)) continue;
+    if (typeof item.id !== 'string' || typeof item.publicKeyB64 !== 'string') {
+      continue;
+    }
+    try {
+      registerTrustedPublisher({
+        id: item.id,
+        name: typeof item.name === 'string' ? item.name : item.id,
+        publicKeyB64: item.publicKeyB64,
+        sandbox: item.sandbox === true,
+      });
+      n += 1;
+    } catch {
+      // skip malformed entries
+    }
+  }
+  return n;
 }
 
 export async function loadTrustedPublishersFromJson(
@@ -631,32 +733,13 @@ export async function loadTrustedPublishersFromJson(
 ): Promise<number> {
   try {
     const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) return 0;
+    if (!res.ok) return registerBundledMarketplacePublishers();
     const json: unknown = await res.json();
-    if (!isPlainObject(json) || !Array.isArray(json.publishers)) return 0;
-    let n = 0;
-    for (const item of json.publishers) {
-      if (!isPlainObject(item)) continue;
-      if (
-        typeof item.id !== 'string' ||
-        typeof item.publicKeyB64 !== 'string'
-      ) {
-        continue;
-      }
-      try {
-        registerTrustedPublisher({
-          id: item.id,
-          name: typeof item.name === 'string' ? item.name : item.id,
-          publicKeyB64: item.publicKeyB64,
-        });
-        n += 1;
-      } catch {
-        // skip malformed entries
-      }
-    }
+    const n = registerPublishersFromDocument(json);
+    if (n === 0) return registerBundledMarketplacePublishers();
     return n;
   } catch {
-    return 0;
+    return registerBundledMarketplacePublishers();
   }
 }
 
