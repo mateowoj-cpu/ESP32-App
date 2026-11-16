@@ -56,8 +56,8 @@
     "homepage": "https://github.com/mateowoj-cpu/ESP32-App",
     "category": "DeveloperTool",
     "copyright": "Copyright © 2026 ESP32 Display Studio",
-    "shortDescription": "Studio UI OLED/LCD i generator C++ dla ESP32",
-    "longDescription": "Wizualne środowisko do projektowania interfejsów OLED/LCD dla ESP32: symulator sprzętowy, edytor UI, automatyzacje, wykrywanie USB (COM), agent PC, flash esptool oraz generator szkiców Arduino/PlatformIO.",
+    "shortDescription": "Visual environment for designing OLED/LCD interfaces for ESP32",
+    "longDescription": "Visual environment for designing OLED/LCD interfaces for ESP32: hardware simulator, UI editor, automations, USB COM detection, PC agent, esptool flashing, and OTA/update tools.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -69,14 +69,14 @@
       {
         "ext": ["esp32studio"],
         "name": "ESP32StudioProject",
-        "description": "Projekt ESP32 Display Studio",
+        "description": "ESP32 Display Studio project",
         "role": "Editor",
         "mimeType": "application/vnd.esp32studio+json"
       },
       {
         "ext": ["ino"],
         "name": "ArduinoSketch",
-        "description": "Szkic Arduino (podgląd w ESP32 Display Studio)",
+        "description": "Arduino sketch preview in ESP32 Display Studio",
         "role": "Viewer",
         "mimeType": "text/x-arduino"
       }
@@ -106,7 +106,7 @@
         "installerHooks": "windows/installer-hooks.nsh"
       },
       "wix": {
-        "language": ["pl-PL", "en-US"],
+        "language": ["en-US"],
         "upgradeCode": "a7c3e9f1-5b2d-4e8a-9c1f-6d4b8a2e0f35"
       }
     }
