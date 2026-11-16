@@ -73,18 +73,45 @@ jobs:
           ./scripts/windows/Resolve-CodeSigningOverlay.ps1 `
             -OutConfigPath "./src-tauri/tauri.windows-signing.local.json"
 
+      # Mirror desktop-unix-release: without TAURI_SIGNING_PRIVATE_KEY, disable
+      # createUpdaterArtifacts so NSIS/MSI still succeed (empty/malformed env used
+      # to fail after bundles with "Missing comment in secret key").
+      - name: Select updater signing config
+        id: updater
+        env:
+          HAS_TAURI_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+        shell: pwsh
+        run: |
+          if ($env:HAS_TAURI_KEY -eq 'true') {
+            "signed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "TAURI_SIGNING_PRIVATE_KEY present — updater artifacts enabled (base conf)."
+          } else {
+            "signed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            Write-Host "TAURI_SIGNING_PRIVATE_KEY unset — will merge tauri.windows.updater-unsigned.json."
+          }
+
       - name: Build Tauri Windows bundles
         shell: pwsh
         env:
+          HAS_TAURI_KEY: ${{ steps.updater.outputs.signed }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
+          # Never leave empty signing env vars — Tauri treats them as a key and fails decode.
+          if ($env:HAS_TAURI_KEY -ne 'true') {
+            Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue
+            Remove-Item Env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD -ErrorAction SilentlyContinue
+          }
+
           $cmd = "npm run tauri:build --"
           if (Test-Path "./src-tauri/tauri.windows-signing.local.json") {
             $cmd += " --config ./src-tauri/tauri.windows-signing.local.json"
           }
           if (Test-Path "./src-tauri/resources/windows/esp32-pc-agent.exe") {
             $cmd += " --config ./src-tauri/tauri.windows-agent.example.json"
+          }
+          if ($env:HAS_TAURI_KEY -ne 'true') {
+            $cmd += " --config ./src-tauri/tauri.windows.updater-unsigned.json"
           }
           Write-Host "Running: $cmd"
           Invoke-Expression $cmd
