@@ -16,6 +16,7 @@ const store = new Map<string, string>();
 
 const {
   BUNDLED_COMMUNITY_CATALOG,
+  acceptCommunityCatalog,
   applyCommunityCatalog,
   isCommunityCatalog,
   syncCommunityBoardProfiles,
@@ -37,6 +38,28 @@ assert(
   BUNDLED_COMMUNITY_CATALOG.profiles.some(p => p.vid === '0403' && p.pid === '6015'),
   'FT231X profile',
 );
+
+const accepted = acceptCommunityCatalog(BUNDLED_COMMUNITY_CATALOG);
+assert(accepted.accepted, 'bundled accepted for apply');
+
+const rejected = acceptCommunityCatalog({
+  version: 1,
+  updatedAt: '2026-11-16T00:00:00.000Z',
+  profiles: [
+    {
+      id: 'bad-c6',
+      label: 'Bad C6',
+      vid: '303a',
+      pid: '1001',
+      chip: 'esp32c6',
+      offset: '0x1000',
+      baud: 921600,
+      boardProfile: 'esp32c6',
+    },
+  ],
+});
+assert(!rejected.accepted, 'reject bad offset on accept');
+assert(rejected.catalog === BUNDLED_COMMUNITY_CATALOG, 'fallback bundled');
 
 const n = applyCommunityCatalog(BUNDLED_COMMUNITY_CATALOG);
 assert(n === BUNDLED_COMMUNITY_CATALOG.profiles.length, 'applied count');

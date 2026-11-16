@@ -4,6 +4,7 @@ import {
   saveBoardPreset,
   type BoardFlashPreset,
 } from './boardCache';
+import { validateCatalogForApply } from './boardCatalogValidate';
 
 export interface CommunityBoardProfile {
   id: string;
@@ -227,6 +228,34 @@ export function isCommunityCatalog(value: unknown): value is CommunityBoardCatal
   );
 }
 
+/**
+ * Accept a remote catalog only when shape + offset↔chip rules pass.
+ * Invalid remote payloads fall back to the bundled catalog.
+ */
+export function acceptCommunityCatalog(
+  value: unknown,
+): { catalog: CommunityBoardCatalog; accepted: boolean; reason?: string } {
+  if (!isCommunityCatalog(value)) {
+    return {
+      catalog: BUNDLED_COMMUNITY_CATALOG,
+      accepted: false,
+      reason: 'Invalid community catalog shape',
+    };
+  }
+  const validation = validateCatalogForApply(value);
+  if (!validation.ok) {
+    const first = validation.errors[0];
+    return {
+      catalog: BUNDLED_COMMUNITY_CATALOG,
+      accepted: false,
+      reason: first
+        ? `${first.path || '(root)'}: ${first.message}`
+        : 'Catalog failed offset/chip validation',
+    };
+  }
+  return { catalog: value, accepted: true };
+}
+
 export async function fetchCommunityCatalog(
   url: string = DEFAULT_REMOTE_URL,
   timeoutMs = 8000,
@@ -237,8 +266,9 @@ export async function fetchCommunityCatalog(
     const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json: unknown = await res.json();
-    if (!isCommunityCatalog(json)) throw new Error('Invalid community catalog shape');
-    return { catalog: json, remote: true };
+    const { catalog, accepted } = acceptCommunityCatalog(json);
+    if (!accepted) throw new Error('Invalid community catalog shape or offsets');
+    return { catalog, remote: true };
   } catch {
     return { catalog: BUNDLED_COMMUNITY_CATALOG, remote: false };
   } finally {

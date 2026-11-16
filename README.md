@@ -7,7 +7,7 @@
 
 **Wizualne studio UI OLED/LCD dla ESP32** — React/Vite frontend + shell **Tauri 2** (Rust): symulator sprzętu, edytor ekranów, automatyzacje, serial USB (Web Serial / natywny COM), Build → Flash → OTA (esptool / espota / mDNS), marketplace JSON (sandbox), agent PC i generator C++ (Arduino / PlatformIO).
 
-Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.10** (Fazy 0–17 + full-build-closure) · Następna: [Faza 18+](./docs/roadmap-next.md)
+Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.10** (Fazy 0–17 + full-build-closure + board-catalog community validation) · Następna: [Faza 18 ops](./docs/roadmap-next.md)
 
 > **EN:** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and on desktop flash over USB or OTA Wi‑Fi through a Tauri 2 shell with platform adapters in `src/platform/`.
 
@@ -79,7 +79,7 @@ Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkowni
 | `tauri:build:windows` | Cross target `x86_64-pc-windows-msvc` (wymaga toolingu Windows) |
 | `tauri:build:signed` | Build + lokalna nakładka Authenticode (`tauri.windows-signing.local.json`) |
 | `test:serial` … `test:marketplace` | Unit testy platformy |
-| `validate:board-catalog` | Walidacja `public/board-profiles/community.json` |
+| `validate:board-catalog` | Walidacja `community.json` + offset↔chip + bundled parity |
 | `pc-agent:test` | Smoke agenta Pythona |
 
 ## Macierz build / release
@@ -122,7 +122,7 @@ Indeks: **[docs/README.md](./docs/README.md)**
 | [Przewodnik użytkownika](./docs/user-guide.md) | Jak korzystać ze Studio |
 | [Setup developera](./docs/developer-setup.md) | Środowisko, skrypty, CI, env, PR |
 | [Architektura](./docs/architecture.md) | Moduły, IPC, przepływy serial/flash/OTA |
-| [Roadmapa](./docs/roadmap-next.md) | Po full-compile → Faza 18 (ops) |
+| [Roadmapa](./docs/roadmap-next.md) | Po board-catalog community validation → Faza 18 (ops / human) |
 
 **Desktop / Windows:** [installer](./docs/windows-installer.md) · [drivers](./docs/windows-drivers.md) · [desktop](./docs/windows-desktop.md) · [updater](./docs/windows-updater.md) · [signing](./docs/windows-signing.md) · [SmartScreen](./docs/windows-smartscreen.md) · [winget](./docs/windows-winget.md) · [deep link](./docs/windows-deep-link.md) · [PC agent](./docs/windows-pc-agent.md) · [diagnostics](./docs/windows-diagnostics.md)
 
@@ -214,6 +214,7 @@ Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secre
 | **15** | Plugin API marketplace v2, live winget prep, telemetry ops, signed Unix updater (`0.2.8`) |
 | **16** | Board catalog PR validation, identify i18n, EV HSM runner, macOS notarize CI (`0.2.9`) |
 | **17** | Marketplace sandbox publisher + signed fixture packs (`0.2.10`) |
+| **—** | Board catalog community PR flow + offset↔chip + bundled parity (po 0.2.10) |
 | **closure** | `compile:full` / `scripts/full-compile.sh` + checklist w developer-setup |
 | **18+** | Ops live winget/telemetry, EV/Apple secrets (human), live publishers |
 

@@ -1,8 +1,11 @@
-# Community board catalog (Faza 16)
+# Community board catalog
 
 Katalog flash presets dla popularnych VID:PID żyje w
 [`public/board-profiles/community.json`](../public/board-profiles/community.json).
 Aplikacja ładuje go przez `boardSync` (remote `main` → fallback bundlowany).
+
+Walidacja offset ↔ **esptool chip family** + lustro bundled jest automatyczna
+(CI smoke, path-filtered workflow `board-catalog.yml`, oraz przed apply remote).
 
 ## Pola profilu
 
@@ -18,9 +21,14 @@ Aplikacja ładuje go przez `boardSync` (remote `main` → fallback bundlowany).
 
 ## Reguły offset ↔ chip (walidator)
 
-- **esp32** (klasyczny): `0x0` **lub** `0x1000`
-- **esp32s2 / s3 / c2 / c3 / c5 / c6 / h2 / p4**: domyślnie **`0x0`** (merged image)
-- Wpisy `PLACEHOLDER` w `id` mogą ostrzegać zamiast failować przy nietypowym offsecie
+| Chip family (esptool) | Dozwolone offsety katalogowe |
+|-----------------------|------------------------------|
+| `esp32` (klasyczny) | `0x0` **lub** `0x1000` |
+| `esp32s2` / `s3` / `c2` / `c3` / `c5` / `c6` / `h2` / `p4` | domyślnie **`0x0`** (merged image) |
+| `auto` | traktowane jak classic (`0x0` \| `0x1000`) |
+
+- Wpisy z `PLACEHOLDER` w `id` mogą **ostrzegać** zamiast failować przy nietypowym offsecie.
+- Remote sync (`fetchCommunityCatalog` / `acceptCommunityCatalog`) odrzuca katalog z błędami offset/chip i wraca do bundled.
 
 Źródła VID/PID i ostrożność offsetów: pole `sources` / `sourcesNote` w JSON.
 
@@ -28,20 +36,31 @@ Aplikacja ładuje go przez `boardSync` (remote `main` → fallback bundlowany).
 
 ```bash
 npm run test:board-catalog
+npm run test:board-sync
+npm run validate:board-catalog
 # lub bezpośrednio:
 npx tsx scripts/board-profiles/validate-community.ts
 ```
 
-Smoke (`npm run smoke`) oraz job PR `.github/workflows/smoke.yml` uruchamiają ten test.
+`validate:board-catalog` sprawdza:
+
+1. schemat profili + reguły offset ↔ chip,
+2. **parity** `community.json` ↔ `BUNDLED_COMMUNITY_CATALOG` w `src/platform/boardSync.ts`.
+
+Smoke (`npm run smoke`) oraz:
+
+- job PR `.github/workflows/smoke.yml`
+- path-filtered `.github/workflows/board-catalog.yml` (szybka ścieżka dla PR tylko do katalogu)
 
 ## Community PR flow
 
 1. Fork repo → branch od `main`.
 2. Dodaj lub popraw profil w `public/board-profiles/community.json`.
-3. Zsynchronizuj lustro w `src/platform/boardSync.ts` (`BUNDLED_COMMUNITY_CATALOG`) — bundlowany fallback musi mieć te same profile.
-4. Uruchom `npm run test:board-catalog` oraz `npm run test:board-sync`.
-5. W PR opisz: skąd wziąłeś VID/PID (link do docs / datasheet), jak zweryfikowałeś offset (merged vs bootloader), oraz że **nie** commitujesz sekretów.
-6. Reviewer: sprawdza walidator CI + czy `sources` / nota nie wprowadzają w błąd.
+3. Zsynchronizuj lustro w `src/platform/boardSync.ts` (`BUNDLED_COMMUNITY_CATALOG`) — bundlowany fallback musi mieć te same profile (walidator failuje przy drift).
+4. Uruchom `npm run test:board-catalog`, `npm run test:board-sync`, `npm run validate:board-catalog`.
+5. Otwórz PR z szablonem [`.github/PULL_REQUEST_TEMPLATE/board-catalog.md`](../.github/PULL_REQUEST_TEMPLATE/board-catalog.md).
+6. W PR opisz: skąd wziąłeś VID/PID (link do docs / datasheet), jak zweryfikowałeś offset (merged vs bootloader), oraz że **nie** commitujesz sekretów.
+7. Reviewer: sprawdza CI `Board catalog (community PR)` + czy `sources` / nota nie wprowadzają w błąd.
 
 ### Checklist autora PR
 
@@ -50,10 +69,11 @@ Smoke (`npm run smoke`) oraz job PR `.github/workflows/smoke.yml` uruchamiają t
 - [ ] `boardProfile` === `chip`
 - [ ] Offset zgodny z regułami powyżej (albo jasno oznaczony PLACEHOLDER)
 - [ ] Bundled catalog w `boardSync.ts` zaktualizowany
-- [ ] `npm run test:board-catalog` zielony
+- [ ] `npm run test:board-catalog` + `npm run validate:board-catalog` zielone
 
 ## Powiązane
 
 - [windows-diagnostics.md](./windows-diagnostics.md) — sync w UI
 - [windows-flash.md](./windows-flash.md) — offset w Flash Helper
-- [architecture.md](./architecture.md) — `boardCache` / `boardSync`
+- [architecture.md](./architecture.md) — `boardCache` / `boardSync` / `boardCatalogValidate`
+- [roadmap-next.md](./roadmap-next.md) — stan po community validation
