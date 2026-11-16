@@ -1,0 +1,157 @@
+name: Linux Release (AppImage / deb)
+
+# Separate Linux-only installer build (AppImage + deb).
+# Updater signing: createUpdaterArtifacts stays false unless TAURI_SIGNING_PRIVATE_KEY
+# looks like a real minisign key. Unsigned build steps do NOT inject TAURI_SIGNING_*.
+#
+# NEVER click "Re-run" on an old workflow_dispatch — start a NEW "Run workflow".
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_fresh_dispatch:
+        description: "Type NEW (not Re-run). Re-run keeps a stale commit and will fail this guard."
+        required: true
+        default: ""
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: linux-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-packages:
+    name: Build Linux AppImage + deb
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Refuse Re-run / stale SHA (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CONFIRM: ${{ github.event.inputs.confirm_fresh_dispatch }}
+        run: |
+          set -euo pipefail
+          confirm="$(echo "${CONFIRM:-}" | tr '[:lower:]' '[:upper:]' | xargs)"
+          if [ "$confirm" != "NEW" ]; then
+            echo "Set confirm_fresh_dispatch=NEW and start a NEW Run workflow (not Re-run). Got: '${CONFIRM}'" >&2
+            exit 1
+          fi
+          git fetch origin main --prune
+          head="$(git rev-parse HEAD)"
+          tip="$(git rev-parse origin/main)"
+          echo "HEAD=$head"
+          echo "origin/main tip=$tip"
+          echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+          if [ "${GITHUB_RUN_ATTEMPT}" != "1" ]; then
+            echo "Refusing Re-run (attempt ${GITHUB_RUN_ATTEMPT}). Start a NEW workflow_dispatch on tip of main." >&2
+            exit 1
+          fi
+          if [ "$head" != "$tip" ]; then
+            echo "Refusing stale SHA $head (origin/main tip is $tip)." >&2
+            exit 1
+          fi
+          echo "OK: fresh dispatch on tip of main."
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Setup Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux Tauri deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libudev-dev \
+            libssl-dev \
+            pkg-config \
+            file
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Resolve / assert app version
+        id: version
+        env:
+          APP_VERSION_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: node ./scripts/ci/assert-app-version.mjs --github-output
+
+      - name: Select updater signing config
+        id: updater
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          node ./scripts/ci/looks-like-tauri-updater-key.mjs --github-output
+          # Drop key from this step's env before finishing (defense in depth).
+          unset TAURI_SIGNING_PRIVATE_KEY || true
+
+      # UNSIGNED: secrets must NOT appear in the step `env:` map at all.
+      - name: Build Tauri Linux bundles (unsigned updater)
+        if: steps.updater.outputs.signed != 'true'
+        run: |
+          set -euo pipefail
+          if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ] || [ -n "${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}" ]; then
+            echo "TAURI_SIGNING_* unexpectedly set in unsigned build step" >&2
+            exit 1
+          fi
+          echo "version=${{ steps.version.outputs.version }} updater.signed=false"
+          npm run tauri:build -- --config src-tauri/tauri.linux.json
+
+      - name: Build Tauri Linux bundles (signed updater)
+        if: steps.updater.outputs.signed == 'true'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "version=${{ steps.version.outputs.version }} updater.signed=true"
+          npm run tauri:build -- --config src-tauri/tauri.linux.signed.json
+
+      - name: Upload AppImage / deb artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-display-studio-linux-${{ steps.version.outputs.artifact_suffix }}
+          path: |
+            src-tauri/target/release/bundle/appimage/*
+            src-tauri/target/release/bundle/deb/*
+          if-no-files-found: warn
+
+      - name: Upload Linux updater signature fragments (signed builds only)
+        if: steps.updater.outputs.signed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32-display-studio-linux-updater-${{ steps.version.outputs.artifact_suffix }}
+          path: |
+            src-tauri/target/release/bundle/appimage/*.sig
+            src-tauri/target/release/bundle/appimage/*.json
+          if-no-files-found: warn
+
+      - name: Attach to GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            src-tauri/target/release/bundle/appimage/*
+            src-tauri/target/release/bundle/deb/*
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'beta') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -42,26 +42,25 @@ Wymaga Rust + zależności systemowych Tauri 2 ([prerequisites](https://v2.tauri
 
 ## Bundling / CI (Faza 13–15)
 
-Workflow [`.github/workflows/desktop-unix-release.yml`](../.github/workflows/desktop-unix-release.yml):
+Osobne workflow per OS (każdy OS osobno — `workflow_dispatch` lub tag `v*`):
 
-| Job | Runner | Targets | Config overlay |
-|-----|--------|---------|----------------|
-| `linux-packages` | `ubuntu-22.04` | AppImage + deb | `tauri.linux.json` lub `tauri.linux.signed.json` |
-| `macos-dmg` | `macos-14` | dmg | `tauri.macos.json` lub `tauri.macos.signed.json` |
-| `multiplatform-latest-json` | `ubuntu-22.04` | opcjonalny attach | gdy signed + fragmenty platform |
+| Workflow | Runner | Targets | Config overlay |
+|----------|--------|---------|----------------|
+| [`.github/workflows/linux-release.yml`](../.github/workflows/linux-release.yml) | `ubuntu-22.04` | AppImage + deb | `tauri.linux.json` / `tauri.linux.signed.json` |
+| [`.github/workflows/macos-release.yml`](../.github/workflows/macos-release.yml) | `macos-14` | dmg | `tauri.macos.json` / `tauri.macos.signed.json` |
+| [`.github/workflows/windows-release.yml`](../.github/workflows/windows-release.yml) | Windows | NSIS / MSI | updater unsigned/signed overlays |
+| [`.github/workflows/desktop-unix-release.yml`](../.github/workflows/desktop-unix-release.yml) | `ubuntu-22.04` | tylko `latest.json` | gdy signed + fragmenty platform |
 
-Wyzwalacze: tag `v*` oraz `workflow_dispatch`. Artefakty upload + opcjonalnie attach do GitHub Release.
+Wersja: pojedyncze źródło prawdy `package.json` → musi zgadzać się z `src-tauri/tauri.conf.json` + `src-tauri/Cargo.toml` (+ root `package-lock.json`). CI: `npm run assert:app-version`. Artefakty: `esp32-display-studio-<os>-<version>`.
 
 ### Signed updater artifacts (Faza 15)
 
 Domyślne nakładki (`tauri.linux.json` / `tauri.macos.json`) mają `createUpdaterArtifacts: false` (smoke unsigned OK).
 
-Gdy sekret CI `TAURI_SIGNING_PRIVATE_KEY` jest ustawiony, workflow wybiera:
+CI włącza signed overlay **tylko** gdy `TAURI_SIGNING_PRIVATE_KEY` wygląda na prawdziwy klucz minisign (`untrusted comment:`) — ten sam gate co Windows (#31–#33). Inaczej build unsigned **bez** `TAURI_SIGNING_*` w env kroku build:
 
-- `src-tauri/tauri.linux.signed.json`
-- `src-tauri/tauri.macos.signed.json`
-
-(`createUpdaterArtifacts: true`). Bez sekretu build pozostaje unsigned.
+- `src-tauri/tauri.linux.signed.json` / `src-tauri/tauri.macos.signed.json` (`createUpdaterArtifacts: true`)
+- unsigned: `tauri.linux.json` / `tauri.macos.json`
 
 ### AppImage smoke (Faza 14)
 
