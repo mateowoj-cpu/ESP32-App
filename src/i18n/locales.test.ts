@@ -46,7 +46,7 @@ assert(translate('en', 'usb.identify.s3.arch').toLowerCase().includes('xtensa'),
 assert(translate('pl', 'usb.identify.generic.model').includes('{vid}'), 'pl generic model placeholders');
 assert(translate('en', 'usb.identify.cp210x.boot').toLowerCase().includes('esp32'), 'en cp210x boot');
 assert(translate('pl', 'code.wiring.title').toLowerCase().includes('schemat'), 'pl code wiring');
-assert(translate('en', 'code.guide.step1.title').toLowerCase().includes('library'), 'en code guide');
+assert(translate('en', 'code.guide.step1.title').toLowerCase().includes('libraries'), 'en code guide');
 assert(translate('pl', 'settings.usb.sectionTitle').toLowerCase().includes('usb'), 'pl settings usb');
 assert(translate('en', 'settings.bluetooth.mode.ble').toLowerCase().includes('ble'), 'en settings ble');
 assert(translate('pl', 'sim.emulatorTitle').toLowerCase().includes('oled'), 'pl sim title');
