@@ -1,6 +1,6 @@
 # Flash helper (esptool)
 
-ESP32 Display Studio (shell Tauri) potrafi wgrać gotowy firmware `.bin` przez systemowy **esptool**.
+ESP32 Display Studio (shell Tauri) potrafi wgrać gotowy firmware `.bin` przez systemowy **esptool**. IPC: `get_esptool_info`, `flash_write_firmware`, event `flash-log` — [architecture.md](./architecture.md).
 
 ## Wymagania
 

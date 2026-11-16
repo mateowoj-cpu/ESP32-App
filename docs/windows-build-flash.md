@@ -1,6 +1,7 @@
 # Build-from-Studio
 
 Jeden przepływ w shellu Tauri: **Generate → Build → Flash** (od Fazy 7; sidecar / OTA w Fazach 9–11).  
+IPC: `get_firmware_toolchain_info`, `build_firmware_from_sketch`, event `build-log` — [architecture.md](./architecture.md).  
 Powiązane: [windows-flash.md](./windows-flash.md) · [windows-sidecar-pio.md](./windows-sidecar-pio.md) · [windows-ota.md](./windows-ota.md).
 
 ## Wymagania

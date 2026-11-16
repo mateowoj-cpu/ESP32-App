@@ -1,15 +1,15 @@
 # Przewodnik użytkownika — ESP32 Display Studio
 
-Krótki przewodnik po aplikacji **0.2.10**. Szczegóły techniczne (sterowniki, OTA, winget) są w dokumentach powiązanych.
+Krótki przewodnik po aplikacji **0.2.10**. Warstwy / IPC / env: [architecture.md](./architecture.md). Sterowniki, OTA, winget: dokumenty poniżej.
 
 ## Dwa tryby uruchomienia
 
 | Tryb | Jak | Serial USB |
 |------|-----|------------|
-| **Przeglądarka** | `npm run dev` → [http://localhost:3000](http://localhost:3000) | Web Serial (Chrome / Edge / Brave) |
-| **Desktop (Tauri)** | `npm run tauri:dev` lub instalator z Releases | Natywne `COMx` / `/dev/tty*` |
+| **Przeglądarka** | `npm run dev` → [http://localhost:3000](http://localhost:3000) | Web Serial (Chrome / Edge / Brave) przez `src/platform/serial.ts` |
+| **Desktop (Tauri 2)** | `npm run tauri:dev` lub instalator z Releases | Natywne `COMx` / `/dev/tty*` / `/dev/cu.*` (`nativeSerial` → Rust `serialport`) |
 
-Desktop dodaje: Build → Flash → OTA, tray/autostart, auto-update, deep link, agent PC, diagnostykę ZIP.
+Desktop dodaje: Build → Flash → OTA, tray/autostart, auto-update, deep link `esp32studio://`, agent PC, diagnostykę ZIP, marketplace sandbox.
 
 ## Pierwsze kroki (przeglądarka)
 
@@ -42,9 +42,9 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 ## Build, Flash, OTA (desktop)
 
 1. Skonfiguruj wyświetlacz, Wi‑Fi (dla OTA) i automatyzacje.  
-2. W zakładce USB użyj **Build** / **Flash** / **Build + Flash**.  
-3. **OTA Wi‑Fi**: po pierwszym wgraniu USB użyj mDNS lub IP — [windows-ota.md](./windows-ota.md).  
-4. Zamknij Serial Monitor przed flashowaniem USB.
+2. W zakładce USB użyj **Build** / **Flash** / **Build + Flash** (toolchain: PATH lub [sidecar PIO](./windows-sidecar-pio.md); override `ESP32_STUDIO_PIO`).  
+3. **OTA Wi‑Fi**: po pierwszym wgraniu USB użyj mDNS (`_arduino._tcp` / `_http._tcp`) lub IP — [windows-ota.md](./windows-ota.md).  
+4. Zamknij Serial Monitor przed flashowaniem USB (port musi być wolny dla `esptool`).
 
 ## Ustawienia desktop
 

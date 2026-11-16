@@ -5,54 +5,95 @@
 [![Tauri](https://img.shields.io/badge/desktop-Tauri%202-24C8DB)](./src-tauri/)
 [![i18n](https://img.shields.io/badge/i18n-PL%20%7C%20EN-informational)](./src/i18n/)
 
-**Wizualne studio UI OLED/LCD dla ESP32** — symulator sprzętowy, edytor ekranów, automatyzacje, wykrywanie USB (Web Serial / natywny COM), Build → Flash → OTA, agent PC oraz generator C++ (Arduino / PlatformIO).
+**Wizualne studio UI OLED/LCD dla ESP32** — React/Vite frontend + shell **Tauri 2** (Rust): symulator sprzętu, edytor ekranów, automatyzacje, serial USB (Web Serial / natywny COM), Build → Flash → OTA (esptool / espota / mDNS), marketplace JSON (sandbox), agent PC i generator C++ (Arduino / PlatformIO).
 
-Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Wersja **0.2.10** (Fazy 0–17) · Następna: [Faza 18+](./docs/roadmap-next.md)
+Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.10** (Fazy 0–17 + full-build-closure) · Następna: [Faza 18+](./docs/roadmap-next.md)
 
-> **EN (short):** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and (on desktop) flash over USB or OTA Wi‑Fi with a Tauri 2 shell.
+> **EN:** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and on desktop flash over USB or OTA Wi‑Fi through a Tauri 2 shell with platform adapters in `src/platform/`.
 
 ## Spis treści
 
+- [Stack](#stack)
 - [Szybki start](#szybki-start)
+- [Macierz build / release](#macierz-build--release)
 - [Kluczowe funkcje](#kluczowe-funkcje)
 - [Dokumentacja](#dokumentacja)
 - [Wymagania](#wymagania)
-- [Desktop (Tauri)](#desktop-tauri)
+- [Desktop (Tauri) — skrót techniczny](#desktop-tauri--skrót-techniczny)
 - [Status i roadmapa](#status-i-roadmapa)
 - [Contributing](#contributing)
+
+## Stack
+
+| Warstwa | Technologia |
+|---------|-------------|
+| UI | React 19, Vite 8, Tailwind 4, TypeScript, Motion, Lucide |
+| i18n | `src/i18n` — PL / EN (`LocaleContext`, `locales.ts`) |
+| Platform JS | `src/platform/*` — serial, flash, firmwareBuild, ota, desktop, updater, diagnostics, telemetry, marketplace, board\* |
+| Desktop | Tauri **2** (`src-tauri/`, Rust 1.90+), pluginy: updater, deep-link, autostart, dialog, process, single-instance, tray |
+| Serial native | crate `serialport` → komendy `list/open/write/close_serial_port` |
+| Flash / OTA | `esptool` (PATH), PlatformIO / arduino-cli, `espota.py`, HTTP `/update`, odkrywanie mDNS (`mdns-sd`) |
+| Packaging | Windows NSIS+MSI; Linux AppImage+deb; macOS dmg (+ opcjonalny notarize) |
+| CI | `smoke.yml`, `windows-release.yml`, `desktop-unix-release.yml`, `winget-draft.yml`, … |
+
+Szczegóły warstw i IPC: [docs/architecture.md](./docs/architecture.md).
 
 ## Szybki start
 
 ### Web (Vite)
 
 ```bash
-npm install
-npm run dev
+npm ci          # lub: npm install
+npm run dev     # http://localhost:3000 — Web Serial w Chromium
 ```
-
-Aplikacja: [http://localhost:3000](http://localhost:3000) — Chromium z **Web Serial** do USB.
 
 ### Desktop (Tauri)
 
 ```bash
-npm install
-npm run tauri:dev          # natywne COMx / /dev/tty*
-npm run tauri:build        # instalator (Windows: NSIS/MSI)
+npm ci
+npm run tauri:dev       # natywne COMx / /dev/tty* / /dev/cu.*
+npm run tauri:build     # instalator na bieżącym hoście (Windows → NSIS/MSI)
 ```
 
-Instalatory z CI: workflow `windows-release.yml` (tag `v*`) oraz `desktop-unix-release.yml` (AppImage / deb / dmg).  
-Szczegóły: [docs/developer-setup.md](./docs/developer-setup.md) · [docs/user-guide.md](./docs/user-guide.md).
+### Weryfikacja przed PR
 
-### Przydatne skrypty
+```bash
+npm run smoke           # lint + testy platform + board-catalog + vite build
+npm run compile:full    # smoke + cargo check  (+ --release / --linux-bundle)
+```
+
+Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkownik: [docs/user-guide.md](./docs/user-guide.md).
+
+### Skrypty `package.json` (źródło prawdy)
 
 | Skrypt | Opis |
 |--------|------|
-| `npm run dev` / `build` / `preview` | Vite |
-| `npm run lint` | TypeScript (`tsc --noEmit`) |
-| `npm run smoke` | Lint + testy platform + board-catalog + build |
-| `npm run compile:full` | Smoke + `cargo check` (opcje: `--release`, `--linux-bundle`) |
-| `npm run tauri:dev` / `tauri:build` | Shell desktop |
-| `npm run tauri:build:signed` | Build + nakładka Authenticode (lokalny JSON) |
+| `dev` / `build` / `preview` | Vite (:3000 / produkcja) |
+| `lint` | `tsc --noEmit` (include: `src/`, `scripts/**/*.ts`; bez `src-tauri/target`) |
+| `clean` | `rimraf dist` |
+| `smoke` | lint + `test:*` + `validate:board-catalog` + `build` |
+| `compile:cargo` | `cargo check` w `src-tauri` |
+| `compile:full` | `scripts/full-compile.sh` (smoke + cargo; flagi `--release`, `--linux-bundle`) |
+| `tauri:dev` / `tauri:build` | Shell desktop |
+| `tauri:build:windows` | Cross target `x86_64-pc-windows-msvc` (wymaga toolingu Windows) |
+| `tauri:build:signed` | Build + lokalna nakładka Authenticode (`tauri.windows-signing.local.json`) |
+| `test:serial` … `test:marketplace` | Unit testy platformy |
+| `validate:board-catalog` | Walidacja `public/board-profiles/community.json` |
+| `pc-agent:test` | Smoke agenta Pythona |
+
+## Macierz build / release
+
+| Artefakt | Gdzie działa | Jak |
+|----------|--------------|-----|
+| Vite web (`dist/`) | każdy OS z Node 22 | `npm run build` / CI `smoke.yml` |
+| Rust check | Linux/macOS/Windows + deps Tauri | `npm run compile:cargo` / job `rust-smoke` |
+| Linux AppImage + deb | **Linux** host / CI | `npm run compile:full -- --linux-bundle` lub `tauri:build -- --config src-tauri/tauri.linux.json` |
+| macOS dmg | **macOS** / CI | `tauri:build -- --config src-tauri/tauri.macos.json` |
+| Windows NSIS / MSI | **Windows** + MSVC / CI | `npm run tauri:build` · workflow `windows-release.yml` (tag `v*`) |
+| Authenticode / Apple notarize / signed updater | sekrety **człowieka** | docs signing / macos-notarize / desktop-unix |
+| winget | draft CI OK; live merge = human | `winget-draft.yml` + [windows-winget.md](./docs/windows-winget.md) |
+
+**Ta Linux VM / agent cloud:** web smoke + `cargo check` / opcjonalnie AppImage+deb. **Nie:** NSIS/MSI, dmg/notarize, Authenticode — bez Windows/macOS hosta i sekretów.
 
 ## Kluczowe funkcje
 
@@ -60,33 +101,33 @@ Szczegóły: [docs/developer-setup.md](./docs/developer-setup.md) · [docs/user-
 |--------|----------------|
 | **Projektowanie** | Symulator OLED/LCD, edytor widgetów, sekwencje ekranów, mapa pinów |
 | **Automatyzacje** | Triggery PIR / czas / dotyk / USB, cyber-zwierzak |
-| **Marketplace** | Katalog widgetów / reguł społeczności; import JSON w sandboxie (bez wykonywania kodu) |
-| **USB** | Web Serial (przeglądarka) lub natywny serial (Tauri); baza płytek + board cache/sync |
-| **Firmware** | Generator `.ino` + `platformio.ini`; **Build-from-Studio** (PIO / arduino-cli) |
-| **Flash / OTA** | `esptool` na COM; OTA Wi‑Fi (`espota` / HTTP) + odkrywanie **mDNS** |
-| **Desktop** | Tray, close-to-tray, autostart, deep link `esp32studio://`, pliki `.esp32studio` |
+| **Marketplace** | Katalog widgetów/reguł; import JSON w sandboxie (schemat v1/v2, opcjonalny Ed25519, bez `eval`) |
+| **USB / serial** | Web Serial lub native (`serialport`); board cache/sync + community catalog |
+| **Firmware** | Generator `.ino` + `platformio.ini`; Build-from-Studio (PIO / arduino-cli, PATH lub sidecar) |
+| **Flash / OTA** | `esptool write_flash` na COM; OTA `espota` / HTTP + mDNS (`_arduino._tcp`, `_http._tcp`) |
+| **Desktop shell** | Tray, close-to-tray, autostart, deep link `esp32studio://`, pliki `.esp32studio` |
 | **Agent PC** | CPU / RAM / dysk (/ GPU) → ESP32 (`tools/pc-agent`) |
 | **Aktualizacje** | Kanały stable / beta (`latest.json` / `latest-beta.json`) |
-| **i18n** | PL / EN (chrome + treści paneli) |
-| **Diagnostyka** | Lokalny log + eksport ZIP; **opt-in** telemetria sieciowa (domyślnie off) |
+| **i18n** | PL / EN (chrome + panele) |
+| **Diagnostyka** | Lokalny log + ZIP; telemetria sieciowa **opt-in** (domyślnie off, wymaga `VITE_TELEMETRY_ENDPOINT`) |
 | **Dystrybucja** | NSIS/MSI, szablony winget + draft CI, paczki Unix z CI |
 
 ## Dokumentacja
 
-Pełny indeks: **[docs/README.md](./docs/README.md)**
+Indeks: **[docs/README.md](./docs/README.md)**
 
 | Start | Temat |
 |-------|--------|
-| [Przewodnik użytkownika](./docs/user-guide.md) | Jak korzystać z Studio |
-| [Setup developera](./docs/developer-setup.md) | Środowisko, skrypty, CI, PR |
-| [Architektura](./docs/architecture.md) | UI ↔ platform ↔ Tauri |
+| [Przewodnik użytkownika](./docs/user-guide.md) | Jak korzystać ze Studio |
+| [Setup developera](./docs/developer-setup.md) | Środowisko, skrypty, CI, env, PR |
+| [Architektura](./docs/architecture.md) | Moduły, IPC, przepływy serial/flash/OTA |
 | [Roadmapa](./docs/roadmap-next.md) | Po full-compile → Faza 18 (ops) |
 
-**Desktop / Windows:** [installer](./docs/windows-installer.md) · [drivers](./docs/windows-drivers.md) · [desktop polish](./docs/windows-desktop.md) · [updater](./docs/windows-updater.md) · [signing](./docs/windows-signing.md) · [SmartScreen](./docs/windows-smartscreen.md) · [winget](./docs/windows-winget.md) · [deep link](./docs/windows-deep-link.md) · [PC agent](./docs/windows-pc-agent.md) · [diagnostics](./docs/windows-diagnostics.md)
+**Desktop / Windows:** [installer](./docs/windows-installer.md) · [drivers](./docs/windows-drivers.md) · [desktop](./docs/windows-desktop.md) · [updater](./docs/windows-updater.md) · [signing](./docs/windows-signing.md) · [SmartScreen](./docs/windows-smartscreen.md) · [winget](./docs/windows-winget.md) · [deep link](./docs/windows-deep-link.md) · [PC agent](./docs/windows-pc-agent.md) · [diagnostics](./docs/windows-diagnostics.md)
 
 **Build / flash / OTA:** [build-flash](./docs/windows-build-flash.md) · [flash](./docs/windows-flash.md) · [sidecar PIO](./docs/windows-sidecar-pio.md) · [OTA](./docs/windows-ota.md)
 
-**Unix & privacy:** [desktop-unix](./docs/desktop-unix.md) · [macos-notarize](./docs/macos-notarize.md) · [telemetry](./docs/telemetry.md)
+**Unix, marketplace, privacy:** [desktop-unix](./docs/desktop-unix.md) · [macos-notarize](./docs/macos-notarize.md) · [board-catalog](./docs/board-catalog.md) · [marketplace API](./docs/marketplace-plugin-api.md) · [publishers](./docs/marketplace-publishers.md) · [telemetry](./docs/telemetry.md)
 
 ## Wymagania
 
@@ -94,9 +135,10 @@ Pełny indeks: **[docs/README.md](./docs/README.md)**
 |-----------|--------|--------|
 | Node.js | 22 LTS+ | [nodejs.org](https://nodejs.org/) |
 | npm | 10+ | z Node |
-| Przeglądarka | Chromium | Web Serial w trybie web |
-| Rust + C++ toolchain | stable | tylko desktop Tauri |
+| Chromium | aktualny | Web Serial w trybie web |
+| Rust + C++ toolchain | stable (MSRV w `Cargo.toml`: 1.90) | tylko desktop Tauri |
 | WebView2 | Win 10/11 | zwykle preinstalowany |
+| Python 3 + pip | 3.10+ | sidecar PIO, esptool, agent PC |
 
 ### Windows — port COM
 
@@ -109,21 +151,13 @@ Pełny indeks: **[docs/README.md](./docs/README.md)**
 
 Bez sterownika USB-UART ani przeglądarka, ani Tauri nie zobaczą urządzenia — [docs/windows-drivers.md](./docs/windows-drivers.md).
 
-## Desktop (Tauri)
+## Desktop (Tauri) — skrót techniczny
 
-Scaffold: `src-tauri/` (Tauri 2). Serial: `list_serial_ports`, `open_serial_port` (domyślnie 115200), `write` / `close`; eventy `serial-data`, `serial-disconnected`.
-
-Warstwa JS: `src/platform/` (`webSerial` / `nativeSerial` / `mockSerial`) — UI nie woła `navigator.serial` bezpośrednio.
-
-### Build Windows
-
-```powershell
-npm install
-npm run tauri:build
-```
-
-Artefakty: `src-tauri/target/release/bundle/` (NSIS PL/EN, MSI ze stałym `upgradeCode`, WebView2 bootstrapper).  
-Podpis (opcjonalnie, sekrety lokalne / CI — **nie w git**): [docs/windows-signing.md](./docs/windows-signing.md).
+- Scaffold: `src-tauri/` (productName **ESP32 Display Studio**, id `studio.esp32.display`, v`0.2.10`).
+- Bootstrap UI: `src/main.tsx` — jeśli `isTauri()`, dynamiczny import `nativeSerial` i `setSerialAdapter(...)` (web bundle nie ciągnie `@tauri-apps/api` eagerly).
+- Warstwa JS: `src/platform/` — UI **nie** woła `navigator.serial` ani `invoke` poza adapterami.
+- Komendy Rust (skrót): serial (`list/open/write/close_serial_port`), flash (`get_esptool_info`, `flash_write_firmware`, `read_open_file`), build (`get_firmware_toolchain_info`, `build_firmware_from_sketch`), OTA (`get_ota_tool_info`, `flash_ota_firmware`, `cancel_ota_firmware`, `discover_ota_hosts`), desktop/updater/diagnostics/pc-agent — pełna tabela w [architecture.md](./docs/architecture.md).
+- Eventy: `serial-data`, `serial-disconnected`, `flash-log`, `build-log`, `ota-log`, `app-open-paths`.
 
 ### Agent PC
 
@@ -142,19 +176,29 @@ Windows `.exe`: `scripts/windows/Build-PcAgent.ps1`. W UI: **Integracje → Moni
 
 ```powershell
 powershell -File .\scripts\windows\Install-PlatformIoSidecar.ps1
+# Unix:
+# bash scripts/unix/install-platformio-sidecar.sh
 ```
 
 ### Zmienne środowiskowe
 
-Skopiuj `.env.example` → `.env` w razie potrzeby:
+Skopiuj `.env.example` → `.env` przy potrzebie (Vite / build):
 
 ```text
-GEMINI_API_KEY=...          # opcjonalny / obecnie nieużywany w UI
+GEMINI_API_KEY=...             # opcjonalny / obecnie nieużywany w UI
 APP_URL=http://localhost:3000
-# VITE_TELEMETRY_ENDPOINT=  # tylko build z opt-in telemetry (docs/telemetry.md)
+# VITE_TELEMETRY_ENDPOINT=     # build-time; bez tego toggle telemetrii nic nie wysyła
 ```
 
-Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secrets lub lokalny sejf (zob. `.env.example` komentarze).
+Runtime (proces Tauri / sidecar — nie commituj ścieżek sekretnych):
+
+| Zmienna | Rola |
+|---------|------|
+| `ESP32_STUDIO_PIO` | Pełna ścieżka do `pio` / `pio.exe` |
+| `ESP32_STUDIO_ESPOTA` | Pełna ścieżka do `espota.py` |
+| `ESP32_STUDIO_DATA_DIR` | Katalog danych sidecar (Unix installer) |
+
+Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secrets lub lokalny sejf (komentarze w `.env.example`). **Nie inventuj** URL releasów, SHA256 ani wartości sekretów w docs.
 
 ## Status i roadmapa
 
@@ -168,20 +212,21 @@ Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secre
 | **14** | Marketplace (JSON sandbox), EV/SmartScreen docs, board catalog, Unix polish (`0.2.7`) |
 | **15** | Plugin API marketplace v2, live winget prep, telemetry ops, signed Unix updater (`0.2.8`) |
 | **16** | Board catalog PR validation, identify i18n, EV HSM runner, macOS notarize CI (`0.2.9`) |
-| **17 (obecna)** | Marketplace sandbox publisher + signed fixture packs (`0.2.10`) |
+| **17** | Marketplace sandbox publisher + signed fixture packs (`0.2.10`) |
+| **closure** | `compile:full` / `scripts/full-compile.sh` + checklist w developer-setup |
 | **18+** | Ops live winget/telemetry, EV/Apple secrets (human), live publishers |
 
 Szczegóły: [docs/roadmap-next.md](./docs/roadmap-next.md).
 
-**Uwaga dystrybucji:** draft winget i checklisty SmartScreen **nie** oznaczają live publish do `winget-pkgs` ani gotowej reputacji EV — to kroki człowieka po signed release.
+**Uwaga dystrybucji:** draft winget i checklisty SmartScreen **nie** oznaczają live publish do `winget-pkgs` ani gotowej reputacji EV — to kroki człowieka po signed release. Brak oficjalnych screenshotów w repo (`docs/media/` — do uzupełnienia).
 
 ## Contributing
 
 1. Fork / branch od `main`.  
-2. `npm install` → `npm run smoke`.  
-3. Zachowaj i18n PL+EN dla nowych stringów UI.  
-4. Aktualizuj docs przy zmianie zachowania użytkownika.  
-5. Nie commituj sekretów, `.pfx`, prywatnych kluczy updatera.
+2. `npm ci` → `npm run smoke` (min.) albo `npm run compile:full`.  
+3. Nowe stringi UI: PL **i** EN w `src/i18n/locales.ts`.  
+4. Zmiana zachowania użytkownika → aktualizuj docs tematyczne.  
+5. Nie commituj sekretów, `.pfx`, prywatnych kluczy updatera / marketplace.
 
 Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md).
 
