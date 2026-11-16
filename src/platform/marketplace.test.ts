@@ -2,6 +2,7 @@ import { webcrypto } from 'node:crypto';
 import {
   BUNDLED_MARKETPLACE_CATALOG,
   BUNDLED_MARKETPLACE_PACKS,
+  BUNDLED_MARKETPLACE_PUBLISHERS,
   clearTrustedPublishers,
   exportRulePack,
   exportWidgetPack,
@@ -9,6 +10,7 @@ import {
   isMarketplaceCatalog,
   parseMarketplacePack,
   parseMarketplacePackJson,
+  registerBundledMarketplacePublishers,
   registerTrustedPublisher,
   sandboxImportRules,
   sandboxImportWidgets,
@@ -168,6 +170,22 @@ const unknownPub = await verifyMarketplacePackSignature({
 });
 assert(!unknownPub.ok, 'unknown publisher rejected');
 
+clearTrustedPublishers();
+
+// Faza 17 — bundled sandbox publisher verifies committed signed fixture
+assert(BUNDLED_MARKETPLACE_PUBLISHERS.some(p => p.id === 'studio-sandbox' && p.sandbox), 'sandbox publisher');
+assert(
+  BUNDLED_MARKETPLACE_CATALOG.entries.some(
+    e => e.packId === 'status-strip-signed' && e.requireSignature === true,
+  ),
+  'signed catalog entry',
+);
+const signedFixture = BUNDLED_MARKETPLACE_PACKS['status-strip-signed'];
+assert(signedFixture?.kind === 'widget_pack', 'signed fixture kind');
+assert(signedFixture.version === 2 && !!signedFixture.signature, 'signed fixture v2');
+registerBundledMarketplacePublishers();
+const fixtureOk = await verifyMarketplacePackSignature(signedFixture);
+assert(fixtureOk.ok, 'sandbox fixture signature verifies');
 clearTrustedPublishers();
 
 console.log('marketplace.test.ts: OK');

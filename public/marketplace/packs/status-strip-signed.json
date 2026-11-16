@@ -1,0 +1,33 @@
+{
+  "format": "esp32studio-marketplace",
+  "kind": "widget_pack",
+  "version": 2,
+  "id": "status-strip-signed",
+  "title": "Status strip (sandbox signed)",
+  "author": "ESP32 Display Studio",
+  "widgets": [
+    {
+      "id": "m_clock",
+      "type": "clock",
+      "x": 4,
+      "y": 4,
+      "width": 72,
+      "height": 20,
+      "clockFormat": "24h",
+      "showSeconds": false,
+      "showDate": false,
+      "binding": "time"
+    },
+    {
+      "id": "m_batt_wifi",
+      "type": "battery_wifi",
+      "x": 80,
+      "y": 4,
+      "width": 44,
+      "height": 20
+    }
+  ],
+  "description": "SANDBOX demo — signed with studio-sandbox disposable key. Not a live publisher.",
+  "publisherId": "studio-sandbox",
+  "signature": "NkAhqZiCrzbMdKpEHr93cDe4ZFIorDzYOh/viRTiu5K+N4tKJTg2SdwP9L4zoepF//4ObaQqJeLuGG6NEIezBg=="
+}

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "updatedAt": "2026-11-16T00:00:00.000Z",
   "source": "esp32-display-studio/marketplace",
   "entries": [
     {
@@ -14,6 +14,19 @@
       "tags": ["oled", "clock", "status"],
       "packId": "status-strip",
       "requireSignature": false
+    },
+    {
+      "id": "pack-status-strip-signed",
+      "kind": "widget_pack",
+      "title": "Pasek statusu (podpis sandbox)",
+      "titleEn": "Status strip (sandbox signed)",
+      "description": "Ta sama zawartość co pasek statusu, podpisana kluczem studio-sandbox (demo — nie live).",
+      "descriptionEn": "Same content as status strip, signed with the studio-sandbox demo key (not live).",
+      "author": "ESP32 Display Studio",
+      "tags": ["oled", "clock", "status", "signed", "sandbox"],
+      "packId": "status-strip-signed",
+      "publisherId": "studio-sandbox",
+      "requireSignature": true
     },
     {
       "id": "pack-night-rules",

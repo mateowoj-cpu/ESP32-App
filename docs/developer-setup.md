@@ -1,6 +1,6 @@
 # Setup dla contributorów
 
-Jak uruchomić i testować ESP32 Display Studio lokalnie. Wersja linii: **0.2.9**.
+Jak uruchomić i testować ESP32 Display Studio lokalnie. Wersja linii: **0.2.10**.
 
 ## Wymagania
 

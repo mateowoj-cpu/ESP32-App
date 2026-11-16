@@ -1,6 +1,6 @@
 # winget-pkgs PR body template (Faza 16)
 
-Use after a **signed** GitHub Release `v0.2.9` (or earlier signed `v0.2.7`) is published. Do **not** invent
+Use after a **signed** GitHub Release `v0.2.10` (or earlier signed `v0.2.7`) is published. Do **not** invent
 credentials or SHA256 — fill hashes from a real NSIS asset (GitHub Release download or
 `scripts/winget/prepare-draft-manifest.sh` / workflow `winget-draft.yml`).
 
@@ -8,7 +8,7 @@ credentials or SHA256 — fill hashes from a real NSIS asset (GitHub Release dow
 
 ## Package
 
-New package: Studio.ESP32DisplayStudio version 0.2.9
+New package: Studio.ESP32DisplayStudio version 0.2.10
 
 Publisher: ESP32 Display Studio  
 Homepage: https://github.com/mateowoj-cpu/ESP32-App  
@@ -19,26 +19,26 @@ License: Proprietary
 - Architecture: x64
 - InstallerType: nullsoft (NSIS)
 - Scope: user
-- Version: 0.2.9
-- Installer URL: https://github.com/mateowoj-cpu/ESP32-App/releases/download/v0.2.9/ESP32.Display.Studio_0.2.9_x64-setup.exe
+- Version: 0.2.10
+- Installer URL: https://github.com/mateowoj-cpu/ESP32-App/releases/download/v0.2.10/ESP32.Display.Studio_0.2.10_x64-setup.exe
 - SHA256: <paste from Get-FileHash / CI winget-draft artifact — never invent>
 
 ## Checklist
 
 - [ ] Manifest YAML validated with `winget validate`
-- [ ] Local install: `winget install --manifest manifests/s/Studio/ESP32DisplayStudio/0.2.9`
+- [ ] Local install: `winget install --manifest manifests/s/Studio/ESP32DisplayStudio/0.2.10`
 - [ ] Authenticode signature present on the NSIS installer (SmartScreen may still warn until reputation builds)
 - [ ] No secrets in the PR
 
 ## Repo template
 
-`packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/0.2.9/`.
+`packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/0.2.10/`.
 Older templates `0.2.1`–`0.2.7` remain as reference until the first live winget-pkgs PR lands.
 CI can emit a filled draft under `packaging/winget/ESP32DisplayStudio/out/<version>/` (artifact only).
 
 ## Human steps (live merge)
 
-1. Confirm signed release assets on GitHub (`v0.2.9` or first signed `v0.2.7`)
+1. Confirm signed release assets on GitHub (`v0.2.10` or first signed `v0.2.7`)
 2. Tag → `windows-release.yml` produces NSIS `.exe` (optionally download `platformio-penv-windows` artifact from `windows-penv-artifact.yml` and stage before build)
 3. Run `winget-draft.yml` **or** `Get-FileHash .\ESP32.Display.Studio_*_x64-setup.exe -Algorithm SHA256`
 4. Replace `REPLACE_WITH_SHA256_OF_NSIS_INSTALLER` with the real digest

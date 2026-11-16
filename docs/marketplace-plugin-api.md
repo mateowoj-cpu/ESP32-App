@@ -82,6 +82,12 @@ Studio loads publishers from `/marketplace/publishers.json` at catalog refresh.
 
 ## Human leftovers
 
-- Populate real publisher public keys after offline keygen
+- Populate **live** publisher public keys after offline keygen (sandbox `studio-sandbox` is demo-only)
 - Host community packs only under the allowlisted repo path (or extend allowlist deliberately)
-- Do **not** invent signatures or private keys in git
+- Do **not** invent signatures or commit live private keys
+
+See [marketplace-publishers.md](./marketplace-publishers.md).
+
+## Publishers (Faza 17)
+
+Onboarding + sandbox demo: [marketplace-publishers.md](./marketplace-publishers.md).
