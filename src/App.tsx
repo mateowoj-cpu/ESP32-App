@@ -53,6 +53,8 @@ import {
   RefreshCw,
   FileJson,
   Store,
+  PanelRightOpen,
+  PanelRightClose,
 } from 'lucide-react';
 
 export default function App() {
@@ -77,6 +79,16 @@ export default function App() {
     localStorage.setItem('esp32_ui_font_scale', uiFontScale);
     document.documentElement.setAttribute('data-ui-scale', uiFontScale);
   }, [uiFontScale]);
+
+  // Collapsible right-side app menu (desktop). Default open; remember preference.
+  const [navSidebarOpen, setNavSidebarOpen] = useState(() => {
+    const raw = localStorage.getItem('esp32_nav_sidebar_open');
+    return raw === null ? true : raw === '1';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('esp32_nav_sidebar_open', navSidebarOpen ? '1' : '0');
+  }, [navSidebarOpen]);
 
   // Application Global States
   const [displayConfig, setDisplayConfig] = useState<DisplayConfig>(DEFAULT_DISPLAY_CONFIG);
@@ -448,11 +460,12 @@ export default function App() {
       <a href="#main-workspace" className="ui-skip-link">
         Przejdź do treści
       </a>
-      {/* 
+      {/*
         TOP BAR CONTRACT:
         Zone 1: Wordmark Brand
-        Zone 2: Navigation (scrolls/overflows inside header — never forces page-wide horizontal scroll)
-        Zone 3: Primary Action Button
+        Zone 2: Primary actions (font scale, update, import/export, INO)
+        Zone 3: Toggle for collapsible right-side app menu (desktop)
+        Primary nav lives in the right sidebar (lg+) / mobile bar (<lg).
       */}
       <header className="flex items-center justify-between gap-3 xl:gap-6 px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50 backdrop-blur-md min-w-0">
         {/* Zone 1: Brand Wordmark */}
@@ -470,41 +483,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Zone 2: Navigation — scrolls within chrome on narrow desktop widths */}
-        <nav
-          className="ui-nav-scroll hidden lg:flex min-w-0 flex-1 items-center gap-1.5 xl:gap-2"
-          aria-label={t('a11y.mainNav')}
-        >
-          {desktopNavTabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                aria-current={isActive ? 'page' : undefined}
-                title={tab.label}
-                className={`ui-nav-item shrink-0 ${
-                  isActive
-                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-900'
-                }`}
-              >
-                <Icon className={`ui-icon-sm shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} aria-hidden="true" />
-                <span className="2xl:hidden">{tab.shortLabel}</span>
-                <span className="hidden 2xl:inline">{tab.label}</span>
-                {tab.badge && (
-                  <span className="ui-status-dot" title={t('a11y.chipDetected')} aria-label={t('a11y.chipDetected')} />
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Zone 3: Font Scale Accessibility & Actions */}
-        <div className="ui-cluster shrink-0 gap-1.5 xl:gap-2.5">
+        {/* Zone 2 + 3: Font Scale, Actions, Sidebar Toggle */}
+        <div className="ui-cluster shrink-0 gap-1.5 xl:gap-2.5 ml-auto">
           {/* Global Font Scale Accessibility Controller */}
           <div
             className="ui-cluster gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl"
@@ -585,6 +565,23 @@ export default function App() {
           >
             <Download className="ui-icon-sm" aria-hidden="true" />
             <span className="hidden xl:inline">{t('action.downloadIno')}</span>
+          </button>
+
+          {/* Desktop: collapse / expand right-side app menu */}
+          <button
+            type="button"
+            className="hidden lg:inline-flex ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 bg-slate-900 rounded-xl"
+            onClick={() => setNavSidebarOpen(open => !open)}
+            aria-expanded={navSidebarOpen}
+            aria-controls="app-nav-sidebar"
+            aria-label={t('a11y.toggleNavSidebar')}
+            title={navSidebarOpen ? t('nav.sidebar.close') : t('nav.sidebar.open')}
+          >
+            {navSidebarOpen ? (
+              <PanelRightClose className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+            ) : (
+              <PanelRightOpen className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+            )}
           </button>
         </div>
       </header>
@@ -833,117 +830,187 @@ export default function App() {
         })}
       </nav>
 
-      {/* Main Workspace Stage */}
-      <main id="main-workspace" className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 ui-section ui-section-gap">
-        {activeTab === 'simulator' && (
-          <HardwareSimulator
-            display={displayConfig}
-            setDisplay={setDisplayConfig}
-            system={systemConfig}
-            setSystem={setSystemConfig}
-            simState={simState}
-            setSimState={setSimState}
-            screens={screens}
-            apiConfig={apiConfig}
-            automations={automations}
-            onTriggerAction={handleTriggerAction}
-          />
-        )}
+      <div className="flex flex-1 min-h-0 min-w-0">
+        <div className="flex flex-col flex-1 min-w-0 min-h-0">
+          {/* Main Workspace Stage */}
+          <main id="main-workspace" className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 ui-section ui-section-gap">
+            {activeTab === 'simulator' && (
+              <HardwareSimulator
+                display={displayConfig}
+                setDisplay={setDisplayConfig}
+                system={systemConfig}
+                setSystem={setSystemConfig}
+                simState={simState}
+                setSimState={setSimState}
+                screens={screens}
+                apiConfig={apiConfig}
+                automations={automations}
+                onTriggerAction={handleTriggerAction}
+              />
+            )}
 
-        {activeTab === 'editor' && (
-          <VisualEditor
-            screens={screens}
-            setScreens={setScreens}
-            display={displayConfig}
-            activeScreenIndex={activeScreenIndex}
-            setActiveScreenIndex={setActiveScreenIndex}
-            simState={simState}
-            setSimState={setSimState}
-          />
-        )}
+            {activeTab === 'editor' && (
+              <VisualEditor
+                screens={screens}
+                setScreens={setScreens}
+                display={displayConfig}
+                activeScreenIndex={activeScreenIndex}
+                setActiveScreenIndex={setActiveScreenIndex}
+                simState={simState}
+                setSimState={setSimState}
+              />
+            )}
 
-        {activeTab === 'usb' && (
-          <UsbDetectorView
-            detectedChip={detectedChip}
-            setDetectedChip={setDetectedChip}
-            display={displayConfig}
-            setDisplay={setDisplayConfig}
-            system={systemConfig}
-            setSystem={setSystemConfig}
-            buildSources={() => {
-              const boardProfile = resolvePioBoardProfile(
-                detectedChip?.chipFamily || detectedChip?.chipModel,
+            {activeTab === 'usb' && (
+              <UsbDetectorView
+                detectedChip={detectedChip}
+                setDetectedChip={setDetectedChip}
+                display={displayConfig}
+                setDisplay={setDisplayConfig}
+                system={systemConfig}
+                setSystem={setSystemConfig}
+                buildSources={() => {
+                  const boardProfile = resolvePioBoardProfile(
+                    detectedChip?.chipFamily || detectedChip?.chipModel,
+                  );
+                  return {
+                    sketchSource: generateArduinoCppCode(
+                      displayConfig,
+                      systemConfig,
+                      apiConfig,
+                      screens,
+                      automations,
+                    ),
+                    platformioIni: generatePlatformIoIni(displayConfig, boardProfile),
+                    boardProfile,
+                    sketchName: 'esp32_display_studio',
+                  };
+                }}
+              />
+            )}
+
+            {activeTab === 'automations' && (
+              <AutomationStudio
+                automations={automations}
+                setAutomations={setAutomations}
+                screens={screens}
+                simState={simState}
+                setSimState={setSimState}
+              />
+            )}
+
+            {activeTab === 'marketplace' && (
+              <MarketplaceView
+                screens={screens}
+                setScreens={setScreens}
+                activeScreenIndex={activeScreenIndex}
+                automations={automations}
+                setAutomations={setAutomations}
+              />
+            )}
+
+            {activeTab === 'integrations' && (
+              <IntegrationsView
+                apiConfig={apiConfig}
+                setApiConfig={setApiConfig}
+                simState={simState}
+                setSimState={setSimState}
+              />
+            )}
+
+            {activeTab === 'code' && (
+              <CodeView
+                display={displayConfig}
+                system={systemConfig}
+                api={apiConfig}
+                screens={screens}
+                automations={automations}
+              />
+            )}
+
+            {activeTab === 'settings' && (
+              <SettingsView
+                display={displayConfig}
+                setDisplay={setDisplayConfig}
+                system={systemConfig}
+                setSystem={setSystemConfig}
+                screens={screens}
+              />
+            )}
+          </main>
+
+          {/* Footer Strip */}
+          <footer className="border-t border-slate-900 py-4 px-6 text-center ui-type-micro text-slate-500 font-mono">
+            {t('footer.copy')}
+          </footer>
+        </div>
+
+        {/* Desktop right-side collapsible app menu */}
+        <aside
+          id="app-nav-sidebar"
+          className="ui-nav-sidebar"
+          data-open={navSidebarOpen ? 'true' : 'false'}
+          aria-label={t('nav.sidebar.title')}
+        >
+          <div className="flex items-center justify-between gap-2 px-2 pt-2 pb-1 border-b border-slate-800/80 shrink-0">
+            {navSidebarOpen && (
+              <span className="ui-type-micro text-slate-400 font-mono px-1 truncate">
+                {t('nav.sidebar.title')}
+              </span>
+            )}
+            <button
+              type="button"
+              className={`ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ${
+                navSidebarOpen ? '' : 'mx-auto'
+              }`}
+              onClick={() => setNavSidebarOpen(open => !open)}
+              aria-expanded={navSidebarOpen}
+              aria-controls="app-nav-sidebar"
+              aria-label={t('a11y.toggleNavSidebar')}
+              title={navSidebarOpen ? t('nav.sidebar.close') : t('nav.sidebar.open')}
+            >
+              {navSidebarOpen ? (
+                <PanelRightClose className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+              ) : (
+                <PanelRightOpen className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+          <nav className="ui-nav-sidebar-scroll" aria-label={t('a11y.mainNav')}>
+            {desktopNavTabs.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  title={tab.label}
+                  className={`ui-nav-item ${
+                    isActive
+                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-900'
+                  }`}
+                >
+                  <Icon
+                    className={`ui-icon-sm shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`}
+                    aria-hidden="true"
+                  />
+                  <span className="ui-nav-item-label truncate">{tab.label}</span>
+                  {tab.badge && (
+                    <span
+                      className="ui-status-dot ml-auto shrink-0"
+                      title={t('a11y.chipDetected')}
+                      aria-label={t('a11y.chipDetected')}
+                    />
+                  )}
+                </button>
               );
-              return {
-                sketchSource: generateArduinoCppCode(
-                  displayConfig,
-                  systemConfig,
-                  apiConfig,
-                  screens,
-                  automations,
-                ),
-                platformioIni: generatePlatformIoIni(displayConfig, boardProfile),
-                boardProfile,
-                sketchName: 'esp32_display_studio',
-              };
-            }}
-          />
-        )}
-
-        {activeTab === 'automations' && (
-          <AutomationStudio
-            automations={automations}
-            setAutomations={setAutomations}
-            screens={screens}
-            simState={simState}
-            setSimState={setSimState}
-          />
-        )}
-
-        {activeTab === 'marketplace' && (
-          <MarketplaceView
-            screens={screens}
-            setScreens={setScreens}
-            activeScreenIndex={activeScreenIndex}
-            automations={automations}
-            setAutomations={setAutomations}
-          />
-        )}
-
-        {activeTab === 'integrations' && (
-          <IntegrationsView
-            apiConfig={apiConfig}
-            setApiConfig={setApiConfig}
-            simState={simState}
-            setSimState={setSimState}
-          />
-        )}
-
-        {activeTab === 'code' && (
-          <CodeView
-            display={displayConfig}
-            system={systemConfig}
-            api={apiConfig}
-            screens={screens}
-            automations={automations}
-          />
-        )}
-
-        {activeTab === 'settings' && (
-          <SettingsView
-            display={displayConfig}
-            setDisplay={setDisplayConfig}
-            system={systemConfig}
-            setSystem={setSystemConfig}
-            screens={screens}
-          />
-        )}
-      </main>
-
-      {/* Footer Strip */}
-      <footer className="border-t border-slate-900 py-4 px-6 text-center ui-type-micro text-slate-500 font-mono">
-        {t('footer.copy')}
-      </footer>
+            })}
+          </nav>
+        </aside>
+      </div>
     </div>
   );
 }
