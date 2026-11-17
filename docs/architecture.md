@@ -1,6 +1,6 @@
 # Architektura — ESP32 Display Studio
 
-Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danych w linii **0.2.10** (Fazy 0–17 + full-build-closure). Indeks: [README.md](./README.md).
+Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danych w linii **0.2.11** (Fazy 0–17 + multi-OS CI + tooling/marketplace UX). Indeks: [README.md](./README.md).
 
 ## Stack
 

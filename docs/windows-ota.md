@@ -1,6 +1,6 @@
 # OTA firmware przez Wi‑Fi (Faza 9–11)
 
-Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB. IPC: `discover_ota_hosts`, `flash_ota_firmware`, `cancel_ota_firmware`, event `ota-log` — [architecture.md](./architecture.md). Linia **0.2.10**.
+Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB. IPC: `discover_ota_hosts`, `flash_ota_firmware`, `cancel_ota_firmware`, event `ota-log` — [architecture.md](./architecture.md). Linia **0.2.11**.
 
 ## Wymagania na płytce
 

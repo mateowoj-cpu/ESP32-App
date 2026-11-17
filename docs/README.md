@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.10** (Faza 17 + full-build-closure + board-catalog community validation). Następna: [Faza 18 ops / human](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.11** (Faza 17 + multi-OS CI + UX/tooling/marketplace #34–#39). Następna: [Faza 18 ops / human](./roadmap-next.md).
 
 Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketplace mają treść **PL** z krótkim streszczeniem **EN** na górze.
 
@@ -19,12 +19,14 @@ Oficjalne zrzuty (locale **PL**, web Vite, ~1440×900) — także w [README gł�
 
 | Widok | Plik |
 |-------|------|
-| Symulator | [media/simulator.png](./media/simulator.png) |
+| Symulator (menu prawe otwarte) | [media/simulator.png](./media/simulator.png) |
 | Edytor UI | [media/editor.png](./media/editor.png) |
 | USB / flash | [media/usb-flash.png](./media/usb-flash.png) |
 | Automatyzacje | [media/automations.png](./media/automations.png) |
 | Marketplace | [media/marketplace.png](./media/marketplace.png) |
 | Ustawienia | [media/settings.png](./media/settings.png) |
+| Ustawienia — tooling | [media/settings-tooling.png](./media/settings-tooling.png) |
+| Menu prawe zwinięte | [media/nav-sidebar-collapsed.png](./media/nav-sidebar-collapsed.png) |
 
 ## Platforma i dane
 
@@ -32,6 +34,7 @@ Oficjalne zrzuty (locale **PL**, web Vite, ~1440×900) — także w [README gł�
 |----------|--------|
 | [board-catalog.md](./board-catalog.md) | Community board PR flow + walidacja offset ↔ esptool + bundled parity |
 | [marketplace-plugin-api.md](./marketplace-plugin-api.md) | Manifest v2, podpisy Ed25519, allowlista hostów, sandbox |
+| [marketplace-github-addons.md](./marketplace-github-addons.md) | Board packs, GitHub add-ons, formularz „Dodaj opcję” |
 | [marketplace-publishers.md](./marketplace-publishers.md) | Onboarding publisherów + sandbox demo (≠ live keys) |
 | [telemetry.md](./telemetry.md) | Opt-in telemetria, retencja, opt-out, collector ops |
 | [windows-diagnostics.md](./windows-diagnostics.md) | Log lokalny + eksport ZIP + board sync |

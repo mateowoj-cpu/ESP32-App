@@ -1,6 +1,6 @@
 # Setup dla contributorów
 
-Jak uruchomić, testować i kompilować ESP32 Display Studio lokalnie. Linia: **0.2.10**. Indeks: [README.md](./README.md) · architektura: [architecture.md](./architecture.md).
+Jak uruchomić, testować i kompilować ESP32 Display Studio lokalnie. Linia: **0.2.11**. Indeks: [README.md](./README.md) · architektura: [architecture.md](./architecture.md).
 
 ## Wymagania
 
@@ -178,7 +178,7 @@ packaging/winget/    Manifesty referencyjne (SHA placeholder do releasu)
 packaging/updater/   Przykłady multi-platform latest.json
 scripts/             Windows / Unix / winget / board-profiles / full-compile.sh
 tools/pc-agent/      Agent monitora PC (Python)
-.github/workflows/   smoke, windows-release, desktop-unix*, winget-draft, penv
+.github/workflows/   smoke, windows/linux/macos-release, desktop-unix*, winget-draft, penv
 ```
 
 ## CI
@@ -186,11 +186,15 @@ tools/pc-agent/      Agent monitora PC (Python)
 | Workflow | Trigger | Co robi |
 |----------|---------|---------|
 | `smoke.yml` | PR / push `main` | Job frontend = suite jak `smoke` + pc-agent; job `rust-smoke` = `cargo check` |
-| `windows-release.yml` | tag `v*` / dispatch | NSIS/MSI + updater (Windows runner) |
+| `windows-release.yml` | tag `v*` / `workflow_dispatch` | NSIS/MSI + updater (Windows runner) — osobno od Unix |
+| `linux-release.yml` | tag `v*` / `workflow_dispatch` | AppImage + deb (`ubuntu-22.04`) |
+| `macos-release.yml` | tag `v*` / `workflow_dispatch` | dmg (`macos-14`) |
 | `windows-penv-artifact.yml` | dispatch | Artifact penv PlatformIO |
-| `desktop-unix-release.yml` | tag `v*` | AppImage / deb / dmg |
+| `desktop-unix-release.yml` | tag `v*` / dispatch | Opcjonalny assembler multi-platform `latest.json` (gdy signed) |
 | `desktop-unix-appimage-smoke.yml` | `workflow_dispatch` | Szybki smoke paczek Linux |
 | `winget-draft.yml` | dispatch / po releasie | SHA z assetu + draft manifest (**publish = human**) |
+
+Wersja: `npm run assert:app-version` (package.json = tauri.conf = Cargo.toml). Przy ręcznym dispatch: `confirm_fresh_dispatch=NEW`, tip `main`, **nie** Re-run starych runów. Szczegóły: [desktop-unix.md](./desktop-unix.md).
 
 **Nie commituj** prywatnych kluczy, `.pfx`, prawdziwych SHA winget z niesprawdzonych binarek, ani tokenów. Zobacz [windows-signing.md](./windows-signing.md), [windows-winget.md](./windows-winget.md).
 

@@ -16,7 +16,7 @@ Gdy przełącznik jest włączony **oraz** build definiuje `VITE_TELEMETRY_ENDPO
 
 | Pole | Znaczenie |
 |------|-----------|
-| `v` | Wersja aplikacji (np. `0.2.10`) |
+| `v` | Wersja aplikacji (np. `0.2.11`) |
 | `os` | Zgrubny system: `windows` / `macos` / `linux` / `other` |
 | `event` | `app_open`, `build_result`, `flash_result`, `ota_result`, `diag_export`, `board_sync` |
 | `ok` | Opcjonalny boolean dla zdarzeń wynikowych |
@@ -76,7 +76,7 @@ Studio **nie** hostuje collectora. Kto uruchamia `VITE_TELEMETRY_ENDPOINT`, powi
 ### Przykładowe ciało żądania
 
 ```json
-{ "v": "0.2.10", "os": "windows", "event": "flash_result", "ok": true, "ts": 1730000000000 }
+{ "v": "0.2.11", "os": "windows", "event": "flash_result", "ok": true, "ts": 1730000000000 }
 ```
 
 ## Implementacja
