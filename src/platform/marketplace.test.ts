@@ -1,9 +1,30 @@
 import { webcrypto } from 'node:crypto';
-import {
+
+const lsStore: Record<string, string> = {};
+(globalThis as { localStorage?: Storage }).localStorage = {
+  getItem: (k: string) => lsStore[k] ?? null,
+  setItem: (k: string, v: string) => {
+    lsStore[k] = String(v);
+  },
+  removeItem: (k: string) => {
+    delete lsStore[k];
+  },
+  clear: () => {
+    for (const k of Object.keys(lsStore)) delete lsStore[k];
+  },
+  key: () => null,
+  get length() {
+    return Object.keys(lsStore).length;
+  },
+} as Storage;
+
+const {
   BUNDLED_MARKETPLACE_CATALOG,
   BUNDLED_MARKETPLACE_PACKS,
   BUNDLED_MARKETPLACE_PUBLISHERS,
+  applyMarketplaceBoardPack,
   clearTrustedPublishers,
+  exportBoardPack,
   exportRulePack,
   exportWidgetPack,
   isAllowedMarketplaceUrl,
@@ -16,7 +37,14 @@ import {
   sandboxImportWidgets,
   signMarketplacePack,
   verifyMarketplacePackSignature,
-} from './marketplace';
+} = await import('./marketplace');
+const {
+  addUserMarketplaceOption,
+  isAllowedGithubAddonUrl,
+  mergeCatalogWithUserOptions,
+  normalizeGithubRepoUrl,
+  removeUserMarketplaceOption,
+} = await import('./marketplaceOptions');
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg);
@@ -187,5 +215,57 @@ registerBundledMarketplacePublishers();
 const fixtureOk = await verifyMarketplacePackSignature(signedFixture);
 assert(fixtureOk.ok, 'sandbox fixture signature verifies');
 clearTrustedPublishers();
+
+// board_pack + github_addon catalog expansion
+assert(
+  BUNDLED_MARKETPLACE_CATALOG.entries.some(e => e.kind === 'board_pack'),
+  'has board_pack entry',
+);
+assert(
+  BUNDLED_MARKETPLACE_CATALOG.entries.some(e => e.kind === 'github_addon' && !!e.repoUrl),
+  'has github_addon entry',
+);
+const usbBridges = BUNDLED_MARKETPLACE_PACKS['usb-bridges'];
+assert(usbBridges?.kind === 'board_pack', 'usb-bridges kind');
+const parsedBoards = parseMarketplacePack(usbBridges);
+assert(parsedBoards.ok, 'usb-bridges parses');
+if (parsedBoards.ok) {
+  assert(parsedBoards.pack.kind === 'board_pack', 'parsed board kind');
+  const applied = applyMarketplaceBoardPack(parsedBoards.pack);
+  assert(applied === parsedBoards.pack.profiles.length, 'applied board profiles');
+}
+const oledDash = BUNDLED_MARKETPLACE_PACKS['oled-pet-dash'];
+assert(oledDash?.kind === 'widget_pack', 'oled-pet-dash kind');
+assert(parseMarketplacePack(oledDash).ok, 'oled-pet-dash parses');
+
+const exportedBoard = exportBoardPack(
+  usbBridges.kind === 'board_pack' ? usbBridges.profiles : [],
+  { id: 'export-boards', title: 'Export boards' },
+);
+assert(parseMarketplacePack(exportedBoard).ok, 'round-trip board export');
+
+assert(isAllowedGithubAddonUrl('https://github.com/olikraus/u8g2'), 'allow github addon url');
+assert(!isAllowedGithubAddonUrl('https://evil.example/repo'), 'deny non-github');
+assert(
+  normalizeGithubRepoUrl('https://www.github.com/olikraus/u8g2.git') ===
+    'https://github.com/olikraus/u8g2',
+  'normalize github url',
+);
+
+const added = addUserMarketplaceOption({
+  kind: 'github_addon',
+  title: 'Local addon',
+  description: 'User-added github option',
+  repoUrl: 'https://github.com/espressif/esp-idf',
+});
+assert(added.ok, 'add user github option');
+const merged = mergeCatalogWithUserOptions(BUNDLED_MARKETPLACE_CATALOG);
+assert(
+  merged.entries.some(e => e.userAdded && e.kind === 'github_addon'),
+  'user option merged',
+);
+if (added.ok) {
+  assert(removeUserMarketplaceOption(added.entry.id), 'remove user option');
+}
 
 console.log('marketplace.test.ts: OK');

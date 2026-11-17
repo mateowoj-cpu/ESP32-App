@@ -1,0 +1,41 @@
+{
+  "format": "esp32studio-marketplace",
+  "kind": "widget_pack",
+  "version": 1,
+  "id": "oled-pet-dash",
+  "title": "OLED pet + temperature",
+  "author": "ESP32 Display Studio",
+  "description": "128×64 pet dashboard inspired by SSD1306/U8g2 community stacks.",
+  "widgets": [
+    {
+      "id": "m_pet",
+      "type": "cyber_pet",
+      "x": 4,
+      "y": 4,
+      "width": 56,
+      "height": 40
+    },
+    {
+      "id": "m_temp",
+      "type": "gauge",
+      "x": 64,
+      "y": 4,
+      "width": 60,
+      "height": 40,
+      "label": "Temp",
+      "binding": "temp",
+      "minVal": 0,
+      "maxVal": 40,
+      "unit": "°C",
+      "showNumericValue": true
+    },
+    {
+      "id": "m_batt_wifi_dash",
+      "type": "battery_wifi",
+      "x": 4,
+      "y": 46,
+      "width": 120,
+      "height": 16
+    }
+  ]
+}
