@@ -1,10 +1,17 @@
 [[permission]]
 identifier = "allow-flash"
-description = "Allows locating esptool/toolchain, building sketches, flashing firmware, and reading opened files."
+description = "Allows locating esptool/toolchain, building sketches, flashing firmware, reading opened files, and external free-tool helpers."
 commands.allow = [
   "get_esptool_info",
   "flash_write_firmware",
   "read_open_file",
   "get_firmware_toolchain_info",
-  "build_firmware_from_sketch"
+  "build_firmware_from_sketch",
+  "get_external_tools_status",
+  "get_tool_path_overrides",
+  "set_tool_path_overrides",
+  "open_path_in_os",
+  "open_external_url",
+  "export_and_open_arduino_ide",
+  "open_wokwi_simulator"
 ]

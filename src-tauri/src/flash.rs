@@ -70,8 +70,11 @@ fn python_bins() -> Vec<&'static str> {
     }
 }
 
-/// Resolve how to invoke esptool: direct binary or `python -m esptool`.
-fn resolve_esptool_command() -> Option<Vec<String>> {
+/// Resolve how to invoke esptool: override → direct binary → `python -m esptool`.
+fn resolve_esptool_command(app: &AppHandle) -> Option<Vec<String>> {
+    if let Some(path) = crate::tools::override_esptool(app) {
+        return Some(vec![path.display().to_string()]);
+    }
     if let Some(path) = which("esptool") {
         return Some(vec![path.display().to_string()]);
     }
@@ -149,19 +152,21 @@ fn run_version(cmd: &[String]) -> Option<String> {
 }
 
 #[tauri::command]
-pub fn get_esptool_info() -> EsptoolInfo {
-    match resolve_esptool_command() {
+pub fn get_esptool_info(app: AppHandle) -> EsptoolInfo {
+    match resolve_esptool_command(&app) {
         Some(command) => {
             let version = run_version(&command);
+            let override_hint = crate::tools::override_esptool(&app).is_some();
             EsptoolInfo {
                 available: true,
                 version: version.clone(),
                 command: Some(command),
                 hint: format!(
-                    "esptool gotowy{}",
+                    "esptool gotowy{}{}",
                     version
                         .map(|v| format!(" ({v})"))
-                        .unwrap_or_default()
+                        .unwrap_or_default(),
+                    if override_hint { " [override]" } else { "" }
                 ),
             }
         }
@@ -208,7 +213,7 @@ pub fn flash_write_firmware(
     firmware_path: String,
     flash_offset: Option<String>,
 ) -> Result<FlashResult, String> {
-    let cmd = resolve_esptool_command().ok_or_else(|| {
+    let cmd = resolve_esptool_command(&app).ok_or_else(|| {
         "Nie znaleziono esptool. Zainstaluj: pip install esptool".to_string()
     })?;
     let firmware = validate_firmware_path(&firmware_path)?;

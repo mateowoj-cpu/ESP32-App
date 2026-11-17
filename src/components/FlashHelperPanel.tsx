@@ -25,7 +25,30 @@ import {
   Play,
   Wifi,
   Radar,
+  ExternalLink,
 } from 'lucide-react';
+
+type PreferredBuildTool = 'auto' | 'platformio' | 'arduino-cli';
+
+const PREFERRED_TOOL_KEY = 'esp32_preferred_build_tool';
+
+function loadPreferredBuildToolLocal(): PreferredBuildTool {
+  try {
+    const raw = localStorage.getItem(PREFERRED_TOOL_KEY);
+    if (raw === 'platformio' || raw === 'arduino-cli' || raw === 'auto') return raw;
+  } catch {
+    // ignore
+  }
+  return 'auto';
+}
+
+function savePreferredBuildToolLocal(tool: PreferredBuildTool): void {
+  try {
+    localStorage.setItem(PREFERRED_TOOL_KEY, tool);
+  } catch {
+    // ignore
+  }
+}
 
 export interface SketchBuildSources {
   sketchSource: string;
@@ -68,9 +91,13 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const [discovering, setDiscovering] = useState(false);
   const [otaInFlight, setOtaInFlight] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [toolsBusy, setToolsBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [lastBuild, setLastBuild] = useState<BuildResult | null>(null);
+  const [preferredTool, setPreferredTool] = useState<PreferredBuildTool>(() =>
+    loadPreferredBuildToolLocal(),
+  );
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -178,6 +205,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         platformioIni: sources.platformioIni,
         boardProfile: sources.boardProfile || chip,
         sketchName: sources.sketchName,
+        preferredTool,
       });
       setLastBuild(result);
       setStatus(result.message);
@@ -415,6 +443,103 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
           {t('flash.installToolchain')}
         </p>
       )}
+
+      <label className="flex flex-col gap-1 text-xs">
+        <span className="text-slate-400">{t('flash.preferredTool')}</span>
+        <select
+          value={preferredTool}
+          onChange={e => {
+            const next = e.target.value as PreferredBuildTool;
+            setPreferredTool(next);
+            savePreferredBuildToolLocal(next);
+          }}
+          className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+        >
+          <option value="auto">{t('flash.preferred.auto')}</option>
+          <option value="platformio">{t('flash.preferred.platformio')}</option>
+          <option value="arduino-cli">{t('flash.preferred.arduinoCli')}</option>
+        </select>
+      </label>
+
+      <div className="flex flex-col gap-2 pt-1 border-t border-slate-800/80">
+        <span className="ui-type-micro text-slate-400">{t('flash.externalTools')}</span>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={toolsBusy || !buildSources}
+            onClick={() => {
+              void (async () => {
+                if (!buildSources) return;
+                setToolsBusy(true);
+                try {
+                  const sources = buildSources();
+                  const { exportAndOpenArduinoIde } = await import('../platform/tools');
+                  const result = await exportAndOpenArduinoIde({
+                    sketchSource: sources.sketchSource,
+                    sketchName: sources.sketchName,
+                  });
+                  setStatus(result.message);
+                } catch (err) {
+                  setStatus(err instanceof Error ? err.message : String(err));
+                } finally {
+                  setToolsBusy(false);
+                }
+              })();
+            }}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 ui-type-micro flex items-center gap-1.5 disabled:opacity-40"
+          >
+            <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+            {toolsBusy ? t('flash.toolsBusy') : t('flash.openArduino')}
+          </button>
+          <button
+            type="button"
+            disabled={toolsBusy}
+            onClick={() => {
+              void (async () => {
+                setToolsBusy(true);
+                try {
+                  const { openWokwiSimulator } = await import('../platform/tools');
+                  const result = await openWokwiSimulator();
+                  setStatus(result.message);
+                } catch (err) {
+                  setStatus(err instanceof Error ? err.message : String(err));
+                } finally {
+                  setToolsBusy(false);
+                }
+              })();
+            }}
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 ui-type-micro flex items-center gap-1.5 disabled:opacity-40"
+          >
+            <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+            {t('flash.openWokwi')}
+          </button>
+          {lastBuild?.projectDir && (
+            <button
+              type="button"
+              disabled={toolsBusy}
+              onClick={() => {
+                void (async () => {
+                  if (!lastBuild.projectDir) return;
+                  setToolsBusy(true);
+                  try {
+                    const { openPathInOs } = await import('../platform/tools');
+                    const result = await openPathInOs(lastBuild.projectDir);
+                    setStatus(result.message);
+                  } catch (err) {
+                    setStatus(err instanceof Error ? err.message : String(err));
+                  } finally {
+                    setToolsBusy(false);
+                  }
+                })();
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 ui-type-micro flex items-center gap-1.5 disabled:opacity-40"
+            >
+              <FolderOpen className="ui-icon-sm" aria-hidden="true" />
+              {t('flash.openProject')}
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <label className="flex flex-col gap-1">

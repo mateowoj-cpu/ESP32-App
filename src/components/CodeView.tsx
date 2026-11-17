@@ -55,9 +55,53 @@ export const CodeView: React.FC<CodeViewProps> = ({
 
   const [sketchName, setSketchName] = useState('esp32_display_studio');
   const [downloadSuccessModal, setDownloadSuccessModal] = useState(false);
+  const [toolsMessage, setToolsMessage] = useState<string | null>(null);
+  const [toolsBusy, setToolsBusy] = useState(false);
 
   // Clean filename helper
   const cleanSketchName = sketchName.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'esp32_display_studio';
+
+  const handleOpenArduinoIde = async () => {
+    setToolsBusy(true);
+    setToolsMessage(null);
+    try {
+      const { isTauri } = await import('@tauri-apps/api/core');
+      if (!isTauri()) {
+        setToolsMessage(t('code.toolsDesktopOnly'));
+        return;
+      }
+      const { exportAndOpenArduinoIde } = await import('../platform/tools');
+      const result = await exportAndOpenArduinoIde({
+        sketchSource: cppCode,
+        sketchName: cleanSketchName,
+      });
+      setToolsMessage(result.message);
+    } catch (err) {
+      setToolsMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setToolsBusy(false);
+    }
+  };
+
+  const handleOpenWokwi = async () => {
+    setToolsBusy(true);
+    setToolsMessage(null);
+    try {
+      const { isTauri } = await import('@tauri-apps/api/core');
+      if (!isTauri()) {
+        window.open('https://wokwi.com/arduino/new?template=esp32', '_blank', 'noopener,noreferrer');
+        setToolsMessage(t('code.toolsDesktopOnly'));
+        return;
+      }
+      const { openWokwiSimulator } = await import('../platform/tools');
+      const result = await openWokwiSimulator();
+      setToolsMessage(result.message);
+    } catch (err) {
+      setToolsMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setToolsBusy(false);
+    }
+  };
 
   // Download .ino file
   const handleDownloadIno = (customName?: string) => {
@@ -140,8 +184,29 @@ export const CodeView: React.FC<CodeViewProps> = ({
               <Download className="ui-icon-sm stroke-[2.5]" aria-hidden="true" />
               <span>{t('code.download')}</span>
             </button>
+            <button
+              type="button"
+              disabled={toolsBusy}
+              onClick={() => void handleOpenArduinoIde()}
+              className="flex items-center justify-center gap-2 min-h-10 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-100 border border-slate-700 font-semibold rounded-xl ui-type-caption ui-focus-ring"
+            >
+              <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+              <span>{t('code.openArduinoIde')}</span>
+            </button>
+            <button
+              type="button"
+              disabled={toolsBusy}
+              onClick={() => void handleOpenWokwi()}
+              className="flex items-center justify-center gap-2 min-h-10 px-3 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-100 border border-slate-700 font-semibold rounded-xl ui-type-caption ui-focus-ring"
+            >
+              <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+              <span>{t('code.openWokwi')}</span>
+            </button>
           </div>
         </div>
+        {toolsMessage && (
+          <p className="mt-3 ui-type-micro font-mono text-amber-200/90 relative z-10">{toolsMessage}</p>
+        )}
       </div>
 
       {/* Download Success / Arduino IDE Instructions Modal */}

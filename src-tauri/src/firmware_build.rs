@@ -106,9 +106,22 @@ fn sidecar_pio_candidates(app: &AppHandle) -> Vec<PathBuf> {
 }
 
 fn resolve_pio(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
+    if let Some(p) = crate::tools::override_platformio(app) {
+        return Some((p, "override"));
+    }
     for cand in sidecar_pio_candidates(app) {
         if path_is_executable_candidate(&cand) {
-            return Some((cand, "sidecar"));
+            // ESP32_STUDIO_PIO is first in candidates; treat env separately in source label
+            let src = if std::env::var("ESP32_STUDIO_PIO")
+                .ok()
+                .map(|e| PathBuf::from(e) == cand)
+                .unwrap_or(false)
+            {
+                "env"
+            } else {
+                "sidecar"
+            };
+            return Some((cand, src));
         }
     }
     which("pio")
@@ -116,8 +129,11 @@ fn resolve_pio(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
         .map(|p| (p, "path"))
 }
 
-fn resolve_arduino_cli() -> Option<PathBuf> {
-    which("arduino-cli")
+fn resolve_arduino_cli(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
+    if let Some(p) = crate::tools::override_arduino_cli(app) {
+        return Some((p, "override"));
+    }
+    which("arduino-cli").map(|p| (p, "path"))
 }
 
 fn emit_log(app: &AppHandle, line: impl Into<String>) {
@@ -142,7 +158,7 @@ fn version_of(bin: &Path) -> Option<String> {
 #[tauri::command]
 pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
     let pio = resolve_pio(&app);
-    let arduino = resolve_arduino_cli();
+    let arduino = resolve_arduino_cli(&app);
     let preferred = if pio.is_some() {
         Some("platformio".into())
     } else if arduino.is_some() {
@@ -151,16 +167,15 @@ pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
         None
     };
 
-    let source = match &pio {
-        Some((_, "sidecar")) => "sidecar".to_string(),
-        Some((_, _)) => "path".to_string(),
-        None if arduino.is_some() => "path".to_string(),
-        None => "none".to_string(),
+    let source = match (&pio, &arduino) {
+        (Some((_, src)), _) => (*src).to_string(),
+        (None, Some((_, src))) => (*src).to_string(),
+        (None, None) => "none".to_string(),
     };
 
     let hint = match (&pio, &arduino) {
-        (Some((p, src)), Some(a)) => format!(
-            "PlatformIO ({src}) + arduino-cli. {} · {}",
+        (Some((p, src)), Some((a, asrc))) => format!(
+            "PlatformIO ({src}) + arduino-cli ({asrc}). {} · {}",
             version_of(p).unwrap_or_else(|| p.display().to_string()),
             version_of(a).unwrap_or_else(|| a.display().to_string())
         ),
@@ -168,8 +183,8 @@ pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
             "PlatformIO ({src}): {}",
             version_of(p).unwrap_or_else(|| p.display().to_string())
         ),
-        (None, Some(a)) => format!(
-            "arduino-cli: {}",
+        (None, Some((a, asrc))) => format!(
+            "arduino-cli ({asrc}): {}",
             version_of(a).unwrap_or_else(|| a.display().to_string())
         ),
         (None, None) => {
@@ -185,7 +200,7 @@ pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
         available: preferred.is_some(),
         preferred: preferred.clone(),
         platformio: pio.map(|(p, _)| p.display().to_string()),
-        arduino_cli: arduino.map(|p| p.display().to_string()),
+        arduino_cli: arduino.map(|(p, _)| p.display().to_string()),
         source,
         hint,
     }
@@ -384,7 +399,7 @@ pub fn build_firmware_from_sketch(
         .unwrap_or_else(|| "auto".into())
         .to_lowercase();
     let pio = resolve_pio(&app);
-    let arduino = resolve_arduino_cli();
+    let arduino = resolve_arduino_cli(&app);
 
     let use_pio = match tool_pref.as_str() {
         "arduino-cli" | "arduino" => false,
@@ -439,7 +454,7 @@ pub fn build_firmware_from_sketch(
         });
     }
 
-    let Some(arduino_bin) = arduino else {
+    let Some((arduino_bin, arduino_src)) = arduino else {
         return Ok(BuildResult {
             ok: false,
             tool: "none".into(),
@@ -457,6 +472,11 @@ pub fn build_firmware_from_sketch(
         .map_err(|e| e.to_string())?;
     let out_dir = root.join("build");
     fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
+
+    emit_log(
+        &app,
+        format!("Używam arduino-cli ({arduino_src}): {}", arduino_bin.display()),
+    );
 
     let args = vec![
         "compile".into(),
@@ -476,7 +496,7 @@ pub fn build_firmware_from_sketch(
         firmware_path: firmware.as_ref().map(|p| p.display().to_string()),
         exit_code: Some(code),
         message: if ok {
-            format!("Zbudowano: {}", firmware.unwrap().display())
+            format!("Zbudowano ({arduino_src}): {}", firmware.unwrap().display())
         } else if code != 0 {
             format!("arduino-cli zakończył się kodem {code}. Zainstaluj core: arduino-cli core install esp32:esp32")
         } else {
