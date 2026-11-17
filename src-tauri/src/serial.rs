@@ -136,8 +136,7 @@ fn to_dto(info: &SerialPortInfo) -> SerialPortDto {
     }
 }
 
-#[tauri::command]
-pub fn list_serial_ports() -> Result<Vec<SerialPortDto>, String> {
+fn enumerate_serial_ports() -> Result<Vec<SerialPortDto>, String> {
     let ports = serialport::available_ports().map_err(|e| format!("Nie udało się listować portów: {e}"))?;
     let mut dtos: Vec<SerialPortDto> = ports.iter().map(to_dto).collect();
     dtos.sort_by(|a, b| {
@@ -148,8 +147,18 @@ pub fn list_serial_ports() -> Result<Vec<SerialPortDto>, String> {
     Ok(dtos)
 }
 
+/// List COM/tty ports off the async runtime so Windows USB enumeration
+/// does not freeze the Tauri webview while `available_ports()` runs.
 #[tauri::command]
-pub fn open_serial_port(
+pub async fn list_serial_ports() -> Result<Vec<SerialPortDto>, String> {
+    tauri::async_runtime::spawn_blocking(enumerate_serial_ports)
+        .await
+        .map_err(|e| format!("list_serial_ports join: {e}"))?
+}
+
+/// Open a serial port off the async runtime (open + re-enumerate can stall on Windows).
+#[tauri::command]
+pub async fn open_serial_port(
     app: AppHandle,
     state: State<'_, SerialManager>,
     path: String,
@@ -165,10 +174,15 @@ pub fn open_serial_port(
         SerialManager::close_locked(&mut active);
     }
 
-    let port = serialport::new(&path, baud)
-        .timeout(Duration::from_millis(200))
-        .open()
-        .map_err(|e| format!("Nie otwarto portu {path} @ {baud}: {e}"))?;
+    let path_for_open = path.clone();
+    let port = tauri::async_runtime::spawn_blocking(move || {
+        serialport::new(&path_for_open, baud)
+            .timeout(Duration::from_millis(200))
+            .open()
+            .map_err(|e| format!("Nie otwarto portu {path_for_open} @ {baud}: {e}"))
+    })
+    .await
+    .map_err(|e| format!("open_serial_port join: {e}"))??;
 
     let mut reader = port
         .try_clone()
@@ -211,19 +225,25 @@ pub fn open_serial_port(
         }
     });
 
-    let dto = list_serial_ports()?
-        .into_iter()
-        .find(|p| p.path == path)
-        .unwrap_or(SerialPortDto {
-            id: path.clone(),
-            label: path.clone(),
-            path: path.clone(),
-            usb_vendor_id: None,
-            usb_product_id: None,
-            manufacturer: None,
-            product: None,
-            likely_esp32: is_likely_esp32(None, &path),
-        });
+    let path_for_dto = path.clone();
+    let dto = tauri::async_runtime::spawn_blocking(move || {
+        enumerate_serial_ports()?
+            .into_iter()
+            .find(|p| p.path == path_for_dto)
+            .ok_or_else(|| "port missing after open".to_string())
+    })
+    .await
+    .map_err(|e| format!("open_serial_port dto join: {e}"))?
+    .unwrap_or_else(|_| SerialPortDto {
+        id: path.clone(),
+        label: path.clone(),
+        path: path.clone(),
+        usb_vendor_id: None,
+        usb_product_id: None,
+        manufacturer: None,
+        product: None,
+        likely_esp32: is_likely_esp32(None, &path),
+    });
 
     let mut active = state
         .active

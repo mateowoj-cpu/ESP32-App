@@ -305,6 +305,37 @@
     border-color: rgb(6 182 212 / 0.4);
   }
 
+  /* Keep overflow scrolling inside the nav chrome (not the whole window). */
+  .ui-nav-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ui-nav-scroll::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .ui-nav-scroll::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.45);
+    border-radius: 9999px;
+  }
+
+  @keyframes ui-progress-slide {
+    0% {
+      transform: translateX(-120%);
+    }
+    100% {
+      transform: translateX(320%);
+    }
+  }
+
+  .ui-progress-indeterminate-bar {
+    animation: ui-progress-slide 1.1s ease-in-out infinite;
+  }
+
   .ui-status-dot {
     width: 0.5rem;
     height: 0.5rem;

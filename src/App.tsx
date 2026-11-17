@@ -384,45 +384,98 @@ export default function App() {
     e.target.value = '';
   };
 
+  const desktopNavTabs = [
+    {
+      id: 'simulator' as const,
+      label: t('nav.simulator'),
+      shortLabel: t('nav.mobile.simulator'),
+      icon: Tv,
+      badge: false,
+    },
+    {
+      id: 'editor' as const,
+      label: t('nav.editor'),
+      shortLabel: t('nav.mobile.editor'),
+      icon: Layers,
+      badge: false,
+    },
+    {
+      id: 'usb' as const,
+      label: t('nav.usb'),
+      shortLabel: t('nav.mobile.usb'),
+      icon: Usb,
+      badge: Boolean(detectedChip),
+    },
+    {
+      id: 'automations' as const,
+      label: t('nav.automations'),
+      shortLabel: t('nav.mobile.automations'),
+      icon: Zap,
+      badge: false,
+    },
+    {
+      id: 'marketplace' as const,
+      label: t('nav.marketplace'),
+      shortLabel: t('nav.mobile.marketplace'),
+      icon: Store,
+      badge: false,
+    },
+    {
+      id: 'integrations' as const,
+      label: t('nav.integrations'),
+      shortLabel: t('nav.mobile.integrations'),
+      icon: CloudSun,
+      badge: false,
+    },
+    {
+      id: 'code' as const,
+      label: t('nav.code'),
+      shortLabel: t('nav.mobile.code'),
+      icon: Code,
+      badge: false,
+    },
+    {
+      id: 'settings' as const,
+      label: t('nav.settings'),
+      shortLabel: t('nav.mobile.settings'),
+      icon: Settings2,
+      badge: false,
+    },
+  ];
+
   return (
-    <div className="min-h-dvh bg-slate-950 text-slate-100 flex flex-col font-sans ui-type-body">
+    <div className="min-h-dvh max-w-full overflow-x-hidden bg-slate-950 text-slate-100 flex flex-col font-sans ui-type-body">
       <a href="#main-workspace" className="ui-skip-link">
         Przejdź do treści
       </a>
       {/* 
         TOP BAR CONTRACT:
         Zone 1: Wordmark Brand
-        Zone 2: Navigation Links (No wrapping)
+        Zone 2: Navigation (scrolls/overflows inside header — never forces page-wide horizontal scroll)
         Zone 3: Primary Action Button
       */}
-      <header className="flex items-center justify-between gap-4 xl:gap-8 px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50 backdrop-blur-md">
+      <header className="flex items-center justify-between gap-3 xl:gap-6 px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50 backdrop-blur-md min-w-0">
         {/* Zone 1: Brand Wordmark */}
         <div className="flex items-center gap-3 whitespace-nowrap shrink-0">
           <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400" aria-hidden="true">
             <Cpu className="ui-icon-md text-cyan-400" aria-hidden="true" />
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="ui-type-title tracking-tight text-white font-mono block">
               ESP32 Studio
             </span>
-            <span className="ui-type-micro text-slate-400 font-mono hidden sm:block">
+            <span className="ui-type-micro text-slate-400 font-mono hidden xl:block">
               {t('brand.sub')}
             </span>
           </div>
         </div>
 
-        {/* Zone 2: Navigation — consistent icon-sm + caption type */}
-        <nav className="hidden lg:flex items-center gap-2" aria-label={t('a11y.mainNav')}>
-          {[
-            { id: 'simulator', label: t('nav.simulator'), icon: Tv },
-            { id: 'editor', label: t('nav.editor'), icon: Layers },
-            { id: 'usb', label: t('nav.usb'), icon: Usb, badge: detectedChip },
-            { id: 'automations', label: t('nav.automations'), icon: Zap },
-            { id: 'marketplace', label: t('nav.marketplace'), icon: Store },
-            { id: 'integrations', label: t('nav.integrations'), icon: CloudSun },
-            { id: 'code', label: t('nav.code'), icon: Code },
-            { id: 'settings', label: t('nav.settings'), icon: Settings2 },
-          ].map(tab => {
+        {/* Zone 2: Navigation — scrolls within chrome on narrow desktop widths */}
+        <nav
+          className="ui-nav-scroll hidden lg:flex min-w-0 flex-1 items-center gap-1.5 xl:gap-2"
+          aria-label={t('a11y.mainNav')}
+        >
+          {desktopNavTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
 
@@ -430,8 +483,9 @@ export default function App() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 aria-current={isActive ? 'page' : undefined}
+                title={tab.label}
                 className={`ui-nav-item shrink-0 ${
                   isActive
                     ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
@@ -439,7 +493,8 @@ export default function App() {
                 }`}
               >
                 <Icon className={`ui-icon-sm shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} aria-hidden="true" />
-                <span>{tab.label}</span>
+                <span className="2xl:hidden">{tab.shortLabel}</span>
+                <span className="hidden 2xl:inline">{tab.label}</span>
                 {tab.badge && (
                   <span className="ui-status-dot" title={t('a11y.chipDetected')} aria-label={t('a11y.chipDetected')} />
                 )}
@@ -449,7 +504,7 @@ export default function App() {
         </nav>
 
         {/* Zone 3: Font Scale Accessibility & Actions */}
-        <div className="ui-cluster shrink-0 gap-2.5">
+        <div className="ui-cluster shrink-0 gap-1.5 xl:gap-2.5">
           {/* Global Font Scale Accessibility Controller */}
           <div
             className="ui-cluster gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl"
@@ -524,12 +579,12 @@ export default function App() {
           <button
             type="button"
             onClick={() => handleDownloadInoQuick()}
-            className="ui-cluster gap-2 min-h-10 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl ui-type-caption transition-transform whitespace-nowrap shrink-0 active:scale-[0.98] ui-focus-ring"
+            className="ui-cluster gap-2 min-h-10 px-2.5 xl:px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl ui-type-caption transition-transform whitespace-nowrap shrink-0 active:scale-[0.98] ui-focus-ring"
             title={t('action.downloadIno')}
             aria-label={t('action.downloadIno')}
           >
             <Download className="ui-icon-sm" aria-hidden="true" />
-            <span>{t('action.downloadIno')}</span>
+            <span className="hidden xl:inline">{t('action.downloadIno')}</span>
           </button>
         </div>
       </header>
@@ -750,18 +805,12 @@ export default function App() {
         </div>
       )}
 
-      {/* Mobile Navigation Bar */}
-      <nav className="lg:hidden flex items-center overflow-x-auto gap-2 p-2 bg-slate-900 border-b border-slate-800 scrollbar-none" aria-label={t('a11y.mobileNav')}>
-        {[
-          { id: 'simulator' as const, label: t('nav.mobile.simulator'), icon: Tv },
-          { id: 'editor' as const, label: t('nav.mobile.editor'), icon: Layers },
-          { id: 'usb' as const, label: t('nav.mobile.usb'), icon: Usb },
-          { id: 'automations' as const, label: t('nav.mobile.automations'), icon: Zap },
-          { id: 'marketplace' as const, label: t('nav.mobile.marketplace'), icon: Store },
-          { id: 'integrations' as const, label: t('nav.mobile.integrations'), icon: CloudSun },
-          { id: 'code' as const, label: t('nav.mobile.code'), icon: Code },
-          { id: 'settings' as const, label: t('nav.mobile.settings'), icon: Settings2 },
-        ].map(tab => {
+      {/* Mobile Navigation Bar — horizontal scroll stays inside the bar */}
+      <nav
+        className="ui-nav-scroll lg:hidden flex items-center gap-2 p-2 bg-slate-900 border-b border-slate-800"
+        aria-label={t('a11y.mobileNav')}
+      >
+        {desktopNavTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
@@ -770,6 +819,7 @@ export default function App() {
               type="button"
               onClick={() => setActiveTab(tab.id)}
               aria-current={isActive ? 'page' : undefined}
+              title={tab.label}
               className={`ui-nav-item shrink-0 ${
                 isActive
                   ? 'bg-cyan-500 text-slate-950 border-cyan-400'
@@ -777,7 +827,7 @@ export default function App() {
               }`}
             >
               <Icon className="ui-icon-sm" aria-hidden="true" />
-              <span>{tab.label}</span>
+              <span>{tab.shortLabel}</span>
             </button>
           );
         })}
