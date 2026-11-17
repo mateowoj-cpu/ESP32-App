@@ -1,6 +1,10 @@
 # Free ESP32 tooling integrations
 
+> **PL:** Studio wykrywa opcjonalne darmowe narzędzia hosta (PlatformIO, Arduino CLI/IDE, esptool, ESP-IDF, Wokwi), pozwala nadpisać ścieżki w Ustawieniach desktop, wybrać toolchain w Flash Helperze i otworzyć Arduino IDE / Wokwi — bez wymogu instalacji wszystkich narzędzi.
+
 Short EN summary: Studio detects optional free host tools (PlatformIO, Arduino CLI/IDE, esptool, ESP-IDF, Wokwi), lets you override binary paths in Desktop Settings, pick a build tool in Flash Helper, and launch Arduino IDE / Wokwi without requiring every tool to be installed.
+
+Linia: **0.2.11**. Indeks: [README.md](./README.md).
 
 ## Resolve order
 

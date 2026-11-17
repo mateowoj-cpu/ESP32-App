@@ -5,8 +5,8 @@
  * CLI:
  *   node scripts/ci/assert-app-version.mjs
  *   node scripts/ci/assert-app-version.mjs --github-output
- *   node scripts/ci/assert-app-version.mjs --tag v0.2.10
- *   APP_VERSION_TAG=v0.2.10 node scripts/ci/assert-app-version.mjs --github-output
+ *   node scripts/ci/assert-app-version.mjs --tag v0.2.11
+ *   APP_VERSION_TAG=v0.2.11 node scripts/ci/assert-app-version.mjs --github-output
  *
  * Writes (with --github-output): version, tag, artifact_suffix
  */

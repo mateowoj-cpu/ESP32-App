@@ -1,13 +1,13 @@
 # ESP32 Display Studio
 
 [![Smoke](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml/badge.svg)](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml)
-[![Version](https://img.shields.io/badge/version-0.2.10-blue)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.2.11-blue)](./package.json)
 [![Tauri](https://img.shields.io/badge/desktop-Tauri%202-24C8DB)](./src-tauri/)
 [![i18n](https://img.shields.io/badge/i18n-PL%20%7C%20EN-informational)](./src/i18n/)
 
 **Wizualne studio UI OLED/LCD dla ESP32** — React/Vite frontend + shell **Tauri 2** (Rust): symulator sprzętu, edytor ekranów, automatyzacje, serial USB (Web Serial / natywny COM), Build → Flash → OTA (esptool / espota / mDNS), marketplace JSON (sandbox), agent PC i generator C++ (Arduino / PlatformIO).
 
-Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.10** (Fazy 0–17 + full-build-closure + board-catalog community validation) · Następna: [Faza 18 ops](./docs/roadmap-next.md)
+Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.11** (Fazy 0–17 + multi-OS CI + UX/tooling/marketplace #34–#39) · Następna: [Faza 18 ops](./docs/roadmap-next.md)
 
 > **EN:** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and on desktop flash over USB or OTA Wi‑Fi through a Tauri 2 shell with platform adapters in `src/platform/`.
 
@@ -90,9 +90,13 @@ Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkowni
 | Rust check | Linux/macOS/Windows + deps Tauri | `npm run compile:cargo` / job `rust-smoke` |
 | Linux AppImage + deb | **Linux** host / CI | `npm run compile:full -- --linux-bundle` lub `tauri:build -- --config src-tauri/tauri.linux.json` |
 | macOS dmg | **macOS** / CI | `tauri:build -- --config src-tauri/tauri.macos.json` |
-| Windows NSIS / MSI | **Windows** + MSVC / CI | `npm run tauri:build` · workflow `windows-release.yml` (tag `v*`) |
+| Windows NSIS / MSI | **Windows** + MSVC / CI | `npm run tauri:build` · workflow `windows-release.yml` (`workflow_dispatch` lub tag `v*`) |
+| Linux AppImage + deb (CI) | `ubuntu-22.04` | `linux-release.yml` (osobno od macOS) |
+| macOS dmg (CI) | `macos-14` | `macos-release.yml` (osobno od Linux) |
 | Authenticode / Apple notarize / signed updater | sekrety **człowieka** | docs signing / macos-notarize / desktop-unix |
 | winget | draft CI OK; live merge = human | `winget-draft.yml` + [windows-winget.md](./docs/windows-winget.md) |
+
+Wersja: jedno źródło prawdy `package.json` → `tauri.conf.json` + `Cargo.toml` + root `package-lock.json` (`npm run assert:app-version`). Każdy OS release osobno — nie używaj Re-run na starym runie; szczegóły: [desktop-unix.md](./docs/desktop-unix.md).
 
 **Ta Linux VM / agent cloud:** web smoke + `cargo check` / opcjonalnie AppImage+deb. **Nie:** NSIS/MSI, dmg/notarize, Authenticode — bez Windows/macOS hosta i sekretów.
 
@@ -102,10 +106,12 @@ Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkowni
 |--------|----------------|
 | **Projektowanie** | Symulator OLED/LCD, edytor widgetów, sekwencje ekranów, mapa pinów |
 | **Automatyzacje** | Triggery PIR / czas / dotyk / USB, cyber-zwierzak |
-| **Marketplace** | Katalog widgetów/reguł; import JSON w sandboxie (schemat v1/v2, opcjonalny Ed25519, bez `eval`) |
-| **USB / serial** | Web Serial lub native (`serialport`); board cache/sync + community catalog |
+| **Marketplace** | Widget/rule packs + **board packs** + curated **GitHub add-ons**; formularz „Dodaj opcję”; sandbox JSON (v1/v2, Ed25519, bez `eval`) |
+| **USB / serial** | Web Serial lub native (`serialport`); non-blocking **Wykryj ESP32** z banerem oczekiwania; board cache/sync |
 | **Firmware** | Generator `.ino` + `platformio.ini`; Build-from-Studio (PIO / arduino-cli, PATH lub sidecar) |
+| **Tooling** | Detekcja darmowych narzędzi: PlatformIO, Arduino CLI/IDE, esptool, ESP-IDF, Wokwi + override ścieżek |
 | **Flash / OTA** | `esptool write_flash` na COM; OTA `espota` / HTTP + mDNS (`_arduino._tcp`, `_http._tcp`) |
+| **Nawigacja** | Zwijane menu aplikacji po prawej (desktop `lg+`); preferencja w `localStorage` |
 | **Desktop shell** | Tray, close-to-tray, autostart, deep link `esp32studio://`, pliki `.esp32studio` |
 | **Agent PC** | CPU / RAM / dysk (/ GPU) → ESP32 (`tools/pc-agent`) |
 | **Aktualizacje** | Kanały stable / beta (`latest.json` / `latest-beta.json`) |
@@ -126,9 +132,9 @@ Indeks: **[docs/README.md](./docs/README.md)**
 
 **Desktop / Windows:** [installer](./docs/windows-installer.md) · [drivers](./docs/windows-drivers.md) · [desktop](./docs/windows-desktop.md) · [updater](./docs/windows-updater.md) · [signing](./docs/windows-signing.md) · [SmartScreen](./docs/windows-smartscreen.md) · [winget](./docs/windows-winget.md) · [deep link](./docs/windows-deep-link.md) · [PC agent](./docs/windows-pc-agent.md) · [diagnostics](./docs/windows-diagnostics.md)
 
-**Build / flash / OTA:** [build-flash](./docs/windows-build-flash.md) · [flash](./docs/windows-flash.md) · [sidecar PIO](./docs/windows-sidecar-pio.md) · [OTA](./docs/windows-ota.md)
+**Build / flash / OTA:** [tooling](./docs/esp32-tooling-integrations.md) · [build-flash](./docs/windows-build-flash.md) · [flash](./docs/windows-flash.md) · [sidecar PIO](./docs/windows-sidecar-pio.md) · [OTA](./docs/windows-ota.md)
 
-**Unix, marketplace, privacy:** [desktop-unix](./docs/desktop-unix.md) · [macos-notarize](./docs/macos-notarize.md) · [board-catalog](./docs/board-catalog.md) · [marketplace API](./docs/marketplace-plugin-api.md) · [publishers](./docs/marketplace-publishers.md) · [telemetry](./docs/telemetry.md)
+**Unix, marketplace, privacy:** [desktop-unix](./docs/desktop-unix.md) · [macos-notarize](./docs/macos-notarize.md) · [board-catalog](./docs/board-catalog.md) · [marketplace API](./docs/marketplace-plugin-api.md) · [GitHub add-ons](./docs/marketplace-github-addons.md) · [publishers](./docs/marketplace-publishers.md) · [telemetry](./docs/telemetry.md)
 
 ## Wymagania
 
@@ -154,7 +160,7 @@ Bez sterownika USB-UART ani przeglądarka, ani Tauri nie zobaczą urządzenia �
 
 ## Desktop (Tauri) — skrót techniczny
 
-- Scaffold: `src-tauri/` (productName **ESP32 Display Studio**, id `studio.esp32.display`, v`0.2.10`).
+- Scaffold: `src-tauri/` (productName **ESP32 Display Studio**, id `studio.esp32.display`, v`0.2.11`).
 - Bootstrap UI: `src/main.tsx` — jeśli `isTauri()`, dynamiczny import `nativeSerial` i `setSerialAdapter(...)` (web bundle nie ciągnie `@tauri-apps/api` eagerly).
 - Warstwa JS: `src/platform/` — UI **nie** woła `navigator.serial` ani `invoke` poza adapterami.
 - Komendy Rust (skrót): serial (`list/open/write/close_serial_port`), flash (`get_esptool_info`, `flash_write_firmware`, `read_open_file`), build (`get_firmware_toolchain_info`, `build_firmware_from_sketch`), OTA (`get_ota_tool_info`, `flash_ota_firmware`, `cancel_ota_firmware`, `discover_ota_hosts`), desktop/updater/diagnostics/pc-agent — pełna tabela w [architecture.md](./docs/architecture.md).
@@ -216,6 +222,7 @@ Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secre
 | **17** | Marketplace sandbox publisher + signed fixture packs (`0.2.10`) |
 | **—** | Board catalog community PR flow + offset↔chip + bundled parity (po 0.2.10) |
 | **closure** | `compile:full` / `scripts/full-compile.sh` + checklist w developer-setup |
+| **0.2.11** | Multi-OS release CI (#34), winget draft harden (#35), USB detect UX (#36), marketplace board/GitHub (#37), free tooling (#38), right-side menu (#39) |
 | **18+** | Ops live winget/telemetry, EV/Apple secrets (human), live publishers |
 
 Szczegóły: [docs/roadmap-next.md](./docs/roadmap-next.md).
@@ -238,16 +245,18 @@ Projekt bez wskazanej licencji w repozytorium — sprawdź ustawienia właścici
 
 ## Screenshots
 
-Oficjalne zrzuty UI (web, locale **PL**, motyw dark cyan/slate, ~1440×900) w [`docs/media/`](./docs/media/):
+Oficjalne zrzuty UI (web, locale **PL**, motyw dark cyan/slate, ~1440×900, UI **0.2.11**) w [`docs/media/`](./docs/media/):
 
 | Widok | Plik |
 |-------|------|
-| Symulator sprzętowy | [`simulator.png`](./docs/media/simulator.png) |
+| Symulator + menu prawe otwarte | [`simulator.png`](./docs/media/simulator.png) |
 | Edytor graficzny UI | [`editor.png`](./docs/media/editor.png) |
-| USB / serial / flash helper | [`usb-flash.png`](./docs/media/usb-flash.png) |
+| USB / serial / flash (baner wykrywania) | [`usb-flash.png`](./docs/media/usb-flash.png) |
 | Automatyzacje & zwierzak | [`automations.png`](./docs/media/automations.png) |
-| Marketplace | [`marketplace.png`](./docs/media/marketplace.png) |
-| Ustawienia | [`settings.png`](./docs/media/settings.png) |
+| Marketplace (board / GitHub) | [`marketplace.png`](./docs/media/marketplace.png) |
+| Ustawienia (desktop / wersja) | [`settings.png`](./docs/media/settings.png) |
+| Ustawienia — darmowe narzędzia | [`settings-tooling.png`](./docs/media/settings-tooling.png) |
+| Menu prawe zwinięte | [`nav-sidebar-collapsed.png`](./docs/media/nav-sidebar-collapsed.png) |
 
 ![Symulator sprzętowy](./docs/media/simulator.png)
 
@@ -260,3 +269,7 @@ Oficjalne zrzuty UI (web, locale **PL**, motyw dark cyan/slate, ~1440×900) w [`
 ![Marketplace](./docs/media/marketplace.png)
 
 ![Ustawienia](./docs/media/settings.png)
+
+![Ustawienia — darmowe narzędzia ESP32](./docs/media/settings-tooling.png)
+
+![Menu prawe zwinięte](./docs/media/nav-sidebar-collapsed.png)

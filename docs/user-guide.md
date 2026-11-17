@@ -1,6 +1,6 @@
 # Przewodnik użytkownika — ESP32 Display Studio
 
-Krótki przewodnik po aplikacji **0.2.10**. Warstwy / IPC / env: [architecture.md](./architecture.md). Sterowniki, OTA, winget: dokumenty poniżej.
+Krótki przewodnik po aplikacji **0.2.11**. Warstwy / IPC / env: [architecture.md](./architecture.md). Sterowniki, OTA, winget: dokumenty poniżej.
 
 ## Dwa tryby uruchomienia
 
@@ -34,7 +34,10 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 - **Symulator sprzętowy** — OLED/LCD, sensory, GPIO  
 - **Edytor UI** — widgety, animacje, sekwencje ekranów  
 - **Automatyzacje / cyber-zwierzak** — PIR, czas, dotyk, USB  
-- **Marketplace** — gotowe paczki widgetów / reguł (import JSON, sandbox bez wykonywania kodu)  
+- **Marketplace** — widget/rule packs, **board packs**, curated **GitHub add-ons** + formularz „Dodaj opcję” (sandbox bez wykonywania kodu) — [marketplace-github-addons.md](./marketplace-github-addons.md)  
+- **USB** — **Wykryj ESP32** z nieblokującym banerem oczekiwania (UI zostaje responsywne podczas skanu)  
+- **Nawigacja** — na desktopie (`lg+`) zwijane **menu aplikacji po prawej**; stan zapamiętany w `localStorage`  
+- **Tooling** — detekcja PlatformIO / Arduino CLI·IDE / esptool / ESP-IDF / Wokwi + override ścieżek w Ustawieniach desktop — [esp32-tooling-integrations.md](./esp32-tooling-integrations.md)  
 - **Integracje** — pogoda (Open-Meteo itd.), **Monitor PC** (CPU/RAM/dysk)  
 - **Generator C++** — Arduino / PlatformIO + mapa pinów  
 - **i18n** — PL / EN (**Ustawienia → Aplikacja desktopowa → Język interfejsu**; w przeglądarce ten sam przełącznik w panelu Desktop)
@@ -54,6 +57,10 @@ Zrzuty z web UI (locale **PL**, motyw dark cyan/slate):
 ![Marketplace społeczności](./media/marketplace.png)
 
 ![Ustawienia](./media/settings.png)
+
+![Ustawienia — darmowe narzędzia](./media/settings-tooling.png)
+
+![Menu prawe zwinięte](./media/nav-sidebar-collapsed.png)
 
 ## Build, Flash, OTA (desktop)
 
