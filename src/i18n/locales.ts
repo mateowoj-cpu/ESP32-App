@@ -103,6 +103,10 @@ const pl: Dict = {
   'usb.title': 'Wykrywanie ESP32 przez USB',
   'usb.detect': 'Wykryj ESP32 przez USB',
   'usb.scanning': 'Skanowanie portów USB...',
+  'usb.detectingTitle': 'Trwa wykrywanie ESP32…',
+  'usb.detectingHint':
+    'Skanujemy porty USB/COM i łączymy się z płytką. Interfejs pozostaje aktywny — proszę chwilę poczekać.',
+  'usb.log.scanning': '[SYSTEM] Trwa wykrywanie ESP32 przez USB…',
   'usb.ports': 'Porty COM',
   'usb.pickPort': 'Wybierz port COM / tty',
   'usb.available': 'dostępnych',
@@ -1170,6 +1174,10 @@ const en: Dict = {
   'usb.title': 'ESP32 USB detection',
   'usb.detect': 'Detect ESP32 via USB',
   'usb.scanning': 'Scanning USB ports…',
+  'usb.detectingTitle': 'Detecting ESP32…',
+  'usb.detectingHint':
+    'Scanning USB/COM ports and connecting to the board. The UI stays responsive — please wait a moment.',
+  'usb.log.scanning': '[SYSTEM] Detecting ESP32 via USB…',
   'usb.ports': 'COM ports',
   'usb.pickPort': 'Choose COM / tty port',
   'usb.available': 'available',

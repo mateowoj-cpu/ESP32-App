@@ -235,6 +235,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     ]);
   };
 
+  /** Let React paint the detecting banner before native/Web Serial work starts. */
+  const yieldForUiPaint = () =>
+    new Promise<void>(resolve => {
+      requestAnimationFrame(() => {
+        window.setTimeout(resolve, 0);
+      });
+    });
+
   const openPortById = async (portId?: string) => {
     const port = await serialAdapter.requestPort({
       baudRate: 115200,
@@ -247,6 +255,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   const handleDetectViaSerial = async () => {
     setIsDetecting(true);
     setDetectError(null);
+    appendLogs([
+      {
+        timestamp: formatClockTimestamp(),
+        text: t('usb.log.scanning'),
+        direction: 'system',
+      },
+    ]);
+    await yieldForUiPaint();
 
     if (!serialAdapter.isAvailable()) {
       setDetectError(
@@ -317,6 +333,14 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   const handlePickNativePort = async (portId: string) => {
     setIsDetecting(true);
     setDetectError(null);
+    appendLogs([
+      {
+        timestamp: formatClockTimestamp(),
+        text: t('usb.log.scanning'),
+        direction: 'system',
+      },
+    ]);
+    await yieldForUiPaint();
     try {
       await openPortById(portId);
     } catch (err: unknown) {
@@ -330,6 +354,9 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
   };
 
   const handleRefreshNativePorts = async () => {
+    setIsDetecting(true);
+    setDetectError(null);
+    await yieldForUiPaint();
     try {
       const ports = await serialAdapter.listPorts();
       setAvailablePorts(ports);
@@ -344,6 +371,8 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t('usb.err.unknown');
       setDetectError(t('usb.err.refresh').replace('{message}', message));
+    } finally {
+      setIsDetecting(false);
     }
   };
 
@@ -506,13 +535,39 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           <button
             onClick={() => void handleDetectViaSerial()}
             disabled={isDetecting}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm"
+            aria-busy={isDetecting}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition-colors shadow-sm disabled:opacity-80"
           >
-            <Usb className={`ui-icon-sm ${isDetecting ? 'animate-bounce' : ''}`} aria-hidden="true" />
+            {isDetecting ? (
+              <RefreshCw className="ui-icon-sm animate-spin" aria-hidden="true" />
+            ) : (
+              <Usb className="ui-icon-sm" aria-hidden="true" />
+            )}
             <span>{isDetecting ? t('usb.scanning') : t('usb.detect')}</span>
           </button>
         </div>
       </div>
+
+      {isDetecting && (
+        <div
+          className="p-4 bg-cyan-950/40 border border-cyan-500/40 rounded-xl text-xs text-cyan-100 flex items-start gap-3"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <RefreshCw className="ui-icon-sm text-cyan-400 shrink-0 mt-0.5 animate-spin" aria-hidden="true" />
+          <div className="leading-relaxed min-w-0 flex-1">
+            <strong className="block text-cyan-200">{t('usb.detectingTitle')}</strong>
+            <span className="text-cyan-100/80">{t('usb.detectingHint')}</span>
+            <div
+              className="ui-progress-indeterminate mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-900/80 border border-cyan-500/20"
+              aria-hidden="true"
+            >
+              <div className="ui-progress-indeterminate-bar h-full w-1/3 rounded-full bg-cyan-400" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {detectError && (
         <div className="p-4 bg-amber-950/40 border border-amber-800/80 rounded-xl text-xs text-amber-300 flex items-start gap-3">
@@ -638,7 +693,7 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
 
                 <span className="px-2.5 py-1 bg-emerald-950/80 border border-emerald-800 text-emerald-400 rounded-full ui-type-micro font-mono font-bold flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  {t('usb.recognized')}
+                  {isDetecting ? t('usb.scanning') : t('usb.recognized')}
                 </span>
               </div>
 
@@ -694,12 +749,18 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
             </div>
           ) : (
             <div className="p-8 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center gap-3">
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-600">
-                <Usb className="w-8 h-8" aria-hidden="true" />
+              <div className={`p-3 bg-slate-950 border border-slate-800 rounded-xl ${isDetecting ? 'text-cyan-400' : 'text-slate-600'}`}>
+                {isDetecting ? (
+                  <RefreshCw className="w-8 h-8 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Usb className="w-8 h-8" aria-hidden="true" />
+                )}
               </div>
-              <h3 className="text-sm font-semibold text-slate-200">{t('usb.noDevice')}</h3>
+              <h3 className="text-sm font-semibold text-slate-200">
+                {isDetecting ? t('usb.detectingTitle') : t('usb.noDevice')}
+              </h3>
               <p className="text-xs text-slate-400 max-w-sm">
-                {t('usb.noDeviceHint')}
+                {isDetecting ? t('usb.detectingHint') : t('usb.noDeviceHint')}
               </p>
             </div>
           )}
