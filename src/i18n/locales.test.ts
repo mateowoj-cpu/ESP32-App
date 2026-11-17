@@ -62,6 +62,10 @@ assert(translate('pl', 'usb.log.applied').toLowerCase().includes('konfigur'), 'p
 assert(translate('en', 'ota.methodEspota').toLowerCase().includes('espota'), 'en ota method espota');
 assert(translate('pl', 'flash.log.startBuild').includes('build'), 'pl flash start build');
 assert(translate('en', 'a11y.mainNav').toLowerCase().includes('nav'), 'en a11y main nav');
+assert(translate('pl', 'nav.sidebar.open').toLowerCase().includes('rozwiń'), 'pl sidebar open');
+assert(translate('en', 'nav.sidebar.close').toLowerCase().includes('collapse'), 'en sidebar close');
+assert(translate('en', 'a11y.toggleNavSidebar').toLowerCase().includes('sidebar'), 'en a11y toggle sidebar');
+assert(translate('pl', 'nav.sidebar.title').toLowerCase().includes('menu'), 'pl sidebar title');
 assert(translate('pl', 'ino.modalTitle').toLowerCase().includes('arduino'), 'pl ino modal');
 assert(translate('en', 'usb.spec.psramExtra').includes('{psram}'), 'en psram extra');
 assert(translate('pl', 'code.wiring.title').toLowerCase().includes('schemat'), 'pl code wiring');

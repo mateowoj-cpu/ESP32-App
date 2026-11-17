@@ -323,6 +323,61 @@
     border-radius: 9999px;
   }
 
+  /* Collapsible right-side app menu (desktop). */
+  .ui-nav-sidebar {
+    display: none;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-left: 1px solid rgb(30 41 59);
+    background: rgb(2 6 23 / 0.96);
+    min-height: 0;
+    position: sticky;
+    top: var(--header-height, 3.75rem);
+    align-self: flex-start;
+    max-height: calc(100dvh - var(--header-height, 3.75rem));
+    transition: width var(--duration-base) var(--ease-out);
+  }
+
+  @media (min-width: 1024px) {
+    .ui-nav-sidebar {
+      display: flex;
+    }
+  }
+
+  .ui-nav-sidebar[data-open="true"] {
+    width: 15rem;
+  }
+
+  .ui-nav-sidebar[data-open="false"] {
+    width: 3.5rem;
+  }
+
+  .ui-nav-sidebar-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    padding: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .ui-nav-sidebar .ui-nav-item {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .ui-nav-sidebar[data-open="false"] .ui-nav-item {
+    justify-content: center;
+    padding-inline: var(--space-2);
+  }
+
+  .ui-nav-sidebar[data-open="false"] .ui-nav-item-label {
+    display: none;
+  }
+
   @keyframes ui-progress-slide {
     0% {
       transform: translateX(-120%);
