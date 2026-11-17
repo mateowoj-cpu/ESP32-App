@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "updatedAt": "2026-11-16T00:00:00.000Z",
+  "version": 3,
+  "updatedAt": "2026-11-17T00:00:00.000Z",
   "source": "esp32-display-studio/marketplace",
   "entries": [
     {
@@ -11,7 +11,11 @@
       "description": "Kompaktowy zegar 24h i ikona baterii/Wi‑Fi pod OLED 128×64.",
       "descriptionEn": "Compact 24h clock and battery/Wi‑Fi icon for 128×64 OLED.",
       "author": "ESP32 Display Studio",
-      "tags": ["oled", "clock", "status"],
+      "tags": [
+        "oled",
+        "clock",
+        "status"
+      ],
       "packId": "status-strip",
       "requireSignature": false
     },
@@ -23,7 +27,13 @@
       "description": "Ta sama zawartość co pasek statusu, podpisana kluczem studio-sandbox (demo — nie live).",
       "descriptionEn": "Same content as status strip, signed with the studio-sandbox demo key (not live).",
       "author": "ESP32 Display Studio",
-      "tags": ["oled", "clock", "status", "signed", "sandbox"],
+      "tags": [
+        "oled",
+        "clock",
+        "status",
+        "signed",
+        "sandbox"
+      ],
       "packId": "status-strip-signed",
       "publisherId": "studio-sandbox",
       "requireSignature": true
@@ -36,7 +46,11 @@
       "description": "Przyciemnienie po 22:00 i sen zwierzaka przy ruchu w nocy.",
       "descriptionEn": "Dim after 22:00 and sleep-mood pet on night motion.",
       "author": "ESP32 Display Studio",
-      "tags": ["automation", "night", "brightness"],
+      "tags": [
+        "automation",
+        "night",
+        "brightness"
+      ],
       "packId": "night-rules",
       "requireSignature": false
     },
@@ -48,8 +62,208 @@
       "description": "Widget pc_monitor + sparkline CPU — dane z agenta PC.",
       "descriptionEn": "pc_monitor widget + CPU sparkline — data from the PC agent.",
       "author": "ESP32 Display Studio",
-      "tags": ["pc", "monitor", "sparkline"],
+      "tags": [
+        "pc",
+        "monitor",
+        "sparkline"
+      ],
       "packId": "pc-mini",
+      "requireSignature": false
+    },
+    {
+      "id": "pack-oled-pet-dash",
+      "kind": "widget_pack",
+      "title": "OLED: zwierzak + temperatura",
+      "titleEn": "OLED: pet + temperature",
+      "description": "Cyber-zwierzak, gauge temperatury i pasek baterii/Wi‑Fi pod 128×64 — inspirowane stackiem SSD1306/U8g2.",
+      "descriptionEn": "Cyber-pet, temperature gauge, and battery/Wi‑Fi strip for 128×64 — inspired by SSD1306/U8g2 stacks.",
+      "author": "ESP32 Display Studio",
+      "tags": [
+        "oled",
+        "pet",
+        "gauge",
+        "ssd1306"
+      ],
+      "packId": "oled-pet-dash",
+      "requireSignature": false
+    },
+    {
+      "id": "pack-usb-bridges",
+      "kind": "board_pack",
+      "title": "Mostki USB (CH340 / CP210x / CH9102)",
+      "titleEn": "USB bridges (CH340 / CP210x / CH9102)",
+      "description": "Profile flash VID:PID dla popularnych mostków UART — ten sam schemat co community board catalog.",
+      "descriptionEn": "Flash VID:PID presets for popular UART bridges — same schema as the community board catalog.",
+      "author": "ESP32 Display Studio",
+      "tags": [
+        "board",
+        "usb",
+        "ch340",
+        "cp210x"
+      ],
+      "packId": "usb-bridges",
+      "requireSignature": false
+    },
+    {
+      "id": "addon-u8g2",
+      "kind": "github_addon",
+      "title": "U8g2 (monochrome OLED)",
+      "titleEn": "U8g2 (monochrome OLED)",
+      "description": "Biblioteka U8g2 dla wyświetlaczy monochromatycznych — naturalny fit dla generatora OLED w Studio.",
+      "descriptionEn": "U8g2 monochrome display library — natural fit for Studio’s OLED generator.",
+      "author": "olikraus",
+      "tags": [
+        "github",
+        "oled",
+        "library"
+      ],
+      "packId": "addon-u8g2",
+      "repoUrl": "https://github.com/olikraus/u8g2",
+      "stars": 6763,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-thingpulse-ssd1306",
+      "kind": "github_addon",
+      "title": "ThingPulse SSD1306/SH1106",
+      "titleEn": "ThingPulse SSD1306/SH1106",
+      "description": "Sterownik OLED 128×64 / 128×32 (SSD1306, SH1106) — klasyczny stack pod ESP8266/ESP32.",
+      "descriptionEn": "OLED driver for 128×64 / 128×32 (SSD1306, SH1106) — classic ESP8266/ESP32 stack.",
+      "author": "ThingPulse",
+      "tags": [
+        "github",
+        "oled",
+        "ssd1306"
+      ],
+      "packId": "addon-thingpulse-ssd1306",
+      "repoUrl": "https://github.com/ThingPulse/esp8266-oled-ssd1306",
+      "stars": 2184,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-lvgl",
+      "kind": "github_addon",
+      "title": "LVGL",
+      "titleEn": "LVGL",
+      "description": "Pełne embedded UI — inspiracja layoutów widgetów; Studio pozostaje przy data-only packs.",
+      "descriptionEn": "Full embedded UI toolkit — layout inspiration; Studio stays data-only for packs.",
+      "author": "lvgl",
+      "tags": [
+        "github",
+        "ui",
+        "graphics"
+      ],
+      "packId": "addon-lvgl",
+      "repoUrl": "https://github.com/lvgl/lvgl",
+      "stars": 25188,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-tft-espi",
+      "kind": "github_addon",
+      "title": "TFT_eSPI",
+      "titleEn": "TFT_eSPI",
+      "description": "Biblioteka TFT (Arduino/PlatformIO) — przydatna przy przejściu z OLED na kolorowe panele.",
+      "descriptionEn": "TFT library (Arduino/PlatformIO) — useful when moving from OLED to color panels.",
+      "author": "Bodmer",
+      "tags": [
+        "github",
+        "tft",
+        "display"
+      ],
+      "packId": "addon-tft-espi",
+      "repoUrl": "https://github.com/Bodmer/TFT_eSPI",
+      "stars": 4979,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-espasyncwebserver",
+      "kind": "github_addon",
+      "title": "ESPAsyncWebServer",
+      "titleEn": "ESPAsyncWebServer",
+      "description": "Async HTTP dla ESP32 — uzupełnienie ścieżek OTA / lokalnego UI urządzenia.",
+      "descriptionEn": "Async HTTP for ESP32 — complements OTA / on-device local UI paths.",
+      "author": "me-no-dev",
+      "tags": [
+        "github",
+        "network",
+        "ota"
+      ],
+      "packId": "addon-espasyncwebserver",
+      "repoUrl": "https://github.com/me-no-dev/ESPAsyncWebServer",
+      "stars": 4041,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-arduinojson",
+      "kind": "github_addon",
+      "title": "ArduinoJson",
+      "titleEn": "ArduinoJson",
+      "description": "JSON na urządzeniu — ten sam model danych co paczki marketplace w Studio.",
+      "descriptionEn": "On-device JSON — same data model spirit as Studio marketplace packs.",
+      "author": "bblanchon",
+      "tags": [
+        "github",
+        "json",
+        "library"
+      ],
+      "packId": "addon-arduinojson",
+      "repoUrl": "https://github.com/bblanchon/ArduinoJson",
+      "stars": 7246,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-fastled",
+      "kind": "github_addon",
+      "title": "FastLED",
+      "titleEn": "FastLED",
+      "description": "Animacje LED — wizualny companion dla widgetów sparkline / status.",
+      "descriptionEn": "LED animations — visual companion for sparkline / status widgets.",
+      "author": "FastLED",
+      "tags": [
+        "github",
+        "led",
+        "graphics"
+      ],
+      "packId": "addon-fastled",
+      "repoUrl": "https://github.com/FastLED/FastLED",
+      "stars": 7536,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-ble-keyboard",
+      "kind": "github_addon",
+      "title": "ESP32 BLE Keyboard",
+      "titleEn": "ESP32 BLE Keyboard",
+      "description": "Biblioteka HID klawiatury BLE — pasuje do ścieżki Bluetooth w Studio.",
+      "descriptionEn": "BLE HID keyboard library — fits Studio’s Bluetooth path.",
+      "author": "T-vK",
+      "tags": [
+        "github",
+        "bluetooth",
+        "ble"
+      ],
+      "packId": "addon-ble-keyboard",
+      "repoUrl": "https://github.com/T-vK/ESP32-BLE-Keyboard",
+      "stars": 3201,
+      "requireSignature": false
+    },
+    {
+      "id": "addon-awesome-esp",
+      "kind": "github_addon",
+      "title": "awesome-esp",
+      "titleEn": "awesome-esp",
+      "description": "Kuratorska lista projektów ESP8266/ESP32 — punkt startowy do dalszych add-onów.",
+      "descriptionEn": "Curated ESP8266/ESP32 project list — starting point for more add-ons.",
+      "author": "agucova",
+      "tags": [
+        "github",
+        "awesome",
+        "meta"
+      ],
+      "packId": "addon-awesome-esp",
+      "repoUrl": "https://github.com/agucova/awesome-esp",
+      "stars": 2816,
       "requireSignature": false
     }
   ]

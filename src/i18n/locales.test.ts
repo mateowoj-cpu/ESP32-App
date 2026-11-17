@@ -48,6 +48,10 @@ assert(translate('pl', 'market.defaultRulePack').toLowerCase().includes('reguł'
 assert(translate('pl', 'import.parseError').toLowerCase().includes('parsow'), 'pl import parse');
 assert(translate('en', 'market.importJson').toLowerCase().includes('import'), 'en market import');
 assert(translate('en', 'market.signed').toLowerCase().includes('sign'), 'en market signed');
+assert(translate('pl', 'market.addOption').toLowerCase().includes('opcj'), 'pl market add option');
+assert(translate('en', 'market.filterGithub').toLowerCase().includes('github'), 'en market github filter');
+assert(translate('pl', 'market.addBoards').toLowerCase().includes('profil'), 'pl market add boards');
+assert(translate('en', 'market.openRepo').toLowerCase().includes('github'), 'en market open repo');
 assert(translate('pl', 'flash.err.needPortBin').toLowerCase().includes('com'), 'pl flash need port');
 assert(translate('en', 'usb.identify.s3.f0').toLowerCase().includes('usb'), 'en identify s3');
 assert(translate('pl', 'usb.identify.s3.model').toLowerCase().includes('s3'), 'pl identify s3 model');

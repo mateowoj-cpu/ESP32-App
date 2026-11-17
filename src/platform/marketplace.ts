@@ -19,8 +19,13 @@ import type {
   UIWidget,
   WidgetType,
 } from '../types';
+import {
+  acceptCommunityCatalog,
+  applyCommunityCatalog,
+  type CommunityBoardProfile,
+} from './boardSync';
 
-export type MarketplaceKind = 'widget_pack' | 'rule_pack';
+export type MarketplaceKind = 'widget_pack' | 'rule_pack' | 'board_pack' | 'github_addon';
 export type MarketplacePackVersion = 1 | 2;
 
 export interface MarketplaceCatalogEntry {
@@ -40,6 +45,16 @@ export interface MarketplaceCatalogEntry {
   publisherId?: string;
   /** When true, remote install requires a valid signature from publisherId. */
   requireSignature?: boolean;
+  /** github_addon: curated https://github.com/owner/repo link (open only — never executed). */
+  repoUrl?: string;
+  /** Optional docs homepage (https). */
+  homepageUrl?: string;
+  /** Informational star count snapshot for curated listings. */
+  stars?: number;
+  /** board_pack: inline profiles (user-added or catalog-embedded). */
+  profiles?: CommunityBoardProfile[];
+  /** Local user-added option (persisted separately; merged into catalog at runtime). */
+  userAdded?: boolean;
 }
 
 export interface MarketplaceCatalog {
@@ -85,7 +100,23 @@ export interface MarketplaceRulePack {
   rules: AutomationRule[];
 }
 
-export type MarketplacePack = MarketplaceWidgetPack | MarketplaceRulePack;
+export interface MarketplaceBoardPack {
+  format: 'esp32studio-marketplace';
+  kind: 'board_pack';
+  version: MarketplacePackVersion;
+  id: string;
+  title: string;
+  description?: string;
+  author?: string;
+  publisherId?: string;
+  signature?: string;
+  profiles: CommunityBoardProfile[];
+}
+
+export type MarketplacePack =
+  | MarketplaceWidgetPack
+  | MarketplaceRulePack
+  | MarketplaceBoardPack;
 
 export type MarketplaceParseResult =
   | { ok: true; pack: MarketplacePack }
@@ -175,8 +206,16 @@ const FORBIDDEN_KEYS = new Set([
 
 const MAX_WIDGETS = 48;
 const MAX_RULES = 64;
+const MAX_PROFILES = 32;
 const MAX_STRING = 512;
 const MAX_DEPTH = 8;
+
+const MARKETPLACE_KINDS = new Set<MarketplaceKind>([
+  'widget_pack',
+  'rule_pack',
+  'board_pack',
+  'github_addon',
+]);
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -253,26 +292,53 @@ function validateRule(raw: unknown, index: number): string | null {
   return null;
 }
 
+function validateBoardProfile(raw: unknown, index: number): string | null {
+  if (!isPlainObject(raw)) return `profiles[${index}]: expected object`;
+  for (const key of ['id', 'label', 'vid', 'pid', 'chip', 'offset', 'boardProfile'] as const) {
+    if (!isSafeString(raw[key], key === 'label' ? MAX_STRING : 128)) {
+      return `profiles[${index}]: invalid ${key}`;
+    }
+  }
+  if (!isFiniteNumber(raw.baud) || raw.baud < 9600) {
+    return `profiles[${index}]: invalid baud`;
+  }
+  return null;
+}
+
+function isCatalogEntryShape(e: MarketplaceCatalogEntry): boolean {
+  if (
+    !e ||
+    typeof e.id !== 'string' ||
+    !MARKETPLACE_KINDS.has(e.kind) ||
+    typeof e.title !== 'string' ||
+    typeof e.description !== 'string' ||
+    typeof e.author !== 'string' ||
+    !Array.isArray(e.tags) ||
+    typeof e.packId !== 'string' ||
+    (e.packUrl !== undefined && typeof e.packUrl !== 'string') ||
+    (e.publisherId !== undefined && typeof e.publisherId !== 'string') ||
+    (e.requireSignature !== undefined && typeof e.requireSignature !== 'boolean') ||
+    (e.repoUrl !== undefined && typeof e.repoUrl !== 'string') ||
+    (e.homepageUrl !== undefined && typeof e.homepageUrl !== 'string') ||
+    (e.stars !== undefined && typeof e.stars !== 'number') ||
+    (e.userAdded !== undefined && typeof e.userAdded !== 'boolean')
+  ) {
+    return false;
+  }
+  if (e.kind === 'github_addon' && typeof e.repoUrl !== 'string') return false;
+  if (e.profiles !== undefined) {
+    if (!Array.isArray(e.profiles)) return false;
+  }
+  return true;
+}
+
 export function isMarketplaceCatalog(value: unknown): value is MarketplaceCatalog {
   if (!isPlainObject(value)) return false;
   const c = value as unknown as MarketplaceCatalog;
   return (
     typeof c.version === 'number' &&
     Array.isArray(c.entries) &&
-    c.entries.every(
-      e =>
-        e &&
-        typeof e.id === 'string' &&
-        (e.kind === 'widget_pack' || e.kind === 'rule_pack') &&
-        typeof e.title === 'string' &&
-        typeof e.description === 'string' &&
-        typeof e.author === 'string' &&
-        Array.isArray(e.tags) &&
-        typeof e.packId === 'string' &&
-        (e.packUrl === undefined || typeof e.packUrl === 'string') &&
-        (e.publisherId === undefined || typeof e.publisherId === 'string') &&
-        (e.requireSignature === undefined || typeof e.requireSignature === 'boolean'),
-    )
+    c.entries.every(e => isCatalogEntryShape(e as MarketplaceCatalogEntry))
   );
 }
 
@@ -357,7 +423,48 @@ export function parseMarketplacePack(raw: unknown): MarketplaceParseResult {
     };
   }
 
-  return { ok: false, error: 'kind must be widget_pack or rule_pack' };
+  if (raw.kind === 'board_pack') {
+    if (!Array.isArray(raw.profiles)) return { ok: false, error: 'profiles must be an array' };
+    if (raw.profiles.length === 0 || raw.profiles.length > MAX_PROFILES) {
+      return { ok: false, error: `profiles length must be 1–${MAX_PROFILES}` };
+    }
+    for (let i = 0; i < raw.profiles.length; i++) {
+      const err = validateBoardProfile(raw.profiles[i], i);
+      if (err) return { ok: false, error: err };
+    }
+    const accepted = acceptCommunityCatalog({
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      source: 'marketplace-board-pack',
+      profiles: raw.profiles,
+    });
+    if (!accepted.accepted) {
+      return {
+        ok: false,
+        error: accepted.reason || 'Board pack failed community catalog validation',
+      };
+    }
+    return {
+      ok: true,
+      pack: {
+        format: 'esp32studio-marketplace',
+        kind: 'board_pack',
+        version: meta.version,
+        id: raw.id,
+        title: raw.title,
+        description: isSafeString(raw.description) ? raw.description : undefined,
+        author: isSafeString(raw.author) ? raw.author : undefined,
+        publisherId: meta.publisherId,
+        signature: meta.signature,
+        profiles: accepted.catalog.profiles,
+      },
+    };
+  }
+
+  return {
+    ok: false,
+    error: 'kind must be widget_pack, rule_pack, or board_pack',
+  };
 }
 
 export function parseMarketplacePackJson(text: string): MarketplaceParseResult {
@@ -422,6 +529,40 @@ export function exportRulePack(
   };
 }
 
+export function exportBoardPack(
+  profiles: CommunityBoardProfile[],
+  meta: {
+    id: string;
+    title: string;
+    description?: string;
+    author?: string;
+    publisherId?: string;
+    version?: MarketplacePackVersion;
+  },
+): MarketplaceBoardPack {
+  return {
+    format: 'esp32studio-marketplace',
+    kind: 'board_pack',
+    version: meta.version ?? 1,
+    id: meta.id,
+    title: meta.title,
+    description: meta.description,
+    author: meta.author,
+    publisherId: meta.publisherId,
+    profiles: profiles.map(p => ({ ...p })),
+  };
+}
+
+/** Apply a board pack into the local VID:PID flash preset cache (same as community sync). */
+export function applyMarketplaceBoardPack(pack: MarketplaceBoardPack): number {
+  return applyCommunityCatalog({
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    source: `marketplace:${pack.id}`,
+    profiles: pack.profiles,
+  });
+}
+
 /** Remap imported widget ids so they do not collide with the active screen. */
 export function sandboxImportWidgets(
   pack: MarketplaceWidgetPack,
@@ -457,8 +598,8 @@ export function sandboxImportRules(
 }
 
 export const BUNDLED_MARKETPLACE_CATALOG: MarketplaceCatalog = {
-  version: 2,
-  updatedAt: '2026-11-16T00:00:00.000Z',
+  version: 3,
+  updatedAt: '2026-11-17T00:00:00.000Z',
   source: 'esp32-display-studio/marketplace-bundled',
   entries: [
     {
@@ -510,6 +651,167 @@ export const BUNDLED_MARKETPLACE_CATALOG: MarketplaceCatalog = {
       author: 'ESP32 Display Studio',
       tags: ['pc', 'monitor', 'sparkline'],
       packId: 'pc-mini',
+      requireSignature: false,
+    },
+    {
+      id: 'pack-oled-pet-dash',
+      kind: 'widget_pack',
+      title: 'OLED: zwierzak + temperatura',
+      titleEn: 'OLED: pet + temperature',
+      description:
+        'Cyber-zwierzak, gauge temperatury i pasek baterii/Wi‑Fi pod 128×64 — inspirowane stackiem SSD1306/U8g2.',
+      descriptionEn:
+        'Cyber-pet, temperature gauge, and battery/Wi‑Fi strip for 128×64 — inspired by SSD1306/U8g2 stacks.',
+      author: 'ESP32 Display Studio',
+      tags: ['oled', 'pet', 'gauge', 'ssd1306'],
+      packId: 'oled-pet-dash',
+      requireSignature: false,
+    },
+    {
+      id: 'pack-usb-bridges',
+      kind: 'board_pack',
+      title: 'Mostki USB (CH340 / CP210x / CH9102)',
+      titleEn: 'USB bridges (CH340 / CP210x / CH9102)',
+      description:
+        'Profile flash VID:PID dla popularnych mostków UART — ten sam schemat co community board catalog.',
+      descriptionEn:
+        'Flash VID:PID presets for popular UART bridges — same schema as the community board catalog.',
+      author: 'ESP32 Display Studio',
+      tags: ['board', 'usb', 'ch340', 'cp210x'],
+      packId: 'usb-bridges',
+      requireSignature: false,
+    },
+    {
+      id: 'addon-u8g2',
+      kind: 'github_addon',
+      title: 'U8g2 (monochrome OLED)',
+      titleEn: 'U8g2 (monochrome OLED)',
+      description:
+        'Biblioteka U8g2 dla wyświetlaczy monochromatycznych — naturalny fit dla generatora OLED w Studio.',
+      descriptionEn:
+        'U8g2 monochrome display library — natural fit for Studio’s OLED generator.',
+      author: 'olikraus',
+      tags: ['github', 'oled', 'library'],
+      packId: 'addon-u8g2',
+      repoUrl: 'https://github.com/olikraus/u8g2',
+      stars: 6763,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-thingpulse-ssd1306',
+      kind: 'github_addon',
+      title: 'ThingPulse SSD1306/SH1106',
+      titleEn: 'ThingPulse SSD1306/SH1106',
+      description:
+        'Sterownik OLED 128×64 / 128×32 (SSD1306, SH1106) — klasyczny stack pod ESP8266/ESP32.',
+      descriptionEn:
+        'OLED driver for 128×64 / 128×32 (SSD1306, SH1106) — classic ESP8266/ESP32 stack.',
+      author: 'ThingPulse',
+      tags: ['github', 'oled', 'ssd1306'],
+      packId: 'addon-thingpulse-ssd1306',
+      repoUrl: 'https://github.com/ThingPulse/esp8266-oled-ssd1306',
+      stars: 2184,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-lvgl',
+      kind: 'github_addon',
+      title: 'LVGL',
+      titleEn: 'LVGL',
+      description:
+        'Pełne embedded UI — inspiracja layoutów widgetów; Studio pozostaje przy data-only packs.',
+      descriptionEn:
+        'Full embedded UI toolkit — layout inspiration; Studio stays data-only for packs.',
+      author: 'lvgl',
+      tags: ['github', 'ui', 'graphics'],
+      packId: 'addon-lvgl',
+      repoUrl: 'https://github.com/lvgl/lvgl',
+      stars: 25188,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-tft-espi',
+      kind: 'github_addon',
+      title: 'TFT_eSPI',
+      titleEn: 'TFT_eSPI',
+      description: 'Biblioteka TFT (Arduino/PlatformIO) — przydatna przy przejściu z OLED na kolorowe panele.',
+      descriptionEn:
+        'TFT library (Arduino/PlatformIO) — useful when moving from OLED to color panels.',
+      author: 'Bodmer',
+      tags: ['github', 'tft', 'display'],
+      packId: 'addon-tft-espi',
+      repoUrl: 'https://github.com/Bodmer/TFT_eSPI',
+      stars: 4979,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-espasyncwebserver',
+      kind: 'github_addon',
+      title: 'ESPAsyncWebServer',
+      titleEn: 'ESPAsyncWebServer',
+      description: 'Async HTTP dla ESP32 — uzupełnienie ścieżek OTA / lokalnego UI urządzenia.',
+      descriptionEn: 'Async HTTP for ESP32 — complements OTA / on-device local UI paths.',
+      author: 'me-no-dev',
+      tags: ['github', 'network', 'ota'],
+      packId: 'addon-espasyncwebserver',
+      repoUrl: 'https://github.com/me-no-dev/ESPAsyncWebServer',
+      stars: 4041,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-arduinojson',
+      kind: 'github_addon',
+      title: 'ArduinoJson',
+      titleEn: 'ArduinoJson',
+      description: 'JSON na urządzeniu — ten sam model danych co paczki marketplace w Studio.',
+      descriptionEn: 'On-device JSON — same data model spirit as Studio marketplace packs.',
+      author: 'bblanchon',
+      tags: ['github', 'json', 'library'],
+      packId: 'addon-arduinojson',
+      repoUrl: 'https://github.com/bblanchon/ArduinoJson',
+      stars: 7246,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-fastled',
+      kind: 'github_addon',
+      title: 'FastLED',
+      titleEn: 'FastLED',
+      description: 'Animacje LED — wizualny companion dla widgetów sparkline / status.',
+      descriptionEn: 'LED animations — visual companion for sparkline / status widgets.',
+      author: 'FastLED',
+      tags: ['github', 'led', 'graphics'],
+      packId: 'addon-fastled',
+      repoUrl: 'https://github.com/FastLED/FastLED',
+      stars: 7536,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-ble-keyboard',
+      kind: 'github_addon',
+      title: 'ESP32 BLE Keyboard',
+      titleEn: 'ESP32 BLE Keyboard',
+      description: 'Biblioteka HID klawiatury BLE — pasuje do ścieżki Bluetooth w Studio.',
+      descriptionEn: 'BLE HID keyboard library — fits Studio’s Bluetooth path.',
+      author: 'T-vK',
+      tags: ['github', 'bluetooth', 'ble'],
+      packId: 'addon-ble-keyboard',
+      repoUrl: 'https://github.com/T-vK/ESP32-BLE-Keyboard',
+      stars: 3201,
+      requireSignature: false,
+    },
+    {
+      id: 'addon-awesome-esp',
+      kind: 'github_addon',
+      title: 'awesome-esp',
+      titleEn: 'awesome-esp',
+      description: 'Kuratorska lista projektów ESP8266/ESP32 — punkt startowy do dalszych add-onów.',
+      descriptionEn: 'Curated ESP8266/ESP32 project list — starting point for more add-ons.',
+      author: 'agucova',
+      tags: ['github', 'awesome', 'meta'],
+      packId: 'addon-awesome-esp',
+      repoUrl: 'https://github.com/agucova/awesome-esp',
+      stars: 2816,
       requireSignature: false,
     },
   ],
@@ -641,6 +943,98 @@ export const BUNDLED_MARKETPLACE_PACKS: Record<string, MarketplacePack> = {
         label: 'CPU',
         binding: 'cpu',
         historyPoints: 16,
+      },
+    ],
+  },
+  'oled-pet-dash': {
+    format: 'esp32studio-marketplace',
+    kind: 'widget_pack',
+    version: 1,
+    id: 'oled-pet-dash',
+    title: 'OLED pet + temperature',
+    author: 'ESP32 Display Studio',
+    description: '128×64 pet dashboard inspired by SSD1306/U8g2 community stacks.',
+    widgets: [
+      {
+        id: 'm_pet',
+        type: 'cyber_pet',
+        x: 4,
+        y: 4,
+        width: 56,
+        height: 40,
+      },
+      {
+        id: 'm_temp',
+        type: 'gauge',
+        x: 64,
+        y: 4,
+        width: 60,
+        height: 40,
+        label: 'Temp',
+        binding: 'temp',
+        minVal: 0,
+        maxVal: 40,
+        unit: '°C',
+        showNumericValue: true,
+      },
+      {
+        id: 'm_batt_wifi_dash',
+        type: 'battery_wifi',
+        x: 4,
+        y: 46,
+        width: 120,
+        height: 16,
+      },
+    ],
+  },
+  'usb-bridges': {
+    format: 'esp32studio-marketplace',
+    kind: 'board_pack',
+    version: 1,
+    id: 'usb-bridges',
+    title: 'USB bridges',
+    author: 'ESP32 Display Studio',
+    description: 'CH340 / CP210x / CH9102 flash presets (community board-catalog schema).',
+    profiles: [
+      {
+        id: 'cp210x-generic-esp32',
+        label: 'Generic ESP32 (CP210x)',
+        vid: '10c4',
+        pid: 'ea60',
+        chip: 'esp32',
+        offset: '0x1000',
+        baud: 921600,
+        boardProfile: 'esp32',
+      },
+      {
+        id: 'ch340-generic-esp32',
+        label: 'Generic ESP32 (CH340)',
+        vid: '1a86',
+        pid: '7523',
+        chip: 'esp32',
+        offset: '0x1000',
+        baud: 921600,
+        boardProfile: 'esp32',
+      },
+      {
+        id: 'ch9102-generic-esp32',
+        label: 'Generic ESP32 (CH9102)',
+        vid: '1a86',
+        pid: '55d4',
+        chip: 'esp32',
+        offset: '0x1000',
+        baud: 921600,
+        boardProfile: 'esp32',
+      },
+      {
+        id: 'cp210x-esp32-s3-bridge',
+        label: 'ESP32-S3 via CP210x UART bridge',
+        vid: '10c4',
+        pid: 'ea60',
+        chip: 'esp32s3',
+        offset: '0x0',
+        baud: 921600,
+        boardProfile: 'esp32s3',
       },
     ],
   },
@@ -974,9 +1368,27 @@ export async function fetchRemoteMarketplacePack(
 export async function loadMarketplacePack(
   entry: MarketplaceCatalogEntry,
 ): Promise<MarketplaceParseResult> {
+  if (entry.kind === 'github_addon') {
+    return {
+      ok: false,
+      error: 'github_addon entries open a repository link — they are not installable packs',
+    };
+  }
+
   let result: MarketplaceParseResult;
 
-  if (entry.packUrl) {
+  if (entry.kind === 'board_pack' && entry.profiles && entry.profiles.length > 0) {
+    result = parseMarketplacePack({
+      format: 'esp32studio-marketplace',
+      kind: 'board_pack',
+      version: 1,
+      id: entry.packId || entry.id,
+      title: entry.title,
+      description: entry.description,
+      author: entry.author,
+      profiles: entry.profiles,
+    });
+  } else if (entry.packUrl) {
     result = await fetchRemoteMarketplacePack(entry.packUrl);
   } else {
     const bundled = resolveBundledPack(entry.packId);

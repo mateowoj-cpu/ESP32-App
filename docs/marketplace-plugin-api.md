@@ -30,7 +30,14 @@ Implementacja: `src/platform/marketplace.ts` · UI: `MarketplaceView` · CLI: `s
 }
 ```
 
-`kind` może też być `rule_pack` z tablicą `rules`.
+`kind` może też być:
+
+| `kind` | Zawartość |
+|--------|-----------|
+| `rule_pack` | tablica `rules` |
+| `board_pack` | tablica `profiles` (schemat community board catalog: `id/label/vid/pid/chip/offset/baud/boardProfile`) |
+
+Wpisy katalogu `github_addon` **nie** są paczkami JSON — zawierają `repoUrl` (`https://github.com/…`) i tylko otwierają link (bez pobierania / wykonywania kodu).
 
 ### v2 (Faza 15)
 
@@ -54,6 +61,9 @@ Kanonikalizacja: rekurencyjne sortowanie kluczy obiektów; pomiń `signature`.
 | `packUrl` | Opcjonalny URL HTTPS (tylko host z allowlisty) |
 | `publisherId` | Oczekiwany publisher dla paczek podpisanych |
 | `requireSignature` | Gdy `true`, instalacja bez poprawnego podpisu kończy się błędem |
+| `repoUrl` | Dla `github_addon`: `https://github.com/owner/repo` |
+| `profiles` | Dla lokalnego `board_pack`: inline profile (opcjonalnie zamiast pliku paczki) |
+| `userAdded` | Opcja dodana lokalnie w UI (persystencja `localStorage`) |
 
 ## Allowlista hostów
 
