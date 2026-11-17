@@ -5,6 +5,7 @@ mod flash;
 mod ota;
 mod pc_agent;
 mod serial;
+mod tools;
 mod update_channel;
 
 use desktop::{
@@ -17,6 +18,10 @@ use diagnostics::{
 };
 use firmware_build::{build_firmware_from_sketch, get_firmware_toolchain_info};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
+use tools::{
+    export_and_open_arduino_ide, get_external_tools_status, get_tool_path_overrides,
+    open_external_url, open_path_in_os, open_wokwi_simulator, set_tool_path_overrides,
+};
 use ota::{cancel_ota_firmware, discover_ota_hosts, flash_ota_firmware, get_ota_tool_info};
 use pc_agent::{get_pc_agent_info, start_pc_agent, stop_pc_agent, PcAgentState};
 use serial::{
@@ -72,6 +77,13 @@ pub fn run() {
             read_open_file,
             get_firmware_toolchain_info,
             build_firmware_from_sketch,
+            get_external_tools_status,
+            get_tool_path_overrides,
+            set_tool_path_overrides,
+            open_path_in_os,
+            open_external_url,
+            export_and_open_arduino_ide,
+            open_wokwi_simulator,
             get_ota_tool_info,
             flash_ota_firmware,
             cancel_ota_firmware,

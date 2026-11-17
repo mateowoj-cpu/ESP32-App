@@ -43,6 +43,10 @@ assert(translate('pl', 'market.sandboxHint').toLowerCase().includes('sandbox'), 
 assert(translate('pl', 'market.title').toLowerCase().includes('marketplace'), 'pl market title');
 assert(translate('pl', 'action.update').toLowerCase().includes('aktual'), 'pl action update');
 assert(translate('pl', 'flash.build').toLowerCase().includes('kompil'), 'pl flash build');
+assert(translate('en', 'desktop.toolsTitle').toLowerCase().includes('tool'), 'en tools title');
+assert(translate('pl', 'flash.preferredTool').toLowerCase().includes('narzęd'), 'pl preferred tool');
+assert(translate('en', 'code.openWokwi').toLowerCase().includes('wokwi'), 'en wokwi');
+assert(translate('pl', 'code.openArduinoIde').toLowerCase().includes('arduino'), 'pl open arduino');
 assert(translate('en', 'market.defaultWidgetPack').toLowerCase().includes('widget'), 'en default widget pack');
 assert(translate('pl', 'market.defaultRulePack').toLowerCase().includes('reguł'), 'pl default rule pack');
 assert(translate('pl', 'import.parseError').toLowerCase().includes('parsow'), 'pl import parse');

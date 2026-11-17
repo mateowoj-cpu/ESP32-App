@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLocale } from '../i18n/LocaleContext';
 import type { AppLocale, UpdateChannel } from '../i18n/locales';
 import type { DesktopStatus } from '../platform/desktop';
-import { MonitorSmartphone, RefreshCw } from 'lucide-react';
+import type { ExternalToolsStatus, ToolPathOverrides, ToolProbe } from '../platform/tools';
+import { MonitorSmartphone, RefreshCw, Wrench, ExternalLink } from 'lucide-react';
 
 export const DesktopSettingsPanel: React.FC = () => {
   const {
@@ -24,6 +25,14 @@ export const DesktopSettingsPanel: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [agentHost, setAgentHost] = useState('192.168.1.150');
   const [agentPort, setAgentPort] = useState(8080);
+  const [toolPaths, setToolPaths] = useState<ToolPathOverrides>({});
+  const [toolsStatus, setToolsStatus] = useState<ExternalToolsStatus | null>(null);
+
+  const refreshTools = async () => {
+    const { getExternalToolsStatus, getToolPathOverrides } = await import('../platform/tools');
+    setToolPaths(await getToolPathOverrides());
+    setToolsStatus(await getExternalToolsStatus());
+  };
 
   const refresh = async () => {
     try {
@@ -37,8 +46,35 @@ export const DesktopSettingsPanel: React.FC = () => {
       const next = await getDesktopStatus();
       setStatus(next);
       await setCloseToTrayPreference(closeToTray);
+      await refreshTools();
     } catch {
       setIsTauri(false);
+    }
+  };
+
+  const saveToolPaths = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { setToolPathOverrides, getExternalToolsStatus } = await import('../platform/tools');
+      const saved = await setToolPathOverrides(toolPaths);
+      setToolPaths(saved);
+      setToolsStatus(await getExternalToolsStatus());
+      setMessage(t('desktop.tools.saved'));
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openToolHome = async (tool: ToolProbe) => {
+    if (!tool.homepage) return;
+    try {
+      const { openExternalUrl } = await import('../platform/tools');
+      await openExternalUrl(tool.homepage);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -255,6 +291,99 @@ export const DesktopSettingsPanel: React.FC = () => {
                 className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 ui-type-micro font-mono text-slate-100"
               />
             </div>
+          </div>
+
+          <div className="flex flex-col gap-3 bg-slate-950 border border-slate-800 rounded-xl px-3 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <Wrench className="ui-icon-sm text-cyan-400" aria-hidden="true" />
+                {t('desktop.toolsTitle')}
+              </h4>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void refreshTools()}
+                className="ui-type-micro text-cyan-400 hover:text-cyan-300 disabled:opacity-50"
+              >
+                {t('desktop.tools.refresh')}
+              </button>
+            </div>
+            <p className="ui-type-micro text-slate-500 leading-relaxed">{t('desktop.toolsHint')}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {(
+                [
+                  ['platformio', 'desktop.tools.platformio'],
+                  ['arduinoCli', 'desktop.tools.arduinoCli'],
+                  ['esptool', 'desktop.tools.esptool'],
+                  ['arduinoIde', 'desktop.tools.arduinoIde'],
+                  ['idf', 'desktop.tools.idf'],
+                  ['wokwiCli', 'desktop.tools.wokwiCli'],
+                ] as const
+              ).map(([key, labelKey]) => (
+                <label key={key} className="flex flex-col gap-1">
+                  <span className="text-slate-400">{t(labelKey)}</span>
+                  <input
+                    value={(toolPaths[key] as string | null | undefined) ?? ''}
+                    onChange={e =>
+                      setToolPaths(prev => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
+                    }
+                    placeholder="/path/to/binary"
+                    className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 ui-type-micro font-mono text-slate-100"
+                  />
+                </label>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void saveToolPaths()}
+              className="inline-flex items-center justify-center gap-1.5 self-start px-2.5 py-1.5 rounded-lg ui-type-micro bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 disabled:opacity-50"
+            >
+              {t('desktop.tools.save')}
+            </button>
+            {toolsStatus && (
+              <div className="flex flex-col gap-1.5">
+                <span className="ui-type-micro text-slate-400">{t('desktop.tools.status')}</span>
+                {toolsStatus.tools.map(tool => (
+                  <div
+                    key={tool.id}
+                    className="flex items-start justify-between gap-2 ui-type-micro font-mono text-slate-300"
+                  >
+                    <div className="min-w-0">
+                      <span
+                        className={
+                          tool.available ? 'text-emerald-300' : 'text-amber-200'
+                        }
+                      >
+                        {tool.label}:{' '}
+                        {tool.available
+                          ? t('desktop.tools.available')
+                          : t('desktop.tools.missing')}
+                      </span>
+                      <span className="text-slate-500"> [{tool.source}]</span>
+                      {tool.path && (
+                        <div className="truncate text-slate-500" title={tool.path}>
+                          {tool.path}
+                        </div>
+                      )}
+                    </div>
+                    {tool.homepage && (
+                      <button
+                        type="button"
+                        onClick={() => void openToolHome(tool)}
+                        className="shrink-0 text-cyan-400 hover:text-cyan-300"
+                        title={t('desktop.tools.openHome')}
+                      >
+                        <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <button

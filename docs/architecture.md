@@ -73,6 +73,7 @@ UI **nie** woła `navigator.serial` ani komend Rust bezpośrednio — tylko prze
 | `nativeSerial.ts` | Tauri | `invoke` serial + listen `serial-data` / `serial-disconnected` |
 | `flash.ts` | Tauri | `esptool` info / write_flash, dialog `.bin`, `flash-log` |
 | `firmwareBuild.ts` | Tauri | toolchain info + build szkicu, `build-log` |
+| `tools.ts` | Tauri | detect free ESP32 tools, path overrides, Arduino IDE / Wokwi launch |
 | `ota.ts` + `otaHost.ts` + `otaRecent.ts` | Tauri + localStorage | espota/HTTP, mDNS discover, recent hosts |
 | `desktop.ts` | Tauri | close-to-tray, autostart, show window |
 | `updater.ts` | Tauri | kanał stable/beta → `check_update_channel` / install |
@@ -119,6 +120,7 @@ Zarejestrowane w `src-tauri/src/lib.rs` (`generate_handler!`):
 | **PC agent** | `get_pc_agent_info`, `start_pc_agent`, `stop_pc_agent` |
 | **Flash** | `get_esptool_info`, `flash_write_firmware`, `read_open_file` |
 | **Build** | `get_firmware_toolchain_info`, `build_firmware_from_sketch` |
+| **External tools** | `get_external_tools_status`, `get_tool_path_overrides`, `set_tool_path_overrides`, `open_path_in_os`, `open_external_url`, `export_and_open_arduino_ide`, `open_wokwi_simulator` |
 | **OTA** | `get_ota_tool_info`, `flash_ota_firmware`, `cancel_ota_firmware`, `discover_ota_hosts` |
 | **Desktop** | `get_desktop_status`, `set_app_autostart`, `set_pc_agent_autostart`, `set_close_to_tray`, `show_main_window` |
 | **Updater** | `check_update_channel`, `download_and_install_channel` |
