@@ -70,22 +70,18 @@ if [[ -z "$SHA256" || ${#SHA256} -ne 64 ]]; then
   exit 1
 fi
 
-DEFAULT_URL="https://github.com/mateowoj-cpu/ESP32-App/releases/download/v${VERSION}/ESP32.Display.Studio_${VERSION}_x64-setup.exe"
+INSTALLER_NAME="$(basename "$INSTALLER_PATH")"
+DEFAULT_URL="https://github.com/${GITHUB_REPOSITORY:-mateowoj-cpu/ESP32-App}/releases/download/v${VERSION}/${INSTALLER_NAME}"
 FINAL_URL="${INSTALLER_URL:-$DEFAULT_URL}"
 
-TEMPLATE_SRC=""
-for candidate in \
-  "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/${VERSION}/Studio.ESP32DisplayStudio.yaml" \
-  "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/0.2.5/Studio.ESP32DisplayStudio.yaml" \
-  "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio/0.2.4/Studio.ESP32DisplayStudio.yaml"
-do
-  if [[ -f "$candidate" ]]; then
-    TEMPLATE_SRC="$candidate"
-    break
-  fi
-done
+# Find the newest matching manifest template instead of assuming a fixed version
+TEMPLATE_SRC="$(
+  find "$ROOT/packaging/winget/ESP32DisplayStudio/manifests/s/Studio/ESP32DisplayStudio" \
+    -mindepth 2 -maxdepth 2 -type f -name 'Studio.ESP32DisplayStudio.yaml' 2>/dev/null \
+    | sort -V | tail -n 1
+)"
 
-if [[ -z "$TEMPLATE_SRC" ]]; then
+if [[ -z "$TEMPLATE_SRC" || ! -f "$TEMPLATE_SRC" ]]; then
   echo "No winget template YAML found" >&2
   exit 1
 fi
@@ -104,9 +100,8 @@ text = re.sub(r"(?m)^# Template winget.*$", f"# Generated winget singleton for E
 text = re.sub(r"(?m)^PackageVersion:\s*.*$", f"PackageVersion: {version}", text, count=1)
 text = re.sub(r"(?m)^(\s*)InstallerUrl:\s*.*$", rf"\1InstallerUrl: {url}", text, count=1)
 text = re.sub(r"(?m)^(\s*)InstallerSha256:\s*.*$", rf"\1InstallerSha256: {sha}", text, count=1)
-# Refresh any release URL version segment without inventing new hashes
 text = re.sub(
-    r"https://github\.com/mateowoj-cpu/ESP32-App/releases/download/v[0-9.]+/ESP32\.Display\.Studio_[0-9.]+_x64-setup\.exe",
+    r"https://github\.com/[^/]+/[^/]+/releases/download/v[0-9.]+/[A-Za-z0-9._-]+\.exe",
     url,
     text,
     count=1,

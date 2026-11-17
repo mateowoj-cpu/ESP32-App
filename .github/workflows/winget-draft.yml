@@ -55,19 +55,36 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.meta.outputs.tag }}
         run: |
+          set -euo pipefail
           mkdir -p /tmp/winget-nsis
-          # Prefer exact productName pattern; fall back to any *-setup.exe on the release
-          ASSET=$(gh release view "$TAG" --json assets -q '.assets[].name' | grep -E 'x64-setup\.exe$' | head -n1 || true)
+
+          # Use the actual asset name from the release. Do not assume a fixed file name.
+          ASSET=$(gh release view "$TAG" --repo "${GITHUB_REPOSITORY}" --json assets -q '.assets[].name' \
+            | grep -Ei 'ESP32[.-]Display[.-]Studio.*x64.*\.exe$|x64-setup\.exe$|.*-setup\.exe$' \
+            | head -n1 || true)
+
           if [[ -z "$ASSET" ]]; then
-            ASSET=$(gh release view "$TAG" --json assets -q '.assets[].name' | grep -Ei '\.exe$' | head -n1 || true)
+            ASSET=$(gh release view "$TAG" --repo "${GITHUB_REPOSITORY}" --json assets -q '.assets[].name' \
+              | grep -Ei '\.exe$' | head -n1 || true)
           fi
+
           if [[ -z "$ASSET" ]]; then
             echo "No .exe installer asset on release $TAG — publish windows-release artifacts first." >&2
             exit 1
           fi
+
           echo "Downloading asset: $ASSET"
-          gh release download "$TAG" --pattern "$ASSET" --dir /tmp/winget-nsis
+          gh release download "$TAG" --repo "${GITHUB_REPOSITORY}" --pattern "$ASSET" --dir /tmp/winget-nsis
+
+          INSTALLER_PATH=$(find /tmp/winget-nsis -maxdepth 1 -type f -name '*.exe' | head -n1)
+          if [[ -z "$INSTALLER_PATH" ]]; then
+            echo "Downloaded asset not found in /tmp/winget-nsis" >&2
+            ls -la /tmp/winget-nsis || true
+            exit 1
+          fi
+
           echo "asset=$ASSET" >> "$GITHUB_OUTPUT"
+          echo "installer_path=$INSTALLER_PATH" >> "$GITHUB_OUTPUT"
           ls -la /tmp/winget-nsis
 
       - name: Prepare draft manifest (real SHA256)
@@ -76,14 +93,23 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
           TAG: ${{ steps.meta.outputs.tag }}
         run: |
+          set -euo pipefail
           chmod +x scripts/winget/prepare-draft-manifest.sh
-          INSTALLER=$(ls /tmp/winget-nsis/*.exe | head -n1)
+
+          INSTALLER=$(find /tmp/winget-nsis -maxdepth 1 -type f -name '*.exe' | head -n1)
+          if [[ -z "$INSTALLER" ]]; then
+            echo "No installer .exe available for manifest generation" >&2
+            exit 1
+          fi
+
           URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/$(basename "$INSTALLER")"
+
           scripts/winget/prepare-draft-manifest.sh \
             --version "$VERSION" \
             --installer "$INSTALLER" \
             --installer-url "$URL" \
             --out-dir "packaging/winget/ESP32DisplayStudio/out/${VERSION}"
+
           echo "out=packaging/winget/ESP32DisplayStudio/out/${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Upload draft winget package
@@ -113,7 +139,6 @@ jobs:
           cd "$WORK"
           git config user.name "ESP32 Display Studio CI"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Push to the token owner's fork (human must fork microsoft/winget-pkgs first)
           FORK_OWNER=$(gh api user -q .login)
           git remote add fork "https://x-access-token:${GH_TOKEN}@github.com/${FORK_OWNER}/winget-pkgs.git"
           git checkout -b "$BRANCH"
