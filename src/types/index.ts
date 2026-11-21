@@ -151,6 +151,9 @@ export type WidgetBinding =
   | 'encoderVal'
   | 'usbConnected'
   | 'bluetoothConnected'
+  | 'distance'
+  | 'relayOn'
+  | 'servoAngle'
   | 'temp' // alias
   | 'lux' // alias
   | 'pot' // alias
@@ -207,6 +210,8 @@ export interface DisplayConfig {
   sdaPin: number;
   sclPin: number;
   mosiPin: number;
+  /** SPI MISO — used by ILI9341 / touch-shared bus (popular default GPIO 19). */
+  misoPin: number;
   sckPin: number;
   csPin: number;
   dcPin: number;
@@ -247,10 +252,18 @@ export type PinFunction =
   | 'ADC_POT'
   | 'INPUT_PIR'
   | 'INPUT_HALL'
+  | 'INPUT_DHT'
+  | 'INPUT_DS18B20'
+  | 'ULTRASONIC_TRIG'
+  | 'ULTRASONIC_ECHO'
   | 'INPUT_BOOT'
   | 'INPUT_BUTTON'
   | 'OUTPUT_LED'
   | 'OUTPUT_RELAY'
+  | 'OUTPUT_WS2812'
+  | 'MOTOR_L298N_IN1'
+  | 'MOTOR_L298N_IN2'
+  | 'MOTOR_L298N_ENA'
   | 'UART_TX'
   | 'UART_RX'
   | 'GPIO_FREE';
@@ -277,6 +290,28 @@ export interface SystemConfig {
   pirPin?: number;
   /** A3144 (or compatible) hall-effect digital sensor data pin. Opt-in via pinout. */
   hallPin?: number;
+  /** DHT22 / AM2302 single-wire data pin. Opt-in via pinout (popular: GPIO 4). */
+  dhtPin?: number;
+  /** DS18B20 1-Wire data pin. Opt-in via pinout (needs 4.7k pull-up). */
+  ds18b20Pin?: number;
+  /** HC-SR04 ultrasonic TRIG. Opt-in (popular: GPIO 5). */
+  ultrasonicTrigPin?: number;
+  /** HC-SR04 ultrasonic ECHO (level-shift 5V→3.3V). Opt-in (popular: GPIO 18). */
+  ultrasonicEchoPin?: number;
+  /** SG90 / hobby servo signal pin. Opt-in (popular: GPIO 13). */
+  servoPin?: number;
+  /** Single-channel relay IN pin. Opt-in (popular: GPIO 26). */
+  relayPin?: number;
+  /** WS2812 / NeoPixel data pin. Opt-in (popular: GPIO 16). */
+  ws2812Pin?: number;
+  /** L298N / TB6612 motor driver. Opt-in via pinout. */
+  l298nIn1Pin?: number;
+  l298nIn2Pin?: number;
+  l298nEnaPin?: number;
+  /** BME280 / BMP280 on shared I2C (SDA/SCL). Opt-in; address often 0x76 or 0x77. */
+  bme280Enabled?: boolean;
+  /** MPU6050 IMU on shared I2C. Opt-in; address 0x68 / 0x69. */
+  mpu6050Enabled?: boolean;
   ldrPin?: number;
   potPin?: number;
   userBtn1Pin?: number;
@@ -362,6 +397,7 @@ export type TriggerType =
   | 'hall_magnetic'
   | 'light_lux_below'
   | 'temp_above'
+  | 'ultrasonic_below'
   | 'boot_button_pressed'
   | 'gpio_button_pressed'
   | 'time_is'
@@ -379,6 +415,8 @@ export type ActionType =
   | 'set_pet_mood'
   | 'set_brightness'
   | 'sound_buzzer'
+  | 'toggle_relay'
+  | 'set_servo_angle'
   | 'show_notification';
 
 export interface AutomationRule {
@@ -426,6 +464,14 @@ export interface HardwareSimState {
   temperature: number; // °C
   humidity: number; // %
   potAdc: number; // 0 - 4095
+  /** HC-SR04 simulated distance in cm (2–400). */
+  distanceCm: number;
+  /** Relay coil/output state. */
+  relayOn: boolean;
+  /** Hobby servo angle 0–180°. */
+  servoAngle: number;
+  /** WS2812 hue preview 0–360. */
+  ws2812Hue: number;
   bootPressed: boolean;
   userBtn1Pressed: boolean;
   userBtn2Pressed: boolean;

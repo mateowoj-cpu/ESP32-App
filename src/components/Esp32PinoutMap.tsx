@@ -108,6 +108,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
     if (pin === display.sdaPin) return { func: 'I2C_SDA', label: t('pinout.fn.i2cSda'), color: 'border-cyan-500 bg-cyan-950/60 text-cyan-300', badge: 'I2C SDA' };
     if (pin === display.sclPin) return { func: 'I2C_SCL', label: t('pinout.fn.i2cScl'), color: 'border-cyan-500 bg-cyan-950/60 text-cyan-300', badge: 'I2C SCL' };
     if (pin === display.mosiPin && display.bus === 'spi') return { func: 'SPI_MOSI', label: t('pinout.fn.spiMosi'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI MOSI' };
+    if (pin === display.misoPin && display.bus === 'spi') return { func: 'SPI_MISO', label: t('pinout.fn.spiMiso'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI MISO' };
     if (pin === display.sckPin && display.bus === 'spi') return { func: 'SPI_SCK', label: t('pinout.fn.spiSck'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI SCK' };
     if (pin === display.csPin && display.bus === 'spi') return { func: 'SPI_CS', label: t('pinout.fn.spiCs'), color: 'border-indigo-500 bg-indigo-950/60 text-indigo-300', badge: 'SPI CS' };
     if (pin === display.dcPin) return { func: 'OLED_DC', label: t('pinout.fn.oledDc'), color: 'border-purple-500 bg-purple-950/60 text-purple-300', badge: 'OLED DC' };
@@ -122,9 +123,39 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
       if (pin === display.touchRstPin) return { func: 'TOUCH_RST', label: t('pinout.fn.touchRst'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH RST' };
     }
 
-    // 3. Check System Config assignments (explicit hall before defaulted PIR/etc.)
+    // 3. Check System Config assignments (explicit opt-in pins before defaulted PIR/etc.)
     if (system.hallPin != null && pin === system.hallPin) {
       return { func: 'INPUT_HALL', label: t('pinout.fn.hall'), color: 'border-fuchsia-500 bg-fuchsia-950/60 text-fuchsia-300', badge: 'A3144 HALL' };
+    }
+    if (system.dhtPin != null && pin === system.dhtPin) {
+      return { func: 'INPUT_DHT', label: t('pinout.fn.dht'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'DHT22' };
+    }
+    if (system.ds18b20Pin != null && pin === system.ds18b20Pin) {
+      return { func: 'INPUT_DS18B20', label: t('pinout.fn.ds18b20'), color: 'border-orange-500 bg-orange-950/60 text-orange-300', badge: 'DS18B20' };
+    }
+    if (system.ultrasonicTrigPin != null && pin === system.ultrasonicTrigPin) {
+      return { func: 'ULTRASONIC_TRIG', label: t('pinout.fn.ultraTrig'), color: 'border-lime-500 bg-lime-950/60 text-lime-300', badge: 'HC-SR04 TRIG' };
+    }
+    if (system.ultrasonicEchoPin != null && pin === system.ultrasonicEchoPin) {
+      return { func: 'ULTRASONIC_ECHO', label: t('pinout.fn.ultraEcho'), color: 'border-lime-500 bg-lime-950/60 text-lime-300', badge: 'HC-SR04 ECHO' };
+    }
+    if (system.servoPin != null && pin === system.servoPin) {
+      return { func: 'PWM_SERVO', label: t('pinout.fn.servo'), color: 'border-violet-500 bg-violet-950/60 text-violet-300', badge: 'SERVO' };
+    }
+    if (system.relayPin != null && pin === system.relayPin) {
+      return { func: 'OUTPUT_RELAY', label: t('pinout.fn.relay'), color: 'border-red-500 bg-red-950/60 text-red-300', badge: 'RELAY' };
+    }
+    if (system.ws2812Pin != null && pin === system.ws2812Pin) {
+      return { func: 'OUTPUT_WS2812', label: t('pinout.fn.ws2812'), color: 'border-pink-500 bg-pink-950/60 text-pink-300', badge: 'WS2812' };
+    }
+    if (system.l298nIn1Pin != null && pin === system.l298nIn1Pin) {
+      return { func: 'MOTOR_L298N_IN1', label: t('pinout.fn.l298nIn1'), color: 'border-sky-500 bg-sky-950/60 text-sky-300', badge: 'L298N IN1' };
+    }
+    if (system.l298nIn2Pin != null && pin === system.l298nIn2Pin) {
+      return { func: 'MOTOR_L298N_IN2', label: t('pinout.fn.l298nIn2'), color: 'border-sky-500 bg-sky-950/60 text-sky-300', badge: 'L298N IN2' };
+    }
+    if (system.l298nEnaPin != null && pin === system.l298nEnaPin) {
+      return { func: 'MOTOR_L298N_ENA', label: t('pinout.fn.l298nEna'), color: 'border-sky-500 bg-sky-950/60 text-sky-300', badge: 'L298N ENA' };
     }
     if (pin === (system.pirPin ?? 14)) return { func: 'INPUT_PIR', label: t('pinout.fn.pir'), color: 'border-emerald-500 bg-emerald-950/60 text-emerald-300', badge: 'PIR MOTION' };
     if (pin === (system.ldrPin ?? 36)) return { func: 'ADC_LDR', label: t('pinout.fn.ldr'), color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC LDR' };
@@ -149,6 +180,7 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
     if (func === 'I2C_SDA') setDisplay(prev => ({ ...prev, sdaPin: pin }));
     else if (func === 'I2C_SCL') setDisplay(prev => ({ ...prev, sclPin: pin }));
     else if (func === 'SPI_MOSI') setDisplay(prev => ({ ...prev, mosiPin: pin }));
+    else if (func === 'SPI_MISO') setDisplay(prev => ({ ...prev, misoPin: pin }));
     else if (func === 'SPI_SCK') setDisplay(prev => ({ ...prev, sckPin: pin }));
     else if (func === 'SPI_CS') setDisplay(prev => ({ ...prev, csPin: pin }));
     else if (func === 'OLED_DC') setDisplay(prev => ({ ...prev, dcPin: pin }));
@@ -170,10 +202,23 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
 
       const nextPir =
         func === 'INPUT_PIR' ? pin : prev.pirPin === pin ? (pin === 14 ? 27 : 14) : prev.pirPin;
+      const clearIf = <T extends number | undefined>(cur: T, match: PinFunction): T | undefined =>
+        (func === match ? (pin as T) : cur === pin ? undefined : cur);
+
       return {
         ...prev,
         pirPin: nextPir,
-        hallPin: func === 'INPUT_HALL' ? pin : prev.hallPin === pin ? undefined : prev.hallPin,
+        hallPin: clearIf(prev.hallPin, 'INPUT_HALL'),
+        dhtPin: clearIf(prev.dhtPin, 'INPUT_DHT'),
+        ds18b20Pin: clearIf(prev.ds18b20Pin, 'INPUT_DS18B20'),
+        ultrasonicTrigPin: clearIf(prev.ultrasonicTrigPin, 'ULTRASONIC_TRIG'),
+        ultrasonicEchoPin: clearIf(prev.ultrasonicEchoPin, 'ULTRASONIC_ECHO'),
+        servoPin: clearIf(prev.servoPin, 'PWM_SERVO'),
+        relayPin: clearIf(prev.relayPin, 'OUTPUT_RELAY'),
+        ws2812Pin: clearIf(prev.ws2812Pin, 'OUTPUT_WS2812'),
+        l298nIn1Pin: clearIf(prev.l298nIn1Pin, 'MOTOR_L298N_IN1'),
+        l298nIn2Pin: clearIf(prev.l298nIn2Pin, 'MOTOR_L298N_IN2'),
+        l298nEnaPin: clearIf(prev.l298nEnaPin, 'MOTOR_L298N_ENA'),
         ldrPin: func === 'ADC_LDR' ? pin : prev.ldrPin === pin ? 36 : prev.ldrPin,
         potPin: func === 'ADC_POT' ? pin : prev.potPin === pin ? 34 : prev.potPin,
         buzzerPin: func === 'PWM_BUZZER' ? pin : prev.buzzerPin === pin ? 18 : prev.buzzerPin,
@@ -196,19 +241,38 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
   };
 
   const wiringHintText = (pin: number, func: PinFunction): string => {
+    const p = String(pin);
     switch (func) {
       case 'INPUT_HALL':
-        return t('pinout.wiring.hall').replace('{pin}', String(pin));
+        return t('pinout.wiring.hall').replace('{pin}', p);
       case 'INPUT_PIR':
-        return t('pinout.wiring.pir').replace('{pin}', String(pin));
+        return t('pinout.wiring.pir').replace('{pin}', p);
+      case 'INPUT_DHT':
+        return t('pinout.wiring.dht').replace('{pin}', p);
+      case 'INPUT_DS18B20':
+        return t('pinout.wiring.ds18b20').replace('{pin}', p);
+      case 'ULTRASONIC_TRIG':
+        return t('pinout.wiring.ultraTrig').replace('{pin}', p);
+      case 'ULTRASONIC_ECHO':
+        return t('pinout.wiring.ultraEcho').replace('{pin}', p);
+      case 'PWM_SERVO':
+        return t('pinout.wiring.servo').replace('{pin}', p);
+      case 'OUTPUT_RELAY':
+        return t('pinout.wiring.relay').replace('{pin}', p);
+      case 'OUTPUT_WS2812':
+        return t('pinout.wiring.ws2812').replace('{pin}', p);
+      case 'MOTOR_L298N_IN1':
+      case 'MOTOR_L298N_IN2':
+      case 'MOTOR_L298N_ENA':
+        return t('pinout.wiring.l298n').replace('{pin}', p).replace('{func}', func);
       case 'ADC_LDR':
-        return t('pinout.wiring.ldr').replace('{pin}', String(pin));
+        return t('pinout.wiring.ldr').replace('{pin}', p);
       case 'ADC_POT':
-        return t('pinout.wiring.pot').replace('{pin}', String(pin));
+        return t('pinout.wiring.pot').replace('{pin}', p);
       case 'PWM_BUZZER':
-        return t('pinout.wiring.buzzer').replace('{pin}', String(pin));
+        return t('pinout.wiring.buzzer').replace('{pin}', p);
       default:
-        return t('pinout.wiring.generic').replace('{pin}', String(pin)).replace('{func}', func);
+        return t('pinout.wiring.generic').replace('{pin}', p).replace('{func}', func);
     }
   };
 
@@ -621,6 +685,69 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'PWM_BACKLIGHT' && <Check className="ui-icon-sm text-amber-400" aria-hidden="true" />}
                   </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'PWM_SERVO');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'PWM_SERVO'
+                        ? 'bg-violet-950 border-violet-400 text-violet-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-violet-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.servo')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.servoHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'PWM_SERVO' && <Check className="ui-icon-sm text-violet-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'OUTPUT_RELAY');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'OUTPUT_RELAY'
+                        ? 'bg-red-950 border-red-400 text-red-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-red-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.relay')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.relayHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'OUTPUT_RELAY' && <Check className="ui-icon-sm text-red-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'OUTPUT_WS2812');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'OUTPUT_WS2812'
+                        ? 'bg-pink-950 border-pink-400 text-pink-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-pink-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.ws2812')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.ws2812Hint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'OUTPUT_WS2812' && <Check className="ui-icon-sm text-pink-400" aria-hidden="true" />}
+                  </button>
                 </div>
               </div>
 
@@ -719,6 +846,189 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_BUTTON' && <Check className="ui-icon-sm text-teal-400" aria-hidden="true" />}
                   </button>
+
+                  <button
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'INPUT_DHT');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'INPUT_DHT'
+                        ? 'bg-rose-950 border-rose-400 text-rose-300'
+                        : 'bg-slate-950 border-slate-800 hover:border-rose-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.dht')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.dhtHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_DHT' && <Check className="ui-icon-sm text-rose-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'INPUT_DS18B20');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'INPUT_DS18B20'
+                        ? 'bg-orange-950 border-orange-400 text-orange-300'
+                        : 'bg-slate-950 border-slate-800 hover:border-orange-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.ds18b20')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.ds18b20Hint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_DS18B20' && <Check className="ui-icon-sm text-orange-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'ULTRASONIC_TRIG');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'ULTRASONIC_TRIG'
+                        ? 'bg-lime-950 border-lime-400 text-lime-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-lime-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.ultraTrig')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.ultraTrigHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'ULTRASONIC_TRIG' && <Check className="ui-icon-sm text-lime-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'ULTRASONIC_ECHO');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'ULTRASONIC_ECHO'
+                        ? 'bg-lime-950 border-lime-400 text-lime-300'
+                        : 'bg-slate-950 border-slate-800 hover:border-lime-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.ultraEcho')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.ultraEchoHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'ULTRASONIC_ECHO' && <Check className="ui-icon-sm text-lime-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'MOTOR_L298N_IN1');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'MOTOR_L298N_IN1'
+                        ? 'bg-sky-950 border-sky-400 text-sky-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-sky-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.l298nIn1')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.l298nIn1Hint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'MOTOR_L298N_IN1' && <Check className="ui-icon-sm text-sky-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'MOTOR_L298N_IN2');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'MOTOR_L298N_IN2'
+                        ? 'bg-sky-950 border-sky-400 text-sky-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-sky-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.l298nIn2')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.l298nIn2Hint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'MOTOR_L298N_IN2' && <Check className="ui-icon-sm text-sky-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    disabled={selectedPin.isInputOnly}
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'MOTOR_L298N_ENA');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'MOTOR_L298N_ENA'
+                        ? 'bg-sky-950 border-sky-400 text-sky-300'
+                        : selectedPin.isInputOnly
+                        ? 'bg-slate-950 border-slate-800 opacity-40 cursor-not-allowed text-slate-500'
+                        : 'bg-slate-950 border-slate-800 hover:border-sky-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.l298nEna')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.l298nEnaHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'MOTOR_L298N_ENA' && <Check className="ui-icon-sm text-sky-400" aria-hidden="true" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Category: I2C bus sensors (share display SDA/SCL) */}
+              <div className="flex flex-col gap-1.5">
+                <span className="ui-type-micro font-mono uppercase text-cyan-400 font-semibold tracking-wider">
+                  {t('pinout.cat.i2cSensors')}
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSystem(prev => ({ ...prev, bme280Enabled: !prev.bme280Enabled }));
+                      setLastAssignedMsg(
+                        t(system.bme280Enabled ? 'pinout.i2c.off' : 'pinout.i2c.on').replace('{name}', 'BME280'),
+                      );
+                      setTimeout(() => setLastAssignedMsg(null), 4000);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors ${
+                      system.bme280Enabled
+                        ? 'bg-cyan-950 border-cyan-400 text-cyan-300'
+                        : 'bg-slate-950 border-slate-800 hover:border-cyan-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div className="font-bold">{t('pinout.opt.bme280')}</div>
+                    <div className="ui-type-micro text-slate-400">{t('pinout.opt.bme280Hint')}</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSystem(prev => ({ ...prev, mpu6050Enabled: !prev.mpu6050Enabled }));
+                      setLastAssignedMsg(
+                        t(system.mpu6050Enabled ? 'pinout.i2c.off' : 'pinout.i2c.on').replace('{name}', 'MPU6050'),
+                      );
+                      setTimeout(() => setLastAssignedMsg(null), 4000);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors ${
+                      system.mpu6050Enabled
+                        ? 'bg-cyan-950 border-cyan-400 text-cyan-300'
+                        : 'bg-slate-950 border-slate-800 hover:border-cyan-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div className="font-bold">{t('pinout.opt.mpu6050')}</div>
+                    <div className="ui-type-micro text-slate-400">{t('pinout.opt.mpu6050Hint')}</div>
+                  </button>
                 </div>
               </div>
 
@@ -788,6 +1098,19 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                     }`}
                   >
                     {t('pinout.opt.spiMosi')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'SPI_MISO');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2 rounded-lg border text-left text-xs ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'SPI_MISO'
+                        ? 'bg-indigo-950 border-indigo-400 text-indigo-300'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-indigo-500/60'
+                    }`}
+                  >
+                    {t('pinout.opt.spiMiso')}
                   </button>
                   <button
                     disabled={selectedPin.isInputOnly}

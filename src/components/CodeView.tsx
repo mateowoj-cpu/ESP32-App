@@ -44,7 +44,7 @@ export const CodeView: React.FC<CodeViewProps> = ({
   const [copied, setCopied] = useState(false);
 
   const cppCode = generateArduinoCppCode(display, system, api, screens, automations);
-  const platformIoCode = generatePlatformIoIni(display);
+  const platformIoCode = generatePlatformIoIni(display, 'esp32', system);
 
   // Copy code to clipboard
   const handleCopy = (text: string) => {
@@ -358,30 +358,91 @@ export const CodeView: React.FC<CodeViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-mono">
-                <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
-                  <td className="py-2.5 px-3 text-rose-400">VCC</td>
-                  <td className="py-2.5 px-3 text-rose-400">3.3V</td>
-                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledVcc')}</td>
-                </tr>
-                <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
-                  <td className="py-2.5 px-3 text-slate-400">GND</td>
-                  <td className="py-2.5 px-3 text-slate-400">GND</td>
-                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledGnd')}</td>
-                </tr>
-                <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
-                  <td className="py-2.5 px-3 text-amber-400">SCL</td>
-                  <td className="py-2.5 px-3 text-amber-400 font-bold">GPIO {display.sclPin}</td>
-                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledScl')}</td>
-                </tr>
-                <tr className="hover:bg-slate-950/40">
-                  <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
-                  <td className="py-2.5 px-3 text-cyan-400">SDA</td>
-                  <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sdaPin}</td>
-                  <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledSda')}</td>
-                </tr>
+                {display.bus === 'i2c' ? (
+                  <>
+                    <tr className="hover:bg-slate-950/40">
+                      <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
+                      <td className="py-2.5 px-3 text-rose-400">VCC</td>
+                      <td className="py-2.5 px-3 text-rose-400">3.3V</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledVcc')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40">
+                      <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
+                      <td className="py-2.5 px-3 text-slate-400">GND</td>
+                      <td className="py-2.5 px-3 text-slate-400">GND</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledGnd')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40">
+                      <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
+                      <td className="py-2.5 px-3 text-amber-400">SCL</td>
+                      <td className="py-2.5 px-3 text-amber-400 font-bold">GPIO {display.sclPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledScl')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40">
+                      <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.oled')}</td>
+                      <td className="py-2.5 px-3 text-cyan-400">SDA</td>
+                      <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sdaPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledSda')}</td>
+                    </tr>
+                  </>
+                ) : (
+                  <>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-rose-400">VCC</td>
+                      <td className="py-2.5 px-3 text-rose-400">3.3V</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftVcc')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-slate-400">GND</td>
+                      <td className="py-2.5 px-3 text-slate-400">GND</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.oledGnd')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-indigo-400">MOSI / SDI</td>
+                      <td className="py-2.5 px-3 text-indigo-400 font-bold">GPIO {display.mosiPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftMosi')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-indigo-400">MISO / SDO</td>
+                      <td className="py-2.5 px-3 text-indigo-400 font-bold">GPIO {display.misoPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftMiso')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-indigo-400">SCK / SCL</td>
+                      <td className="py-2.5 px-3 text-indigo-400 font-bold">GPIO {display.sckPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftSck')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-indigo-400">CS</td>
+                      <td className="py-2.5 px-3 text-indigo-400 font-bold">GPIO {display.csPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftCs')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-purple-400">DC / RS</td>
+                      <td className="py-2.5 px-3 text-purple-400 font-bold">GPIO {display.dcPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftDc')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-purple-400">RST</td>
+                      <td className="py-2.5 px-3 text-purple-400 font-bold">GPIO {display.rstPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftRst')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-indigo-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-indigo-300">{t('code.wiring.module.tft')}</td>
+                      <td className="py-2.5 px-3 text-amber-400">LED / BL</td>
+                      <td className="py-2.5 px-3 text-amber-400 font-bold">GPIO {display.backlightPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.tftBl')}</td>
+                    </tr>
+                  </>
+                )}
                 <tr className="hover:bg-slate-950/40">
                   <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.pir')}</td>
                   <td className="py-2.5 px-3 text-emerald-400">OUT</td>
@@ -407,6 +468,118 @@ export const CodeView: React.FC<CodeViewProps> = ({
                       <td className="py-2.5 px-3 text-fuchsia-400">OUT / DO</td>
                       <td className="py-2.5 px-3 text-fuchsia-400 font-bold">GPIO {system.hallPin}</td>
                       <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.hall')}</td>
+                    </tr>
+                  </>
+                )}
+                {system.dhtPin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-rose-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-rose-300">{t('code.wiring.module.dht')}</td>
+                    <td className="py-2.5 px-3 text-rose-400">DATA</td>
+                    <td className="py-2.5 px-3 text-rose-400 font-bold">GPIO {system.dhtPin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.dht')}</td>
+                  </tr>
+                )}
+                {system.ds18b20Pin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-orange-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-orange-300">{t('code.wiring.module.ds18b20')}</td>
+                    <td className="py-2.5 px-3 text-orange-400">DQ / DATA</td>
+                    <td className="py-2.5 px-3 text-orange-400 font-bold">GPIO {system.ds18b20Pin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.ds18b20')}</td>
+                  </tr>
+                )}
+                {system.ultrasonicTrigPin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-lime-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-lime-300">{t('code.wiring.module.hcsr04')}</td>
+                    <td className="py-2.5 px-3 text-lime-400">TRIG</td>
+                    <td className="py-2.5 px-3 text-lime-400 font-bold">GPIO {system.ultrasonicTrigPin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.ultraTrig')}</td>
+                  </tr>
+                )}
+                {system.ultrasonicEchoPin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-lime-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-lime-300">{t('code.wiring.module.hcsr04')}</td>
+                    <td className="py-2.5 px-3 text-lime-400">ECHO</td>
+                    <td className="py-2.5 px-3 text-lime-400 font-bold">GPIO {system.ultrasonicEchoPin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.ultraEcho')}</td>
+                  </tr>
+                )}
+                {system.servoPin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-violet-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-violet-300">{t('code.wiring.module.servo')}</td>
+                    <td className="py-2.5 px-3 text-violet-400">SIG</td>
+                    <td className="py-2.5 px-3 text-violet-400 font-bold">GPIO {system.servoPin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.servo')}</td>
+                  </tr>
+                )}
+                {system.relayPin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-red-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-red-300">{t('code.wiring.module.relay')}</td>
+                    <td className="py-2.5 px-3 text-red-400">IN</td>
+                    <td className="py-2.5 px-3 text-red-400 font-bold">GPIO {system.relayPin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.relay')}</td>
+                  </tr>
+                )}
+                {system.ws2812Pin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-pink-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-pink-300">{t('code.wiring.module.ws2812')}</td>
+                    <td className="py-2.5 px-3 text-pink-400">DIN</td>
+                    <td className="py-2.5 px-3 text-pink-400 font-bold">GPIO {system.ws2812Pin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.ws2812')}</td>
+                  </tr>
+                )}
+                {system.l298nIn1Pin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-sky-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-sky-300">{t('code.wiring.module.l298n')}</td>
+                    <td className="py-2.5 px-3 text-sky-400">IN1</td>
+                    <td className="py-2.5 px-3 text-sky-400 font-bold">GPIO {system.l298nIn1Pin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.l298n')}</td>
+                  </tr>
+                )}
+                {system.l298nIn2Pin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-sky-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-sky-300">{t('code.wiring.module.l298n')}</td>
+                    <td className="py-2.5 px-3 text-sky-400">IN2</td>
+                    <td className="py-2.5 px-3 text-sky-400 font-bold">GPIO {system.l298nIn2Pin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.l298n')}</td>
+                  </tr>
+                )}
+                {system.l298nEnaPin != null && (
+                  <tr className="hover:bg-slate-950/40 bg-sky-950/10">
+                    <td className="py-2.5 px-3 font-semibold text-sky-300">{t('code.wiring.module.l298n')}</td>
+                    <td className="py-2.5 px-3 text-sky-400">ENA</td>
+                    <td className="py-2.5 px-3 text-sky-400 font-bold">GPIO {system.l298nEnaPin}</td>
+                    <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.l298nEna')}</td>
+                  </tr>
+                )}
+                {system.bme280Enabled && (
+                  <>
+                    <tr className="hover:bg-slate-950/40 bg-cyan-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-cyan-300">{t('code.wiring.module.bme280')}</td>
+                      <td className="py-2.5 px-3 text-cyan-400">SDA</td>
+                      <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sdaPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.bme280')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-cyan-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-cyan-300">{t('code.wiring.module.bme280')}</td>
+                      <td className="py-2.5 px-3 text-cyan-400">SCL</td>
+                      <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sclPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.bme280')}</td>
+                    </tr>
+                  </>
+                )}
+                {system.mpu6050Enabled && (
+                  <>
+                    <tr className="hover:bg-slate-950/40 bg-cyan-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-cyan-300">{t('code.wiring.module.mpu6050')}</td>
+                      <td className="py-2.5 px-3 text-cyan-400">SDA</td>
+                      <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sdaPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.mpu6050')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-cyan-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-cyan-300">{t('code.wiring.module.mpu6050')}</td>
+                      <td className="py-2.5 px-3 text-cyan-400">SCL</td>
+                      <td className="py-2.5 px-3 text-cyan-400 font-bold">GPIO {display.sclPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.mpu6050')}</td>
                     </tr>
                   </>
                 )}

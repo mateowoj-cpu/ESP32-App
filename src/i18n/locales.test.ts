@@ -94,6 +94,13 @@ assert(translate('pl', 'usb.pinout.hint').toLowerCase().includes('a3144'), 'pl u
 assert(translate('en', 'auto.triggerType.hall_magnetic').toLowerCase().includes('hall'), 'en hall trigger');
 assert(translate('en', 'pinout.wiring.hall').includes('{pin}'), 'en hall wiring placeholder');
 assert(translate('pl', 'code.wiring.module.hall').toLowerCase().includes('a3144'), 'pl hall wiring module');
+assert(translate('en', 'code.wiring.module.tft').toLowerCase().includes('tft'), 'en tft wiring module');
+assert(translate('pl', 'pinout.opt.dht').toLowerCase().includes('dht'), 'pl dht opt');
+assert(translate('en', 'pinout.opt.ultraEcho').toLowerCase().includes('echo'), 'en ultra echo');
+assert(translate('pl', 'sim.distance').toLowerCase().includes('hc-sr04'), 'pl sim distance');
+assert(translate('en', 'auto.triggerType.ultrasonic_below').toLowerCase().includes('hc-sr04'), 'en ultra trigger');
+assert(translate('en', 'auto.actionType.toggle_relay').toLowerCase().includes('relay'), 'en relay action');
+assert(translate('pl', 'pinout.opt.bme280').toLowerCase().includes('bme'), 'pl bme280');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

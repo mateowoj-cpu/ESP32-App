@@ -70,6 +70,7 @@ const TRIGGER_TYPE_OPTIONS: TriggerType[] = [
   'light_lux_below',
   'boot_button_pressed',
   'temp_above',
+  'ultrasonic_below',
   'usb_connected',
 ];
 
@@ -78,6 +79,9 @@ const ACTION_TYPE_OPTIONS: ActionType[] = [
   'set_pet_mood',
   'switch_screen',
   'wake_display',
+  'sound_buzzer',
+  'toggle_relay',
+  'set_servo_angle',
 ];
 
 const GENERATOR_DURATION_OPTIONS = [1, 2, 3, 5, 10] as const;

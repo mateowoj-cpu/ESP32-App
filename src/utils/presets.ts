@@ -9,6 +9,7 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
   sdaPin: 21,
   sclPin: 22,
   mosiPin: 23,
+  misoPin: 19,
   sckPin: 18,
   csPin: 5,
   dcPin: 16,
