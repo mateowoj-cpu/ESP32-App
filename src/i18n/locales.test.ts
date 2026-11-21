@@ -56,6 +56,9 @@ assert(translate('pl', 'desktop.ides.winget').toLowerCase().includes('winget'), 
 assert(translate('en', 'market.defaultWidgetPack').toLowerCase().includes('widget'), 'en default widget pack');
 assert(translate('pl', 'market.defaultRulePack').toLowerCase().includes('reguł'), 'pl default rule pack');
 assert(translate('pl', 'import.parseError').toLowerCase().includes('parsow'), 'pl import parse');
+assert(translate('en', 'import.rejected').toLowerCase().includes('rejected'), 'en import rejected');
+assert(translate('pl', 'export.share').toLowerCase().includes('udostęp'), 'pl export share');
+assert(translate('en', 'export.fullConfirm').toLowerCase().includes('password'), 'en export full confirm');
 assert(translate('en', 'market.importJson').toLowerCase().includes('import'), 'en market import');
 assert(translate('en', 'market.signed').toLowerCase().includes('sign'), 'en market signed');
 assert(translate('pl', 'market.addOption').toLowerCase().includes('opcj'), 'pl market add option');

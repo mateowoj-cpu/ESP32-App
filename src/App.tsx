@@ -29,6 +29,11 @@ import {
   generatePlatformIoIni,
   resolvePioBoardProfile,
 } from './utils/codeGenerator';
+import {
+  buildProjectExport,
+  parseProjectJson,
+  type ProjectExportMode,
+} from './utils/projectImportExport';
 import type { UpdateCheckResult } from './platform/updater';
 import type { OpenFilePayload } from './platform/flash';
 import { useLocale } from './i18n/LocaleContext';
@@ -55,6 +60,7 @@ import {
   Store,
   PanelRightOpen,
   PanelRightClose,
+  ChevronDown,
 } from 'lucide-react';
 
 export default function App() {
@@ -143,6 +149,7 @@ export default function App() {
   });
 
   const [projectExported, setProjectExported] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
   const [updateBusy, setUpdateBusy] = useState(false);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
@@ -154,14 +161,41 @@ export default function App() {
     setSimState(prev => ({ ...prev, currentScreenIndex: activeScreenIndex }));
   }, [activeScreenIndex]);
 
-  const applyProjectPayload = (json: Record<string, unknown>, sourceLabel: string) => {
-    if (json.displayConfig) setDisplayConfig(json.displayConfig as typeof displayConfig);
-    if (json.systemConfig) setSystemConfig(json.systemConfig as typeof systemConfig);
-    if (json.apiConfig) setApiConfig(json.apiConfig as typeof apiConfig);
-    if (json.screens) setScreens(json.screens as typeof screens);
-    if (json.automations) setAutomations(json.automations as typeof automations);
+  /** Commit a fully validated project in one shot — never partially overwrite. */
+  const applyParsedProject = (
+    project: {
+      displayConfig: DisplayConfig;
+      systemConfig: SystemConfig;
+      apiConfig: ApiIntegrationsConfig;
+      screens: Screen[];
+      automations: AutomationRule[];
+      activeScreenIndex: number;
+    },
+    sourceLabel: string
+  ) => {
+    setDisplayConfig(project.displayConfig);
+    setSystemConfig(project.systemConfig);
+    setApiConfig(project.apiConfig);
+    setScreens(project.screens);
+    setAutomations(project.automations);
+    setActiveScreenIndex(project.activeScreenIndex);
     setImportNotice(t('import.ok').replace('{name}', sourceLabel));
     setTimeout(() => setImportNotice(null), 4000);
+  };
+
+  const importProjectText = (text: string, sourceLabel: string): boolean => {
+    const result = parseProjectJson(text);
+    if (!result.ok) {
+      setImportNotice(
+        t('import.rejected')
+          .replace('{name}', sourceLabel)
+          .replace('{reason}', result.error)
+      );
+      setTimeout(() => setImportNotice(null), 6000);
+      return false;
+    }
+    applyParsedProject(result.project, sourceLabel);
+    return true;
   };
 
   const handleExternalOpen = async (rawPaths: string[]) => {
@@ -170,12 +204,8 @@ export default function App() {
       const files = await loadOpenTargets(rawPaths);
       for (const file of files) {
         if (file.kind === 'project' && file.content) {
-          try {
-            const json = JSON.parse(file.content) as Record<string, unknown>;
-            applyProjectPayload(json, file.fileName);
+          if (importProjectText(file.content, file.fileName)) {
             setActiveTab('simulator');
-          } catch {
-            setImportNotice(t('import.badJson').replace('{name}', file.fileName));
           }
         } else if (file.kind === 'sketch') {
           setOpenFileNotice(file);
@@ -342,29 +372,40 @@ export default function App() {
     }
   };
 
-  // Export full project as .esp32studio (JSON) — Windows file association
-  const handleExportProjectJson = () => {
-    const projectData = {
-      format: 'esp32studio',
-      version: 1,
-      displayConfig,
-      systemConfig,
-      apiConfig,
-      screens,
-      automations,
-      exportedAt: new Date().toISOString(),
-    };
+  // Export project as .esp32studio — share (default) strips credentials; full is opt-in
+  const handleExportProjectJson = (mode: ProjectExportMode) => {
+    const projectData = buildProjectExport(
+      {
+        displayConfig,
+        systemConfig,
+        apiConfig,
+        screens,
+        automations,
+        activeScreenIndex,
+      },
+      mode
+    );
     const blob = new Blob([JSON.stringify(projectData, null, 2)], {
       type: 'application/vnd.esp32studio+json',
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `esp32_project_${displayConfig.model}.esp32studio`;
+    const suffix = mode === 'full' ? '_full' : '_share';
+    a.download = `esp32_project_${displayConfig.model}${suffix}.esp32studio`;
     a.click();
     URL.revokeObjectURL(url);
+    setExportMenuOpen(false);
     setProjectExported(true);
     setTimeout(() => setProjectExported(false), 2000);
+  };
+
+  const handleExportFullWithConfirm = () => {
+    if (window.confirm(t('export.fullConfirm'))) {
+      handleExportProjectJson('full');
+    } else {
+      setExportMenuOpen(false);
+    }
   };
 
   // Quick .INO download handler
@@ -396,18 +437,21 @@ export default function App() {
     setTimeout(() => setCopiedIno(false), 2000);
   };
 
-  // Import project JSON / .esp32studio
+  // Import project JSON / .esp32studio — validate fully before touching open project
   const handleImportProjectJson = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = event => {
-      try {
-        const json = JSON.parse(event.target?.result as string) as Record<string, unknown>;
-        applyProjectPayload(json, file.name);
-      } catch {
+      const text = typeof event.target?.result === 'string' ? event.target.result : '';
+      if (!text) {
         setImportNotice(t('import.parseError'));
+        return;
       }
+      importProjectText(text, file.name);
+    };
+    reader.onerror = () => {
+      setImportNotice(t('import.parseError'));
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -556,20 +600,48 @@ export default function App() {
               <Upload className="ui-icon-sm" aria-hidden="true" />
               <input type="file" accept=".esp32studio,.json,application/json" onChange={handleImportProjectJson} className="hidden" />
             </label>
-            <button
-              type="button"
-              onClick={handleExportProjectJson}
-              title={t('a11y.exportProject')}
-              aria-label={t('action.exportProject')}
-              className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ui-type-micro font-medium gap-1.5 px-2.5"
-            >
-              {projectExported ? (
-                <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />
-              ) : (
-                <FileJson className="ui-icon-sm text-slate-400" aria-hidden="true" />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setExportMenuOpen(open => !open)}
+                title={t('a11y.exportProject')}
+                aria-label={t('action.exportProject')}
+                aria-expanded={exportMenuOpen}
+                aria-haspopup="menu"
+                className="ui-btn-icon hover:bg-slate-800 text-slate-300 hover:text-white ui-type-micro font-medium gap-1.5 px-2.5"
+              >
+                {projectExported ? (
+                  <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />
+                ) : (
+                  <FileJson className="ui-icon-sm text-slate-400" aria-hidden="true" />
+                )}
+                <span className="hidden xl:inline font-mono">{t('action.exportProject')}</span>
+                <ChevronDown className="ui-icon-sm text-slate-500" aria-hidden="true" />
+              </button>
+              {exportMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full z-50 mt-1 min-w-[14rem] rounded-xl border border-slate-700 bg-slate-900 p-1 shadow-xl"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="w-full rounded-lg px-3 py-2 text-left ui-type-micro text-slate-200 hover:bg-slate-800"
+                    onClick={() => handleExportProjectJson('share')}
+                  >
+                    {t('export.share')}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="w-full rounded-lg px-3 py-2 text-left ui-type-micro text-amber-200 hover:bg-slate-800"
+                    onClick={handleExportFullWithConfirm}
+                  >
+                    {t('export.full')}
+                  </button>
+                </div>
               )}
-              <span className="hidden xl:inline font-mono">{t('action.exportProject')}</span>
-            </button>
+            </div>
           </div>
 
           {/* Primary Action: Download INO */}
