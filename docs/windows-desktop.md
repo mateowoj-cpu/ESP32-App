@@ -49,12 +49,8 @@ Szczegóły: [esp32-tooling-integrations.md](./esp32-tooling-integrations.md), [
 
 Przełącznik w **Ustawienia → Desktop**. CI tagów `v*-beta*` powinien publikować `latest-beta.json`.
 
-## Release (checklista)
+## Release
 
-1. Ustaw sekrety: `TAURI_SIGNING_PRIVATE_KEY`, opcjonalnie Authenticode
-2. Tag `v*` (np. `v0.2.6`) → workflow `windows-release.yml`
-3. Zweryfikuj `latest.json` (+ `latest-beta.json` dla tagów beta) oraz podpis updatera
-4. Smoke: Update ze starszej instalacji linii 0.2.x → nowy tag
-5. Opcjonalnie: draft winget — [windows-winget.md](./windows-winget.md)
+Postępuj według [wspólnego workflow](./desktop-unix.md). W podpisanym wydaniu zweryfikuj `latest.json` i upgrade ze starszego NSIS i MSI. Przy publikacji automatycznej uruchom [Winget Draft](./windows-winget.md) z właściwym tagiem.
 
-Metadane MSI muszą pozostać ASCII / WiX `en-US` — zob. [windows-installer.md](./windows-installer.md) (LGHT0311 / codepage 1252). Po merge fixów MSI uruchom **nowy** `workflow_dispatch` na aktualnym SHA (re-run starego runu nie pobiera nowego conf).
+Metadane MSI muszą zachować ASCII / WiX `en-US`. [Instalator Windows](./windows-installer.md).

@@ -8,6 +8,7 @@
  * - No network call unless enabled AND `VITE_TELEMETRY_ENDPOINT` is set
  */
 
+import packageInfo from '../../package.json' with { type: 'json' };
 import { loadTelemetryEnabled } from '../i18n/locales';
 
 export type TelemetryEventName =
@@ -30,8 +31,6 @@ export interface TelemetryPayload {
   ok?: boolean;
   ts: number;
 }
-
-const APP_VERSION = '0.2.13';
 
 function coarseOs(): string {
   if (typeof navigator === 'undefined') return 'unknown';
@@ -62,7 +61,7 @@ export function isTelemetryActive(): boolean {
 /** Build the outbound payload (also used by unit tests). */
 export function buildTelemetryPayload(event: TelemetryEvent): TelemetryPayload {
   const payload: TelemetryPayload = {
-    v: APP_VERSION,
+    v: packageInfo.version,
     os: coarseOs(),
     event: event.name,
     ts: Date.now(),

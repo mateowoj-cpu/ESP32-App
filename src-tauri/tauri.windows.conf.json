@@ -1,0 +1,46 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "bundle": {
+    "targets": [
+      "nsis",
+      "msi"
+    ],
+    "resources": [
+      "resources/windows/DRIVERS.txt",
+      "resources/windows/SIGNING.txt",
+      "resources/sidecar/README.txt",
+      "resources/sidecar/**/*"
+    ],
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com",
+      "tsp": false,
+      "allowDowngrades": false,
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "Polish",
+          "English"
+        ],
+        "customLanguageFiles": {
+          "Polish": "windows/nsis-languages/Polish.nsh"
+        },
+        "displayLanguageSelector": true,
+        "compression": "lzma",
+        "startMenuFolder": "ESP32 Display Studio",
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "windows/installer-hooks.nsh"
+      },
+      "wix": {
+        "language": {
+          "en-US": {}
+        },
+        "upgradeCode": "a7c3e9f1-5b2d-4e8a-9c1f-6d4b8a2e0f35"
+      }
+    }
+  }
+}

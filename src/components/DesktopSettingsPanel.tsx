@@ -1,3 +1,4 @@
+import packageInfo from '../../package.json' with { type: 'json' };
 import React, { useEffect, useState } from 'react';
 import { useLocale } from '../i18n/LocaleContext';
 import type { AppLocale, UpdateChannel } from '../i18n/locales';
@@ -199,7 +200,7 @@ export const DesktopSettingsPanel: React.FC = () => {
           <MonitorSmartphone className="ui-icon-sm text-cyan-400" aria-hidden="true" />
           {t('desktop.title')}
         </h3>
-        <span className="ui-type-micro font-mono text-cyan-400">v0.2.13</span>
+        <span className="ui-type-micro font-mono text-cyan-400">v{packageInfo.version}</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">

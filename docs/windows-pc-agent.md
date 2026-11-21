@@ -50,4 +50,4 @@ Windows może blokować wychodzący HTTP do urządzenia w LAN.
 
 ## CI
 
-Workflow `windows-release.yml` buduje agenta przed `tauri build` i dołącza `.exe` do releasu oraz (przez nakładkę) do instalatora.
+Workflow `desktop-release.yml` buduje agenta przed `tauri build` i dołącza `.exe` do releasu oraz (przez nakładkę) do instalatora.

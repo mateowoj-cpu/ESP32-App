@@ -4,7 +4,7 @@
   "version": "0.2.13",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rimraf dist server.js",
@@ -29,7 +29,7 @@
     "test:host-ides": "tsx src/platform/hostIdes.test.ts",
     "test:pin-programming": "tsx src/utils/pinProgramming.test.ts",
     "validate:board-catalog": "tsx scripts/board-profiles/validate-community.ts",
-    "smoke": "npm run assert:app-version && npm run assert:updater-key-format && npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run test:board-sync && npm run test:board-catalog && npm run test:ota && npm run test:telemetry && npm run test:marketplace && npm run test:tools && npm run test:host-ides && npm run test:pin-programming && npm run validate:board-catalog && npm run build",
+    "smoke": "npm run assert:app-version && node scripts/ci/assert-app-version.test.mjs && npm run assert:updater-key-format && npm run lint && npm run test:serial && npm run test:deeplink && npm run test:i18n && npm run test:pio-board && npm run test:board-cache && npm run test:board-sync && npm run test:board-catalog && npm run test:ota && npm run test:telemetry && npm run test:marketplace && npm run test:tools && npm run test:host-ides && npm run test:pin-programming && npm run validate:board-catalog && npm run build",
     "compile:cargo": "cargo check --manifest-path src-tauri/Cargo.toml",
     "compile:full": "bash scripts/full-compile.sh",
     "assert:msi-ascii": "node scripts/windows/assert-msi-ascii-config.mjs",

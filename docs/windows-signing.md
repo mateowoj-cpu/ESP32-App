@@ -54,19 +54,18 @@ Tauri wywoła `signtool` dla binariów i instalatorów.
 
 ### Self-hosted runner / cloud HSM (Faza 16)
 
-Workflow `.github/workflows/windows-release.yml`:
+Workflow `.github/workflows/desktop-release.yml`:
 
 | Mechanizm | Jak |
 |-----------|-----|
-| `workflow_dispatch` input `runner` | np. label self-hosted zamiast `windows-latest` |
-| Repo variable `WINDOWS_RUNNER` | domyślny label dla tagów `v*` (gdy brak inputu) |
+| Repo variable `WINDOWS_RUNNER` | label zaufanego runnera Windows dla `DESKTOP_SYSTEM_SIGNED=true` |
 | Secret `WINDOWS_CERTIFICATE_THUMBPRINT` | SHA1 z **prawdziwego** certu na runnerze (bez PFX) — skrypt `Resolve-CodeSigningOverlay.ps1` sprawdza obecność w `Cert:\CurrentUser\My` |
 
 **Nie** commituj thumbprintów. Wartość secretu pochodzi wyłącznie z `Get-ChildItem Cert:\CurrentUser\My` na maszynie z tokenem/HSM.
 
 Checklista ops:
 
-- [ ] Self-hosted Windows runner zarejestrowany (label zgodny z `WINDOWS_RUNNER` / inputem)
+- [ ] Self-hosted Windows runner zarejestrowany (label zgodny z `WINDOWS_RUNNER`)
 - [ ] Token EV / HSM odblokowany na sesji build (PIN poza logami CI)
 - [ ] Thumbprint skopiowany do secretu `WINDOWS_CERTIFICATE_THUMBPRINT` (40 hex)
 - [ ] Smoke: `Get-AuthenticodeSignature` na NSIS po tagu `v*`
@@ -76,7 +75,7 @@ Pełna checklista reputacji / SmartScreen: [windows-smartscreen.md](./windows-sm
 
 ## Sekrety GitHub Actions
 
-Workflow `.github/workflows/windows-release.yml` oczekuje (opcjonalnie):
+Workflow `.github/workflows/desktop-release.yml` oczekuje (opcjonalnie):
 
 | Secret / var | Opis |
 |--------------|------|
@@ -85,7 +84,7 @@ Workflow `.github/workflows/windows-release.yml` oczekuje (opcjonalnie):
 | `WINDOWS_CERTIFICATE_THUMBPRINT` | SHA1 thumbprint (bez spacji) — ścieżka EV/HSM bez PFX |
 | `WINDOWS_RUNNER` (variable) | Opcjonalny label self-hosted |
 
-Bez tych sekretów job **buduje niepodpisany** instalator (przydatne do smoke). Z PFX importuje certyfikat; z samym thumbprintem używa certu już obecnego na runnerze.
+Build z `DESKTOP_SYSTEM_SIGNED=true` wymaga certyfikatu. Z PFX importuje certyfikat, a z thumbprintem używa certyfikatu już obecnego na runnerze. Preview buduje bez Authenticode.
 
 ### Jak przygotować Base64 z .pfx
 

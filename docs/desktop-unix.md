@@ -42,62 +42,24 @@ Wymaga Rust + zależności systemowych Tauri 2 ([prerequisites](https://v2.tauri
 
 ## Bundling / CI (Faza 13–15)
 
-Osobne workflow per OS (każdy OS osobno — `workflow_dispatch` lub tag `v*`):
+[`desktop-release.yml`](../.github/workflows/desktop-release.yml) buduje cztery warianty z jednego commita.
 
-| Workflow | Runner | Targets | Config overlay |
-|----------|--------|---------|----------------|
-| [`.github/workflows/linux-release.yml`](../.github/workflows/linux-release.yml) | `ubuntu-22.04` | AppImage + deb | `tauri.linux.json` / `tauri.linux.signed.json` |
-| [`.github/workflows/macos-release.yml`](../.github/workflows/macos-release.yml) | `macos-14` | dmg | `tauri.macos.json` / `tauri.macos.signed.json` |
-| [`.github/workflows/windows-release.yml`](../.github/workflows/windows-release.yml) | Windows | NSIS / MSI | updater unsigned/signed overlays |
-| [`.github/workflows/desktop-unix-release.yml`](../.github/workflows/desktop-unix-release.yml) | `ubuntu-22.04` | tylko `latest.json` | gdy signed + fragmenty platform |
+| Runner | Instalatory |
+| --- | --- |
+| `windows-2022` | NSIS, MSI i osobny agent PC x64 |
+| `ubuntu-22.04` | AppImage i DEB x64 |
+| `macos-15` | DMG Apple Silicon |
+| `macos-15-intel` | DMG Intel |
 
-Wersja: pojedyncze źródło prawdy `package.json` → musi zgadzać się z `src-tauri/tauri.conf.json` + `src-tauri/Cargo.toml` (+ root `package-lock.json`). CI: `npm run assert:app-version`. Artefakty: `esp32-display-studio-<os>-<version>`.
+Release Please wylicza wersję po zmianach `fix:`, `feat:` i `BREAKING CHANGE`. Po scaleniu PR wydawniczego powstaje draft. Publikacja następuje po weryfikacji całej macierzy, gdy `DESKTOP_AUTO_PUBLISH=true`.
 
-### Signed updater artifacts (Faza 15)
+- Zmienna `RELEASE_APP_ID` i sekret `RELEASE_APP_PRIVATE_KEY` wskazują aplikację GitHub z dostępem zapisu do Contents, Pull requests i Issues.
+- `DESKTOP_SYSTEM_SIGNED=true` wymaga kluczy systemowych Windows i Apple. [Windows](./windows-signing.md) · [macOS](./macos-notarize.md)
+- `DESKTOP_UPDATER_SIGNED=true` wymaga klucza Tauri. CI zweryfikuje podpis i wersję, a następnie złoży wspólny `latest.json`. [Updater](./windows-updater.md)
 
-Domyślne nakładki (`tauri.linux.json` / `tauri.macos.json`) mają `createUpdaterArtifacts: false` (smoke unsigned OK).
+Uruchom **Desktop Release → Run workflow** na `main` z pustym `tag`, aby pobrać instalatory testowe z Artifacts. Podanie istniejącego taga draftu ponawia build tego commita. Wersję produktu przechowuje `package.json`. Kontrola `npm run assert:app-version` porównuje ją z lockfile npm i opcjonalnym tagiem.
 
-CI włącza signed overlay **tylko** gdy `TAURI_SIGNING_PRIVATE_KEY` wygląda na prawdziwy klucz minisign (`untrusted comment:`) — ten sam gate co Windows (#31–#33). Inaczej build unsigned **bez** `TAURI_SIGNING_*` w env kroku build:
-
-- `src-tauri/tauri.linux.signed.json` / `src-tauri/tauri.macos.signed.json` (`createUpdaterArtifacts: true`)
-- unsigned: `tauri.linux.json` / `tauri.macos.json`
-
-### AppImage smoke (Faza 14)
-
-[`.github/workflows/desktop-unix-appimage-smoke.yml`](../.github/workflows/desktop-unix-appimage-smoke.yml) — **tylko** `workflow_dispatch` (nie na każdym PR). Buduje nakładkę Linux i asertuje obecność `.AppImage`.
-
-### macOS notarize (opcjonalnie)
-
-Codesign / notarize: checklista [macos-notarize.md](./macos-notarize.md) (sekrety człowieka; bez store submit).
-
-### Multi-platform `latest.json` (gdy signed)
-
-Gdy masz **podpisane** fragmenty updatera z Windows / Linux / macOS:
-
-```bash
-chmod +x scripts/unix/build-multiplatform-latest-json.sh
-./scripts/unix/build-multiplatform-latest-json.sh \
-  --version 0.2.13 \
-  --notes "…" \
-  --windows path/to/windows-platform.json \
-  --linux path/to/linux-platform.json \
-  --darwin path/to/darwin-platform.json \
-  --out latest.json
-```
-
-Skrypt **odmawia** fragmentów bez pola `signature` lub z placeholderem. Szablon przykładowy (niepublikować): `packaging/updater/latest.multiplatform.example.json`.
-
-Job CI `multiplatform-latest-json` (tag `v*`) szuka artefaktów nazwanych `windows-platform.json` / `linux-platform.json` / `darwin-platform.json` i — gdy obecne oraz klucz signing — składa `latest.multiplatform.json` do releasu. **Nie wymyśla** podpisów.
-
-Lokalnie:
-
-```bash
-npm run tauri:build -- --config src-tauri/tauri.linux.json
-npm run tauri:build -- --config src-tauri/tauri.macos.json
-# signed (wymaga TAURI_SIGNING_PRIVATE_KEY):
-npm run tauri:build -- --config src-tauri/tauri.linux.signed.json
-npm run tauri:build -- --config src-tauri/tauri.macos.signed.json
-```
+[Lokalny smoke AppImage](../.github/workflows/desktop-unix-appimage-smoke.yml) nadal można uruchamiać osobno. W lokalnej kompilacji podstawowa konfiguracja automatycznie ładuje plik `tauri.<platform>.conf.json`.
 
 ## Docs powiązane
 

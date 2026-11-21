@@ -26,7 +26,7 @@ npm ci   # lub: npm install
 npm run dev
 ```
 
-→ [http://localhost:3000](http://localhost:3000)
+→ [http://127.0.0.1:3000](http://127.0.0.1:3000)
 
 Opcjonalnie skopiuj `.env.example` → `.env` (`GEMINI_API_KEY` obecnie opcjonalny / nieużywany w UI).
 
@@ -178,7 +178,7 @@ packaging/winget/    Manifesty referencyjne (SHA placeholder do releasu)
 packaging/updater/   Przykłady multi-platform latest.json
 scripts/             Windows / Unix / winget / board-profiles / full-compile.sh
 tools/pc-agent/      Agent monitora PC (Python)
-.github/workflows/   smoke, windows/linux/macos-release, desktop-unix*, winget-draft, penv
+.github/workflows/   smoke, desktop-release, desktop-unix-appimage-smoke, winget-draft, penv
 ```
 
 ## CI
@@ -186,16 +186,13 @@ tools/pc-agent/      Agent monitora PC (Python)
 | Workflow | Trigger | Co robi |
 |----------|---------|---------|
 | `smoke.yml` | PR / push `main` | Job frontend = suite jak `npm run smoke` + pc-agent; job `rust-smoke` = `cargo check` |
-| `windows-release.yml` | tag `v*` / `workflow_dispatch` | NSIS/MSI + updater (Windows runner) — osobno od Unix |
-| `linux-release.yml` | tag `v*` / `workflow_dispatch` | AppImage + deb (`ubuntu-22.04`) |
-| `macos-release.yml` | tag `v*` / `workflow_dispatch` | dmg (`macos-14`) |
+| `desktop-release.yml` | push `main` / dispatch | Release Please, build natywny i wspólna publikacja |
 | `board-catalog.yml` | PR (path-filtered) | Walidacja community board profiles |
 | `windows-penv-artifact.yml` | dispatch | Artifact penv PlatformIO |
-| `desktop-unix-release.yml` | tag `v*` / dispatch | Opcjonalny assembler multi-platform `latest.json` (gdy signed) |
 | `desktop-unix-appimage-smoke.yml` | `workflow_dispatch` | Szybki smoke paczek Linux |
 | `winget-draft.yml` | dispatch / po releasie | SHA z assetu + draft manifest (**publish = human**) |
 
-Wersja: `npm run assert:app-version` (package.json ≡ tauri.conf ≡ Cargo.toml ≡ package-lock ≡ Cargo.lock `esp32-display-studio`). Przy ręcznym dispatch Windows/Unix: `confirm_fresh_dispatch=NEW`, tip `main`, **nie** Re-run starych runów. Szczegóły: [desktop-unix.md](./desktop-unix.md), [windows-updater.md](./windows-updater.md).
+Wersję produktu wyznacza `package.json`. `npm run assert:app-version` sprawdza lockfile npm, ścieżkę Tauri oraz tag. Desktop Release na `main` z pustym polem `tag` buduje preview. Podaj tag draftu, aby ponowić build tej wersji. Szczegóły: [desktop-unix.md](./desktop-unix.md), [windows-updater.md](./windows-updater.md).
 
 **Nie commituj** prywatnych kluczy, `.pfx`, prawdziwych SHA winget z niesprawdzonych binarek, ani tokenów. Zobacz [windows-signing.md](./windows-signing.md), [windows-winget.md](./windows-winget.md).
 

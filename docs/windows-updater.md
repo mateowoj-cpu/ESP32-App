@@ -1,53 +1,10 @@
-# Auto-update (Tauri)
+# Aktualizacje desktop
 
-ESP32 Display Studio używa `tauri-plugin-updater`.
+Podpisany wariant wydania udostępnia `latest.json` w stabilnym GitHub Release. Manifest wskazuje osobno NSIS, MSI, AppImage i archiwa aplikacji dla obu architektur macOS. Pakiety DEB aktualizuj przez instalację nowszego DEB. Konfiguracja automatyzuje kanał stable.
 
-## Jak działa
+- Ustaw `DESKTOP_UPDATER_SIGNED=true` i zapisz prywatny klucz w `TAURI_SIGNING_PRIVATE_KEY`. W razie potrzeby dodaj `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+- Publiczny klucz w `src-tauri/tauri.conf.json` musi odpowiadać kluczowi CI. Zachowaj go dla istniejących instalacji. Klucze prywatne przechowuj poza repozytorium.
+- CI sprawdza, czy każdy podpis odpowiada pobieranemu binarium i publikowanej wersji. Brak klucza lub błędny podpis blokuje wydanie w trybie podpisanym.
+- Sprawdź upgrade z istniejącej instalacji i ponowne uruchomienie. Użytkownicy wydania bez manifestu mogą pobrać instalator ręcznie z Releases.
 
-1. Release CI buduje NSIS/MSI **oraz** artefakty updatera (`.sig` + `latest.json`).
-2. Aplikacja sprawdza endpoint zależny od kanału (Ustawienia → Desktop):
-
-   - **stable:** `releases/latest/download/latest.json`
-   - **beta:** `releases/latest/download/latest-beta.json`
-
-3. Po pobraniu aktualizacji restartuje się (`plugin-process` → `relaunch`).
-
-W UI: przycisk **Update** w nagłówku (tylko shell Tauri) oraz banner, gdy jest nowa wersja.
-Aktualna linia produktowa: **0.2.13** (`createUpdaterArtifacts: false` w bazie; Windows/Unix signed overlays tylko z poprawnym sekretem — [desktop-unix.md](./desktop-unix.md)).
-
-## Klucze podpisu updatera
-
-Publiczny klucz jest w `src-tauri/tauri.conf.json` → `plugins.updater.pubkey`.
-
-Sekrety GitHub Actions:
-
-| Secret | Opis |
-|--------|------|
-| `TAURI_SIGNING_PRIVATE_KEY` | Zawartość prywatnego klucza (minisign / tauri signer) |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Hasło klucza (jeśli ustawione) |
-
-Domyślnie `bundle.createUpdaterArtifacts` w `tauri.conf.json` jest **`false`** (jak Unix unsigned overlays). CI podpisuje updater **tylko** gdy sekret wygląda na prawdziwy klucz minisign / `tauri signer` (linia `untrusted comment:`) — wtedy dokłada `tauri.windows.updater-signed.json`. W przeciwnym razie (brak / blank / placeholder bez komentarza) czyści env i dokłada `tauri.windows.updater-unsigned.json` → NSIS/MSI bez `.sig` / `latest.json`, **bez** faila `Missing comment in secret key`.
-
-**Nie używaj Re-run.** Workflow Windows Release odmawia `run_attempt != 1` oraz SHA ≠ tip `origin/main`; wymaga `confirm_fresh_dispatch=NEW`. Ścieżka unsigned **nie wstrzykuje** `TAURI_SIGNING_*` do env kroku build (osobny job step).
-
-### Regeneracja kluczy
-
-```bash
-npx tauri signer generate -w ./src-tauri/.updater-key.local
-```
-
-1. Wstaw **publiczny** klucz do `tauri.conf.json`.
-2. Zapisz prywatny jako secret `TAURI_SIGNING_PRIVATE_KEY`.
-3. Nie commituj pliku prywatnego (jest w `.gitignore`).
-
-## Wymagania po stronie release
-
-- Tag `v*` (np. `v0.1.1`) albo ręczne `workflow_dispatch`
-- Plik `latest.json` w assets releasu (generuje Tauri bundler / tauri-action)
-- Endpoint w config wskazuje na `releases/latest/download/latest.json`
-
-## Test ręczny
-
-1. Zainstaluj starszą wersję Studio.
-2. Opublikuj nowszy tag z podpisanymi artefaktami.
-3. Uruchom Studio → **Update** → zainstaluj → aplikacja się zrestartuje.
+[Konfiguracja wydania](./desktop-unix.md)
