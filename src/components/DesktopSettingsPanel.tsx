@@ -2,9 +2,17 @@ import packageInfo from '../../package.json' with { type: 'json' };
 import React, { useEffect, useState } from 'react';
 import { useLocale } from '../i18n/LocaleContext';
 import type { AppLocale, UpdateChannel } from '../i18n/locales';
+import { BETA_CHANNEL_AVAILABLE } from '../i18n/locales';
 import type { DesktopStatus } from '../platform/desktop';
 import { HOST_IDE_CATALOG, wingetInstallCommand } from '../platform/hostIdes';
 import type { ExternalToolsStatus, ToolPathOverrides, ToolProbe } from '../platform/tools';
+import type { UpdateInstallInfo } from '../platform/updater';
+import {
+  GITHUB_RELEASES_URL,
+  getUpdateInstallInfo,
+  isBetaChannelChoiceEnabled,
+  openManualReleaseDownload,
+} from '../platform/updater';
 import { Download, MonitorSmartphone, RefreshCw, Wrench, ExternalLink } from 'lucide-react';
 
 export const DesktopSettingsPanel: React.FC = () => {
@@ -29,6 +37,12 @@ export const DesktopSettingsPanel: React.FC = () => {
   const [agentPort, setAgentPort] = useState(8080);
   const [toolPaths, setToolPaths] = useState<ToolPathOverrides>({});
   const [toolsStatus, setToolsStatus] = useState<ExternalToolsStatus | null>(null);
+  const [installInfo, setInstallInfo] = useState<UpdateInstallInfo | null>(null);
+
+  const betaChoiceEnabled = isBetaChannelChoiceEnabled();
+  // Keep saved beta preference in state/localStorage; only expose it in the select when ready.
+  const channelSelectValue: UpdateChannel =
+    betaChoiceEnabled || updateChannel === 'stable' ? updateChannel : 'stable';
 
   const refreshTools = async () => {
     const { getExternalToolsStatus, getToolPathOverrides } = await import('../platform/tools');
@@ -41,6 +55,7 @@ export const DesktopSettingsPanel: React.FC = () => {
       const { isTauri: check } = await import('@tauri-apps/api/core');
       if (!check()) {
         setIsTauri(false);
+        setInstallInfo(await getUpdateInstallInfo());
         return;
       }
       setIsTauri(true);
@@ -48,9 +63,25 @@ export const DesktopSettingsPanel: React.FC = () => {
       const next = await getDesktopStatus();
       setStatus(next);
       await setCloseToTrayPreference(closeToTray);
+      setInstallInfo(await getUpdateInstallInfo());
       await refreshTools();
     } catch {
       setIsTauri(false);
+      setInstallInfo(await getUpdateInstallInfo());
+    }
+  };
+
+  const openManualUpdate = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const url = installInfo?.releasesUrl || GITHUB_RELEASES_URL;
+      const result = await openManualReleaseDownload(url);
+      setMessage(result.ok ? t('update.manualDownload') : result.message);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -219,14 +250,43 @@ export const DesktopSettingsPanel: React.FC = () => {
         <label className="flex flex-col gap-1">
           <span className="text-slate-400">{t('desktop.channel')}</span>
           <select
-            value={updateChannel}
+            value={channelSelectValue}
             onChange={e => setUpdateChannel(e.target.value as UpdateChannel)}
             className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100"
           >
             <option value="stable">{t('update.channel.stable')}</option>
-            <option value="beta">{t('update.channel.beta')}</option>
+            {betaChoiceEnabled && (
+              <option value="beta">{t('update.channel.beta')}</option>
+            )}
           </select>
+          {!BETA_CHANNEL_AVAILABLE && (
+            <span className="ui-type-micro text-slate-500 leading-relaxed">
+              {t('update.channel.betaSoon')}
+            </span>
+          )}
         </label>
+      </div>
+
+      <div className="flex flex-col gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5">
+        {(installInfo?.packageKind === 'deb' ||
+          !installInfo ||
+          !installInfo.updaterSupported ||
+          installInfo.manualDownloadRecommended) && (
+          <p className="ui-type-micro text-slate-400 leading-relaxed">
+            {installInfo?.packageKind === 'deb'
+              ? t('update.manualDebHint')
+              : t('update.manualFallbackHint')}
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void openManualUpdate()}
+          className="inline-flex items-center justify-center gap-1.5 self-start px-2.5 py-1.5 rounded-lg ui-type-micro bg-slate-800 border border-slate-700 text-cyan-200 disabled:opacity-50"
+        >
+          <Download className="ui-icon-sm" aria-hidden="true" />
+          {t('update.manualDownload')}
+        </button>
       </div>
 
       <label className="flex items-center justify-between gap-3 text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5">

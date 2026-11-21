@@ -45,9 +45,11 @@ Szczegóły: [esp32-tooling-integrations.md](./esp32-tooling-integrations.md), [
 | Kanał | Endpoint |
 |-------|----------|
 | Stable | `releases/latest/download/latest.json` |
-| Beta | `releases/latest/download/latest-beta.json` (+ fallback `beta-channel`) |
+| Beta (gated) | `releases/download/beta-channel/latest.json` — **nie** `releases/latest` |
 
-Przełącznik w **Ustawienia → Desktop**. CI tagów `v*-beta*` powinien publikować `latest-beta.json`.
+Stabilny manifest jest już w pipeline wydania. Wybór **Beta** w UI pojawia się dopiero po publikacji i teście osobnego manifestu prerelease na tagu `beta-channel`. Zapisana preferencja `esp32_update_channel=beta` jest odczytywana i wraca, gdy kanał zostanie odblokowany (`BETA_CHANNEL_AVAILABLE`).
+
+Pakiety **DEB** oraz instalacje bez updatera mają w UI przycisk ręcznego pobrania z GitHub Releases (auto-update Tauri ich nie obejmuje).
 
 ## Release
 

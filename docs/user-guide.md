@@ -78,7 +78,7 @@ Zrzuty z web UI (locale **PL**, motyw dark cyan/slate):
 | Język interfejsu | Polski / English |
 | Zamykaj do zasobnika | Okno ukrywa się w tray |
 | Autostart Studio / agenta PC | Start z systemem |
-| Kanał aktualizacji | Stabilny (`latest.json`) / Beta (`latest-beta.json`) |
+| Kanał aktualizacji | Stabilny (`latest.json`); Beta po osobnym manifeście prerelease; DEB — ręczne pobranie z Releases |
 | Diagnostyka flash/COM | Lokalny log + eksport ZIP |
 | Synchronizuj profile płytek | Community catalog VID:PID |
 | Telemetria diagnostyczna | **Opt-in**, domyślnie off — [telemetry.md](./telemetry.md) |

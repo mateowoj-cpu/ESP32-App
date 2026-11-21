@@ -34,7 +34,9 @@ use pc_agent::{get_pc_agent_info, start_pc_agent, stop_pc_agent, PcAgentState};
 use serial::{
     close_serial_port, list_serial_ports, open_serial_port, write_serial_port, SerialManager,
 };
-use update_channel::{check_update_channel, download_and_install_channel};
+use update_channel::{
+    check_update_channel, download_and_install_channel, get_update_install_info,
+};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -95,6 +97,7 @@ pub fn run() {
             show_main_window,
             check_update_channel,
             download_and_install_channel,
+            get_update_install_info,
             set_diagnostics_enabled,
             append_diagnostics_log,
             get_diagnostics_log_path,

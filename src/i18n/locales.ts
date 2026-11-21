@@ -1,15 +1,33 @@
 export type AppLocale = 'pl' | 'en';
 export type UpdateChannel = 'stable' | 'beta';
 
+/**
+ * Flip to true only after a dedicated prerelease/beta `latest.json` exists on a
+ * non-`releases/latest` tag (e.g. `beta-channel`) and has been smoke-tested.
+ * Until then the UI hides the beta choice; a saved `esp32_update_channel=beta`
+ * preference is still read and re-applied when this becomes true.
+ */
+export const BETA_CHANNEL_AVAILABLE = false;
+
 export const UPDATE_ENDPOINTS: Record<UpdateChannel, string[]> = {
   stable: [
     'https://github.com/mateowoj-cpu/ESP32-App/releases/latest/download/latest.json',
   ],
+  // Dedicated tag only — never point beta at stable `releases/latest`.
   beta: [
-    'https://github.com/mateowoj-cpu/ESP32-App/releases/latest/download/latest-beta.json',
     'https://github.com/mateowoj-cpu/ESP32-App/releases/download/beta-channel/latest.json',
   ],
 };
+
+/** Prefer saved channel, but force stable while beta is gated off. */
+export function resolveActiveUpdateChannel(
+  preferred: UpdateChannel = loadUpdateChannel(),
+): UpdateChannel {
+  if (preferred === 'beta' && !BETA_CHANNEL_AVAILABLE) {
+    return 'stable';
+  }
+  return preferred;
+}
 
 type Dict = Record<string, string>;
 
@@ -113,8 +131,15 @@ const pl: Dict = {
   'update.upToDate': 'Aplikacja jest aktualna.',
   'update.unavailable': 'Automatyczne aktualizacje dostępne tylko w aplikacji desktopowej (Tauri).',
   'update.install': 'Pobierz i zainstaluj',
+  'update.manualDownload': 'Pobierz z GitHub Releases',
+  'update.manualDebHint':
+    'Instalacja DEB nie korzysta z auto-aktualizacji Tauri. Pobierz nowszy pakiet .deb z Releases i zainstaluj go systemowo (np. apt / dpkg).',
+  'update.manualFallbackHint':
+    'Automatyczna aktualizacja jest niedostępna dla tej instalacji. Pobierz instalator ręcznie z GitHub Releases.',
   'update.channel.stable': 'Stabilny',
   'update.channel.beta': 'Beta',
+  'update.channel.betaSoon':
+    'Kanał beta pojawi się po publikacji i teście osobnego manifestu prerelease (nie wskazuje na stabilne releases/latest).',
   'desktop.title': 'Aplikacja desktopowa',
   'desktop.language': 'Język interfejsu',
   'desktop.channel': 'Kanał aktualizacji',
@@ -1431,8 +1456,15 @@ const en: Dict = {
   'update.upToDate': 'You are up to date.',
   'update.unavailable': 'Auto-update is only available in the desktop (Tauri) app.',
   'update.install': 'Download and install',
+  'update.manualDownload': 'Download from GitHub Releases',
+  'update.manualDebHint':
+    'DEB installs do not use Tauri auto-update. Download a newer .deb from Releases and install it with your package manager (apt / dpkg).',
+  'update.manualFallbackHint':
+    'Automatic updates are unavailable for this install. Download the installer manually from GitHub Releases.',
   'update.channel.stable': 'Stable',
   'update.channel.beta': 'Beta',
+  'update.channel.betaSoon':
+    'The beta channel will appear after a separate prerelease manifest is published and tested (it will not point at stable releases/latest).',
   'desktop.title': 'Desktop',
   'desktop.language': 'UI language',
   'desktop.channel': 'Update channel',
@@ -2663,6 +2695,7 @@ export function saveLocale(locale: AppLocale): void {
   localStorage.setItem('esp32_locale', locale);
 }
 
+/** Reads the previously saved preference (including beta) from localStorage. */
 export function loadUpdateChannel(): UpdateChannel {
   const raw = localStorage.getItem('esp32_update_channel');
   return raw === 'beta' ? 'beta' : 'stable';
