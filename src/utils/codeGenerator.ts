@@ -1164,7 +1164,7 @@ export function wrapPcAgentDownload(
     '# Source of truth: tools/pc-agent/esp32_pc_agent.py',
     `# Run: python3 esp32_pc_agent.py --host ${host} --port ${portNum}`,
     '# Windows: use esp32-pc-agent.exe from Releases (same --host / --port).',
-    '# macOS / Linux: install Python 3, then: pip install -r requirements.txt',
+    '# macOS / Linux: install Python 3, then: pip install psutil requests',
     '#',
     '',
   ].join('\n');

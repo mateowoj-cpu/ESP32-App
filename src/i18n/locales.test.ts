@@ -32,6 +32,9 @@ assert(translate('en', 'pet.step.happy.name').toLowerCase().includes('smile'), '
 assert(translate('pl', 'integ.city.dortmund').toLowerCase().includes('dortmund'), 'pl city');
 assert(translate('en', 'integ.pythonUnixHint').toLowerCase().includes('python'), 'en python unix hint');
 assert(translate('pl', 'integ.pythonUnixHint').toLowerCase().includes('python'), 'pl python unix hint');
+assert(translate('en', 'integ.pythonUnixHint').includes('pip install psutil requests'), 'en standalone pip');
+assert(translate('pl', 'integ.pythonUnixHint').includes('pip install psutil requests'), 'pl standalone pip');
+assert(!translate('en', 'integ.pythonUnixHint').includes('requirements.txt'), 'en no requirements.txt');
 assert(translate('en', 'integ.windowsExeHint').toLowerCase().includes('exe'), 'en windows exe hint');
 assert(translate('pl', 'integ.firewallHintUnix').toLowerCase().includes('linux'), 'pl unix firewall');
 assert(translate('en', 'pinout.title').toLowerCase().includes('pin'), 'en pinout');

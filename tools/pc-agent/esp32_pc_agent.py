@@ -28,14 +28,14 @@ try:
     import psutil
 except ImportError as exc:  # pragma: no cover
     raise SystemExit(
-        "Brak pakietu psutil. Zainstaluj: pip install -r requirements.txt"
+        "Brak pakietu psutil. Zainstaluj: pip install psutil requests"
     ) from exc
 
 try:
     import requests
 except ImportError as exc:  # pragma: no cover
     raise SystemExit(
-        "Brak pakietu requests. Zainstaluj: pip install -r requirements.txt"
+        "Brak pakietu requests. Zainstaluj: pip install psutil requests"
     ) from exc
 
 

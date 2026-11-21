@@ -17,6 +17,8 @@ assert.match(canonical, /argparse/);
 const script = wrapPcAgentDownload(canonical, '10.0.0.42', 9090);
 assert.match(script, /tools\/pc-agent\/esp32_pc_agent\.py/);
 assert.match(script, /--host 10\.0\.0\.42 --port 9090/);
+assert.match(script, /pip install psutil requests/);
+assert.doesNotMatch(script, /pip install -r requirements\.txt/);
 assert.ok(script.includes(canonical.trim()), 'download embeds full canonical source');
 assert.doesNotMatch(script, /ESP32 Display Studio — PC Agent \(wygenerowany skrypt\)/);
 

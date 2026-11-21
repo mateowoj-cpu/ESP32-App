@@ -134,7 +134,7 @@ fn info_for_launch(launch: Option<&AgentLaunch>, running: bool) -> PcAgentInfo {
             available: true,
             path: Some(path.display().to_string()),
             running,
-            hint: "Znaleziono esp32_pc_agent.py — Studio uruchomi go przez lokalny Python 3 (pip install -r tools/pc-agent/requirements.txt)."
+            hint: "Znaleziono esp32_pc_agent.py — Studio uruchomi go przez lokalny Python 3 (pip install psutil requests)."
                 .to_string(),
         },
         None => PcAgentInfo {
@@ -149,7 +149,7 @@ fn info_for_launch(launch: Option<&AgentLaunch>, running: bool) -> PcAgentInfo {
                 }
                 #[cfg(not(windows))]
                 {
-                    "Brak agenta PC. Na macOS/Linux zainstaluj Python 3, zależności (pip install -r tools/pc-agent/requirements.txt) i trzymaj tools/pc-agent/esp32_pc_agent.py w drzewie źródłowym / zasobach."
+                    "Brak agenta PC. Na macOS/Linux zainstaluj Python 3, zależności (pip install psutil requests) i trzymaj tools/pc-agent/esp32_pc_agent.py w drzewie źródłowym / zasobach."
                         .to_string()
                 }
             },
