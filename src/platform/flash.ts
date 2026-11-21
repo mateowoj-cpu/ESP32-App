@@ -4,6 +4,10 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 export interface EsptoolInfo {
   available: boolean;
   command?: string[] | null;
+  /** Same display path Settings shows for the esptool probe. */
+  path?: string | null;
+  /** `override` | `env` | `sidecar` | `path` | `none` */
+  source?: string;
   version?: string | null;
   hint: string;
 }

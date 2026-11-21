@@ -13,6 +13,10 @@ use tauri::{AppHandle, Emitter};
 pub struct EsptoolInfo {
     pub available: bool,
     pub command: Option<Vec<String>>,
+    /// Display path — same string Settings shows for the esptool probe.
+    pub path: Option<String>,
+    /// `override` | `env` | `sidecar` | `path` | `none`
+    pub source: String,
     pub version: Option<String>,
     pub hint: String,
 }
@@ -25,118 +29,40 @@ pub struct FlashResult {
     pub message: String,
 }
 
-use crate::process_util::{hide_console, which};
+use crate::process_util::hide_console;
+use crate::toolchain::{self, ResolvedCommand};
 
-fn python_bins() -> Vec<&'static str> {
-    if cfg!(windows) {
-        vec!["py", "python", "python3"]
-    } else {
-        vec!["python3", "python"]
-    }
-}
-
-/// Resolve how to invoke esptool: override → direct binary → `python -m esptool`.
-fn resolve_esptool_command(app: &AppHandle) -> Option<Vec<String>> {
-    if let Some(path) = crate::tools::override_esptool(app) {
-        return Some(vec![path.display().to_string()]);
-    }
-    if let Some(path) = which("esptool") {
-        return Some(vec![path.display().to_string()]);
-    }
-    if let Some(path) = which("esptool.py") {
-        return Some(vec![path.display().to_string()]);
-    }
-
-    for py in python_bins() {
-        let Some(py_path) = which(py) else { continue };
-        let mut probe = Command::new(&py_path);
-        if py == "py" {
-            probe.args(["-3", "-m", "esptool", "version"]);
-        } else {
-            probe.args(["-m", "esptool", "version"]);
-        }
-        hide_console(&mut probe);
-        if let Ok(output) = probe.output() {
-            if output.status.success() {
-                return if py == "py" {
-                    Some(vec![
-                        py_path.display().to_string(),
-                        "-3".into(),
-                        "-m".into(),
-                        "esptool".into(),
-                    ])
-                } else {
-                    Some(vec![
-                        py_path.display().to_string(),
-                        "-m".into(),
-                        "esptool".into(),
-                    ])
-                };
-            }
-        }
-    }
-    None
-}
-
-fn run_version(cmd: &[String]) -> Option<String> {
-    let (bin, args) = cmd.split_first()?;
-    let mut version_cmd = Command::new(bin);
-    version_cmd.args(args).arg("version");
-    hide_console(&mut version_cmd);
-    let output = version_cmd.output().ok()?;
-    if !output.status.success() {
-        // older esptool may use --version
-        let mut version_cmd2 = Command::new(bin);
-        version_cmd2.args(args).arg("--version");
-        hide_console(&mut version_cmd2);
-        let output2 = version_cmd2.output().ok()?;
-        if !output2.status.success() {
-            return None;
-        }
-        let text = String::from_utf8_lossy(&output2.stdout);
-        let err = String::from_utf8_lossy(&output2.stderr);
-        let combined = format!("{text}{err}").trim().to_string();
-        return if combined.is_empty() {
-            Some("esptool".into())
-        } else {
-            Some(combined.lines().next().unwrap_or("esptool").to_string())
-        };
-    }
-    let text = String::from_utf8_lossy(&output.stdout);
-    let err = String::from_utf8_lossy(&output.stderr);
-    let combined = format!("{text}{err}").trim().to_string();
-    Some(
-        combined
-            .lines()
-            .next()
-            .unwrap_or("esptool")
-            .trim()
-            .to_string(),
-    )
+/// Shared resolve: override → env → sidecar → PATH (same as Settings).
+fn resolve_esptool_command(app: &AppHandle) -> Option<ResolvedCommand> {
+    toolchain::resolve_esptool(app)
 }
 
 #[tauri::command]
 pub fn get_esptool_info(app: AppHandle) -> EsptoolInfo {
     match resolve_esptool_command(&app) {
-        Some(command) => {
-            let version = run_version(&command);
-            let override_hint = crate::tools::override_esptool(&app).is_some();
+        Some(hit) => {
+            let version = toolchain::esptool_version(&hit.argv);
+            let path = hit.display_path();
             EsptoolInfo {
                 available: true,
                 version: version.clone(),
-                command: Some(command),
+                command: Some(hit.argv.clone()),
+                path: Some(path),
+                source: hit.source.into(),
                 hint: format!(
-                    "esptool gotowy{}{}",
+                    "esptool gotowy{} [{}]",
                     version
                         .map(|v| format!(" ({v})"))
                         .unwrap_or_default(),
-                    if override_hint { " [override]" } else { "" }
+                    hit.source
                 ),
             }
         }
         None => EsptoolInfo {
             available: false,
             command: None,
+            path: None,
+            source: toolchain::SRC_NONE.into(),
             version: None,
             hint: "Brak esptool. Zainstaluj: pip install esptool (albo `pip install esptool` w PATH)."
                 .into(),
@@ -177,7 +103,7 @@ pub fn flash_write_firmware(
     firmware_path: String,
     flash_offset: Option<String>,
 ) -> Result<FlashResult, String> {
-    let cmd = resolve_esptool_command(&app).ok_or_else(|| {
+    let hit = resolve_esptool_command(&app).ok_or_else(|| {
         "Nie znaleziono esptool. Zainstaluj: pip install esptool".to_string()
     })?;
     let firmware = validate_firmware_path(&firmware_path)?;
@@ -196,7 +122,8 @@ pub fn flash_write_firmware(
         .trim()
         .to_string();
 
-    let (bin, prefix) = cmd
+    let (bin, prefix) = hit
+        .argv
         .split_first()
         .ok_or_else(|| "Pusta komenda esptool".to_string())?;
 
@@ -217,9 +144,10 @@ pub fn flash_write_firmware(
     emit_log(
         &app,
         format!(
-            "$ {} {}  (chip={chip}, port={port}, baud={baud}, offset={offset})",
+            "$ {} {}  (chip={chip}, port={port}, baud={baud}, offset={offset}, source={})",
             bin,
-            args.join(" ")
+            args.join(" "),
+            hit.source
         ),
     );
 

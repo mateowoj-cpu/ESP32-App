@@ -176,10 +176,10 @@ UI (UsbDetectorView)
 ```text
 1. Generate  — szkic + platformio.ini z konfiguracji Studio
 2. Build     — invoke build_firmware_from_sketch
-               resolve: ESP32_STUDIO_PIO → sidecar → PATH (pio / arduino-cli)
+               resolve: override → ESP32_STUDIO_PIO → sidecar → PATH (pio); arduino-cli: override → PATH
                stream: build-log
 3. Flash     — invoke flash_write_firmware { port, baud, chip, firmwarePath, flashOffset? }
-               resolve: esptool / esptool.py / python -m esptool
+               resolve: override → ESP32_STUDIO_ESPTOOL → sidecar penv → esptool / esptool.py / python -m esptool
                default offset 0x1000 (nadpisywany z board cache / profilu)
                stream: flash-log
 4. Board     — boardCache zapisuje ostatni udany profil (VID:PID → chip/offset)
@@ -238,7 +238,8 @@ Bez konta użytkownika:
 
 | Zmienna | Rola |
 |---------|------|
-| `ESP32_STUDIO_PIO` | Override ścieżki PlatformIO CLI |
+| `ESP32_STUDIO_PIO` | Env override ścieżki PlatformIO CLI (po Settings override) |
+| `ESP32_STUDIO_ESPTOOL` | Env override ścieżki esptool (po Settings override) |
 | `ESP32_STUDIO_ESPOTA` | Override `espota.py` |
 | `ESP32_STUDIO_DATA_DIR` | Katalog danych sidecar (Unix) |
 

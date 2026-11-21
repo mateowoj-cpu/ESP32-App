@@ -8,6 +8,7 @@ mod pc_agent;
 mod process_util;
 mod serial;
 mod tools;
+mod toolchain;
 mod update_channel;
 
 use desktop::{

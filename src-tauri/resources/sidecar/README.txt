@@ -29,6 +29,7 @@ into NSIS/MSI. The penv path is gitignored.
 Env overrides
 -------------
   ESP32_STUDIO_PIO     — full path to pio / pio.exe
+  ESP32_STUDIO_ESPTOOL — full path to esptool / esptool.py
   ESP32_STUDIO_ESPOTA  — full path to espota.py
 
 Docs: docs/windows-sidecar-pio.md · docs/windows-ota.md · docs/windows-winget.md
