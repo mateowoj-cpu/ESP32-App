@@ -8,6 +8,81 @@ function isColorTftModel(model: DisplayConfig['model']): boolean {
   );
 }
 
+/**
+ * Single encoder for embedding user-controlled text in C++ double-quoted string literals
+ * (SSID, passwords, labels, city names, API keys, etc.).
+ */
+export function escapeCppStringLiteral(value: string): string {
+  let out = '';
+  for (const ch of value) {
+    switch (ch) {
+      case '\\':
+        out += '\\\\';
+        break;
+      case '"':
+        out += '\\"';
+        break;
+      case '\n':
+        out += '\\n';
+        break;
+      case '\r':
+        out += '\\r';
+        break;
+      case '\t':
+        out += '\\t';
+        break;
+      default: {
+        const code = ch.codePointAt(0)!;
+        if (code < 0x20 || code === 0x7f) {
+          out += `\\x${code.toString(16).padStart(2, '0')}`;
+        } else {
+          out += ch;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/** Wrap a value as a C++ `"..."` literal with proper escaping. */
+export function cppStringLiteral(value: string): string {
+  return `"${escapeCppStringLiteral(value)}"`;
+}
+
+/** Sectigo Public Server Authentication Root R46 — trust anchor for api.openweathermap.org (verified 2026-11). */
+export const OPENWEATHERMAP_ROOT_CA_PEM = `-----BEGIN CERTIFICATE-----
+MIIFijCCA3KgAwIBAgIQdY39i658BwD6qSWn4cetFDANBgkqhkiG9w0BAQwFADBf
+MQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMTYwNAYDVQQD
+Ey1TZWN0aWdvIFB1YmxpYyBTZXJ2ZXIgQXV0aGVudGljYXRpb24gUm9vdCBSNDYw
+HhcNMjEwMzIyMDAwMDAwWhcNNDYwMzIxMjM1OTU5WjBfMQswCQYDVQQGEwJHQjEY
+MBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMTYwNAYDVQQDEy1TZWN0aWdvIFB1Ymxp
+YyBTZXJ2ZXIgQXV0aGVudGljYXRpb24gUm9vdCBSNDYwggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQCTvtU2UnXYASOgHEdCSe5jtrch/cSV1UgrJnwUUxDa
+ef0rty2k1Cz66jLdScK5vQ9IPXtamFSvnl0xdE8H/FAh3aTPaE8bEmNtJZlMKpnz
+SDBh+oF8HqcIStw+KxwfGExxqjWMrfhu6DtK2eWUAtaJhBOqbchPM8xQljeSM9xf
+iOefVNlI8JhD1mb9nxc4Q8UBUQvX4yMPFF1bFOdLvt30yNoDN9HWOaEhUTCDsG3X
+ME6WW5HwcCSrv0WBZEMNvSE6Lzzpng3LILVCJ8zab5vuZDCQOc2TZYEhMbUjUDM3
+IuM47fgxMMxF/mL50V0yeUKH32rMVhlATc6qu/m1dkmU8Sf4kaWD5QazYw6A3OAS
+VYCmO2a0OYctyPDQ0RTp5A1NDvZdV3LFOxxHVp3i1fuBYYzMTYCQNFu31xR13NgE
+SJ/AwSiItOkcyqex8Va3e0lMWeUgFaiEAin6OJRpmkkGj80feRQXEgyDet4fsZfu
++Zd4KKTIRJLpfSYFplhym3kT2BFfrsU4YjRosoYwjviQYZ4ybPUHNs2iTG7sijbt
+8uaZFURww3y8nDnAtOFr94MlI1fZEoDlSfB1D++N6xybVCi0ITz8fAr/73trdf+L
+HaAZBav6+CuBQug4urv7qv094PPK306Xlynt8xhW6aWWrL3DkJiy4Pmi1KZHQ3xt
+zwIDAQABo0IwQDAdBgNVHQ4EFgQUVnNYZJX5khqwEioEYnmhQBWIIUkwDgYDVR0P
+AQH/BAQDAgGGMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQEMBQADggIBAC9c
+mTz8Bl6MlC5w6tIyMY208FHVvArzZJ8HXtXBc2hkeqK5Duj5XYUtqDdFqij0lgVQ
+YKlJfp/imTYpE0RHap1VIDzYm/EDMrraQKFz6oOht0SmDpkBm+S8f74TlH7Kph52
+gDY9hAaLMyZlbcp+nv4fjFg4exqDsQ+8FxG75gbMY/qB8oFM2gsQa6H61SilzwZA
+Fv97fRheORKkU55+MkIQpiGRqRxOF3yEvJ+M0ejf5lG5Nkc/kLnHvALcWxxPDkjB
+JYOcCj+esQMzEhonrPcibCTRAUH4WAP+JWgiH5paPHxsnnVI84HxZmduTILA7rpX
+DhjvLpr3Etiga+kFpaHpaPi8TD8SHkXoUsCjvxInebnMMTzD9joiFgOgyY9mpFui
+TdaBJQbpdqQACj7LzTWb4OE4y2BThihCQRxEV+ioratF4yUQvNs+ZUH7G6aXD+u5
+dHn5HrwdVw1Hr8Mvn4dGp+smWg9WY7ViYG4A++MnESLn/pmPNPW56MORcr3Ywx65
+LvKRRFHQV80MNNVIIb/bE/FmJUNS0nAiNs2fxBx1IK1jcmMGDw4nztJqDby1ORrp
+0XZ60Vzk50lJLVU3aPAaOpg+VBeHVOmmJ1CJeyAvP/+/oYtKR5j/K3tJPsMpRmAY
+QqszKbrAKbkTidOIijlBO8n9pu0f9GBj39ItVQGL
+-----END CERTIFICATE-----`;
+
 export function generateArduinoCppCode(
   display: DisplayConfig,
   system: SystemConfig,
@@ -99,6 +174,7 @@ export function generateArduinoCppCode(
  *  3. "ArduinoJson" (by Benoit Blanchon, wersja 6 lub 7)`;
 
   const needsWireForSensors = Boolean(system.bme280Enabled || system.mpu6050Enabled);
+  const useOpenWeatherMap = (api.weather.provider || 'open-meteo') === 'openweathermap';
   const peripheralIncludes = [
     useColorTft && needsWireForSensors ? '#include <Wire.h>' : '',
     system.dhtPin != null ? '#include <DHT.h>' : '',
@@ -107,7 +183,18 @@ export function generateArduinoCppCode(
     system.ws2812Pin != null ? '#include <Adafruit_NeoPixel.h>' : '',
     system.bme280Enabled ? '#include <Adafruit_BME280.h>' : '',
     system.mpu6050Enabled ? '#include <Adafruit_MPU6050.h>\n#include <Adafruit_Sensor.h>' : '',
+    useOpenWeatherMap ? '#include <WiFiClientSecure.h>' : '',
   ].filter(Boolean).join('\n');
+
+  const owmRootCaBlock = useOpenWeatherMap
+    ? `
+// --- TLS trust anchor for OpenWeatherMap (Sectigo Public Server Authentication Root R46) ---
+// Validated HTTPS only — certificate validation required (never skip peer verification).
+static const char OWM_ROOT_CA[] PROGMEM = R"EOF(
+${OPENWEATHERMAP_ROOT_CA_PEM}
+)EOF";
+`
+    : '';
 
   const code = `/*
  * ==============================================================================
@@ -162,15 +249,15 @@ ${displayObject}
 ${system.bluetoothEnabled ? (system.bluetoothMode === 'classic_spp' ? 'BluetoothSerial SerialBT;' : 'BLEServer* pServer = NULL;\nBLECharacteristic* pTelemetryChar = NULL;\nbool bleConnected = false;') : ''}
 
 // --- KONFIGURACJA SIECI & NTP ---
-const char* WIFI_SSID     = "${system.wifiSsid}";
-const char* WIFI_PASSWORD = "${system.wifiPassword}";
-const char* NTP_SERVER    = "${system.ntpServer}";
-const char* TIMEZONE      = "${system.timezone}";
+const char* WIFI_SSID     = ${cppStringLiteral(system.wifiSsid)};
+const char* WIFI_PASSWORD = ${cppStringLiteral(system.wifiPassword)};
+const char* NTP_SERVER    = ${cppStringLiteral(system.ntpServer)};
+const char* TIMEZONE      = ${cppStringLiteral(system.timezone)};
 
 // --- OTA (ArduinoOTA / espota + opcjonalny HTTP POST /update) ---
 #define OTA_ENABLED   ${system.otaEnabled === false ? 0 : 1}
-#define OTA_HOSTNAME  "${system.mdnsName || 'esp32-display'}"
-#define OTA_PASSWORD  "${(system.otaPassword ?? 'esp32ota').replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"
+#define OTA_HOSTNAME  ${cppStringLiteral(system.mdnsName || 'esp32-display')}
+#define OTA_PASSWORD  ${cppStringLiteral(system.otaPassword ?? 'esp32ota')}
 #define OTA_PORT      ${system.otaPort ?? 3232}
 
 // --- AUTO-PRZEŁĄCZANIE EKRANU PO PODŁĄCZENIU KABLA USB-C DO PC ---
@@ -180,8 +267,8 @@ const char* TIMEZONE      = "${system.timezone}";
 
 // --- KONFIGURACJA BLUETOOTH & BLE ---
 #define BLUETOOTH_ENABLED        ${system.bluetoothEnabled ? 1 : 0}
-#define BLUETOOTH_MODE           "${system.bluetoothMode ?? 'disabled'}"
-#define BT_DEVICE_NAME           "${system.bluetoothDeviceName ?? 'ESP32-Display-Studio'}"
+#define BLUETOOTH_MODE           ${cppStringLiteral(system.bluetoothMode ?? 'disabled')}
+#define BT_DEVICE_NAME           ${cppStringLiteral(system.bluetoothDeviceName ?? 'ESP32-Display-Studio')}
 
 // --- PINY SPRZĘTOWE SENSORÓW I PERYFERIÓW (MAPA PINÓW) ---
 #define PIN_BOOT_BTN   0     // Fabryczny przycisk BOOT
@@ -235,12 +322,12 @@ Adafruit_MPU6050 mpu;
 
 // --- KONFIGURACJA EKRANU DOTYKOWEGO (${display.touchController.toUpperCase()}) ---
 #define TOUCH_ENABLED     ${display.touchEnabled ? 1 : 0}
-#define TOUCH_CONTROLLER  "${display.touchController}"
+#define TOUCH_CONTROLLER  ${cppStringLiteral(display.touchController)}
 #define PIN_TOUCH_SDA     ${display.touchSdaPin}
 #define PIN_TOUCH_SCL     ${display.touchSclPin}
 #define PIN_TOUCH_INT     ${display.touchIntPin}
 #define PIN_TOUCH_RST     ${display.touchRstPin}
-
+${owmRootCaBlock}
 // --- SERWER WWW DLA POWIADOMIEŃ I MONITORINGU PC ---
 WebServer server(${api.pcMonitor.port});
 
@@ -270,8 +357,8 @@ int currentDiskUsage = ${api.pcMonitor.data.diskUsage ?? 64}; // Zajętość dys
 int currentNetSpeedKb = 1200;
 
 // Ostatnie powiadomienie
-String lastNotificationTitle = "${api.notifications.list[0]?.title || 'ESP32'}";
-String lastNotificationMsg = "${api.notifications.list[0]?.message || 'Start'}";
+String lastNotificationTitle = ${cppStringLiteral(api.notifications.list[0]?.title || 'ESP32')};
+String lastNotificationMsg = ${cppStringLiteral(api.notifications.list[0]?.message || 'Start')};
 unsigned long notificationDisplayUntil = 0;
 
 // Cyber-Pet: Nastrój, animacja i wielominutowa oś czasu zachowań
@@ -582,12 +669,12 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
       return `      // Odczyt czujnika ruchu PIR (GPIO 14)
       display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
-      display.print(digitalRead(PIN_PIR_SENSOR) == HIGH ? "${w.sensorActiveLabel || 'RUCH WYKRYTY!'}" : "${w.sensorInactiveLabel || 'Brak ruchu'}");`;
+      display.print(digitalRead(PIN_PIR_SENSOR) == HIGH ? ${cppStringLiteral(w.sensorActiveLabel || 'RUCH WYKRYTY!')} : ${cppStringLiteral(w.sensorInactiveLabel || 'Brak ruchu')});`;
     } else if (w.binding === 'ambientLux' || w.binding === 'lux') {
       return `      // Odczyt fotorezystora LDR (GPIO 36)
       display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
-      display.printf("%d ${w.unit || 'lx'}", currentAmbientLux);`;
+      display.printf(${cppStringLiteral(`%d ${w.unit || 'lx'}`)}, currentAmbientLux);`;
     } else if (w.binding === 'potAdc' || w.binding === 'pot') {
       return `      // Odczyt potencjometru ADC (GPIO 34)
       display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
@@ -597,7 +684,7 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
       return `      display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
       #if PIN_US_ENABLED
-      display.printf("%.0f ${w.unit || 'cm'}", currentDistanceCm >= 0 ? currentDistanceCm : 0.0f);
+      display.printf(${cppStringLiteral(`%.0f ${w.unit || 'cm'}`)}, currentDistanceCm >= 0 ? currentDistanceCm : 0.0f);
       #else
       display.print("--");
       #endif`;
@@ -612,7 +699,7 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
     } else if (w.binding === 'usbConnected') {
       return `      display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
-      display.print(isUsbConnected ? "${w.sensorActiveLabel || 'USB: POLACZONO'}" : "${w.sensorInactiveLabel || 'USB: ROZLACZONO'}");`;
+      display.print(isUsbConnected ? ${cppStringLiteral(w.sensorActiveLabel || 'USB: POLACZONO')} : ${cppStringLiteral(w.sensorInactiveLabel || 'USB: ROZLACZONO')});`;
     } else if (w.binding === 'cpu') {
       return `      display.setTextSize(1);
       display.setCursor(${w.x}, ${w.y});
@@ -624,7 +711,7 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
     } else {
       return `      display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
-      display.print("${w.label || ''}");`;
+      display.print(${cppStringLiteral(w.label || '')});`;
     }
   } else if (w.type === 'battery_wifi') {
     return `      // Ikony WiFi & Bateria
@@ -653,7 +740,7 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
       display.setCursor(${w.x} + 26, ${w.y} + 2);
       display.printf("%.1f C", currentTemperature);
       display.setCursor(${w.x} + 26, ${w.y} + 14);
-      display.print("${api.weather.city}");`;
+      display.print(${cppStringLiteral(api.weather.city)});`;
   } else if (w.type === 'pc_monitor') {
     return `      // Monitor Zasobów PC (RAM, CPU, Karta Graficzna, Dysk)
       display.setCursor(${w.x}, ${w.y});
@@ -680,9 +767,9 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
   } else if (w.type === 'menu') {
     return `      // Menu
       display.setCursor(${w.x}, ${w.y});
-      display.println(F("${w.menuTitle || 'MENU'}"));
+      display.println(F(${cppStringLiteral(w.menuTitle || 'MENU')}));
       display.drawLine(${w.x}, ${w.y} + 10, ${w.x} + ${w.width}, ${w.y} + 10, SSD1306_WHITE);
-      ${(w.menuItems || []).map((item, i) => `display.setCursor(${w.x} + 4, ${w.y} + 14 + ${i * 10}); display.println(F("${item}"));`).join('\n      ')}`;
+      ${(w.menuItems || []).map((item, i) => `display.setCursor(${w.x} + 4, ${w.y} + 14 + ${i * 10}); display.println(F(${cppStringLiteral(item)}));`).join('\n      ')}`;
   }
   return '';
 }).filter(Boolean).join('\n')}
@@ -909,9 +996,10 @@ void fetchWeatherData() {
   HTTPClient http;
 ${(() => {
   const provider = api.weather.provider || 'open-meteo';
+  const cityLit = cppStringLiteral(api.weather.city);
   if (provider === 'wttr-in') {
-    return `  // Bezpłatne API wttr.in bez klucza (miasto: ${api.weather.city})
-  String url = "http://wttr.in/${encodeURIComponent(api.weather.city)}?format=j1";
+    return `  // Bezpłatne API wttr.in bez klucza (miasto: ${escapeCppStringLiteral(api.weather.city)})
+  String url = ${cppStringLiteral(`http://wttr.in/${encodeURIComponent(api.weather.city)}?format=j1`)};
   http.begin(url);
   http.setUserAgent("ESP32-Weather-Client/1.0");
   int httpCode = http.GET();
@@ -922,13 +1010,20 @@ ${(() => {
     if (!error) {
       currentTemperature = doc["current_condition"][0]["temp_C"].as<float>();
       currentHumidity = doc["current_condition"][0]["humidity"].as<int>();
-      Serial.printf("Pobrano pogodę wttr.in dla %s: %.1f C, Wilg: %d%%\\n", "${api.weather.city}", currentTemperature, currentHumidity);
+      Serial.printf("Pobrano pogodę wttr.in dla %s: %.1f C, Wilg: %d%%\\n", ${cityLit}, currentTemperature, currentHumidity);
     }
   }`;
   } else if (provider === 'openweathermap') {
-    return `  // Bezpłatny plan OpenWeatherMap API (miasto: ${api.weather.city})
-  String url = "http://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(api.weather.city)}&units=metric&appid=${api.weather.apiKey || 'TWOJ_KLUCZ_API'}";
-  http.begin(url);
+    const apiKey = api.weather.apiKey || 'TWOJ_KLUCZ_API';
+    const owmUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(api.weather.city)}&units=metric&appid=${apiKey}`;
+    return `  // OpenWeatherMap HTTPS with verified TLS (Sectigo R46 root CA)
+  WiFiClientSecure secureClient;
+  secureClient.setCACert(OWM_ROOT_CA);
+  String url = ${cppStringLiteral(owmUrl)};
+  if (!http.begin(secureClient, url)) {
+    Serial.println(F("[OWM] Nie udało się rozpocząć HTTPS"));
+    return;
+  }
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
     String payload = http.getString();
@@ -937,12 +1032,17 @@ ${(() => {
     if (!error) {
       currentTemperature = doc["main"]["temp"].as<float>();
       currentHumidity = doc["main"]["humidity"].as<int>();
-      Serial.printf("Pobrano pogodę OpenWeatherMap dla %s: %.1f C, Wilg: %d%%\\n", "${api.weather.city}", currentTemperature, currentHumidity);
+      Serial.printf("Pobrano pogodę OpenWeatherMap dla %s: %.1f C, Wilg: %d%%\\n", ${cityLit}, currentTemperature, currentHumidity);
     }
+  } else {
+    Serial.printf("[OWM] HTTP %d (TLS zweryfikowany)\\n", httpCode);
   }`;
   } else if (provider === 'custom') {
+    const customUrl =
+      api.weather.customEndpoint ||
+      `http://api.open-meteo.com/v1/forecast?latitude=${api.weather.latitude}&longitude=${api.weather.longitude}&current_weather=true`;
     return `  // Własny endpoint REST (Home Assistant / Local Server)
-  String url = "${api.weather.customEndpoint || 'http://api.open-meteo.com/v1/forecast?latitude=' + api.weather.latitude + '&longitude=' + api.weather.longitude + '&current_weather=true'}";
+  String url = ${cppStringLiteral(customUrl)};
   http.begin(url);
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
@@ -957,8 +1057,8 @@ ${(() => {
   }`;
   } else {
     // Open-Meteo (default)
-    return `  // Darmowe publiczne Open-Meteo API bez konieczności klucza (miasto: ${api.weather.city}, lat: ${api.weather.latitude}, lon: ${api.weather.longitude})
-  String url = "http://api.open-meteo.com/v1/forecast?latitude=${api.weather.latitude}&longitude=${api.weather.longitude}&current_weather=true";
+    return `  // Darmowe publiczne Open-Meteo API bez konieczności klucza (miasto: ${escapeCppStringLiteral(api.weather.city)}, lat: ${api.weather.latitude}, lon: ${api.weather.longitude})
+  String url = ${cppStringLiteral(`http://api.open-meteo.com/v1/forecast?latitude=${api.weather.latitude}&longitude=${api.weather.longitude}&current_weather=true`)};
   http.begin(url);
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
@@ -967,7 +1067,7 @@ ${(() => {
     DeserializationError error = deserializeJson(doc, payload);
     if (!error) {
       currentTemperature = doc["current_weather"]["temperature"];
-      Serial.printf("Pobrano pogodę Open-Meteo dla %s: %.1f C\\n", "${api.weather.city}", currentTemperature);
+      Serial.printf("Pobrano pogodę Open-Meteo dla %s: %.1f C\\n", ${cityLit}, currentTemperature);
     }
   }`;
   }
