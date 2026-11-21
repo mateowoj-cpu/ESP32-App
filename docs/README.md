@@ -57,7 +57,7 @@ Oficjalne zrzuty (locale **PL**, web Vite, ~1440×900) — także w [README gł�
 
 | Dokument | Temat |
 |----------|--------|
-| [esp32-tooling-integrations.md](./esp32-tooling-integrations.md) | Free tools: PlatformIO, Arduino CLI/IDE, esptool, ESP-IDF detect, Wokwi |
+| [esp32-tooling-integrations.md](./esp32-tooling-integrations.md) | Free tools + host IDEs (Arduino / VS Code+PIO / Sloeber / B4R) detect & safe install |
 | [windows-build-flash.md](./windows-build-flash.md) | Build-from-Studio (PIO / arduino-cli) |
 | [windows-flash.md](./windows-flash.md) | Flash helper (`esptool`) |
 | [windows-sidecar-pio.md](./windows-sidecar-pio.md) | Offline PlatformIO + espota |

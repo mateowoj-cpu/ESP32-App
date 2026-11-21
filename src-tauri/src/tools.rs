@@ -1,4 +1,4 @@
-//! Detect / configure free ESP32 host tools (Arduino, PlatformIO, esptool, IDF, Wokwi).
+//! Detect / configure free ESP32 host tools (Arduino, PlatformIO, esptool, IDF, Wokwi, host IDEs).
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -17,6 +17,9 @@ pub struct ToolPathOverrides {
     pub arduino_ide: Option<String>,
     pub idf: Option<String>,
     pub wokwi_cli: Option<String>,
+    pub vscode: Option<String>,
+    pub sloeber: Option<String>,
+    pub b4r: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -32,6 +35,12 @@ pub struct ToolProbe {
     pub free: bool,
     pub hint: String,
     pub homepage: Option<String>,
+    /// `cli` | `ide`
+    pub kind: String,
+    /// Allowlisted winget id when install via winget is offered
+    pub winget_id: Option<String>,
+    /// Official download / marketplace URL (never a random mirror)
+    pub install_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -199,6 +208,9 @@ fn probe_platformio(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "PlatformIO (ścieżka z ustawień)".into(),
             homepage: Some("https://platformio.org/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     if let Some((p, src)) = sidecar_pio(app) {
@@ -212,6 +224,9 @@ fn probe_platformio(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: format!("PlatformIO ({src})"),
             homepage: Some("https://platformio.org/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     if let Some(p) = which("pio").or_else(|| which("platformio")) {
@@ -225,6 +240,9 @@ fn probe_platformio(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "PlatformIO w PATH".into(),
             homepage: Some("https://platformio.org/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     ToolProbe {
@@ -237,6 +255,9 @@ fn probe_platformio(app: &AppHandle) -> ToolProbe {
         free: true,
         hint: "Brak PlatformIO — sidecar lub `pip install platformio`.".into(),
         homepage: Some("https://platformio.org/install/cli".into()),
+        kind: "cli".into(),
+        winget_id: None,
+        install_url: None,
     }
 }
 
@@ -252,6 +273,9 @@ fn probe_arduino_cli(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "arduino-cli (ścieżka z ustawień)".into(),
             homepage: Some("https://arduino.github.io/arduino-cli/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     if let Some(p) = which("arduino-cli") {
@@ -265,6 +289,9 @@ fn probe_arduino_cli(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "arduino-cli w PATH".into(),
             homepage: Some("https://arduino.github.io/arduino-cli/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     ToolProbe {
@@ -277,6 +304,9 @@ fn probe_arduino_cli(app: &AppHandle) -> ToolProbe {
         free: true,
         hint: "Brak arduino-cli w PATH.".into(),
         homepage: Some("https://arduino.github.io/arduino-cli/latest/installation/".into()),
+        kind: "cli".into(),
+        winget_id: None,
+        install_url: None,
     }
 }
 
@@ -292,6 +322,9 @@ fn probe_esptool(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "esptool (ścieżka z ustawień)".into(),
             homepage: Some("https://github.com/espressif/esptool".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     if let Some(p) = which("esptool").or_else(|| which("esptool.py")) {
@@ -305,6 +338,9 @@ fn probe_esptool(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "esptool w PATH".into(),
             homepage: Some("https://github.com/espressif/esptool".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     // python -m esptool
@@ -340,6 +376,9 @@ fn probe_esptool(app: &AppHandle) -> ToolProbe {
                     free: true,
                     hint: "esptool przez Python module".into(),
                     homepage: Some("https://github.com/espressif/esptool".into()),
+                    kind: "cli".into(),
+                    winget_id: None,
+                    install_url: None,
                 };
             }
         }
@@ -354,6 +393,9 @@ fn probe_esptool(app: &AppHandle) -> ToolProbe {
         free: true,
         hint: "Brak esptool — `pip install esptool`.".into(),
         homepage: Some("https://docs.espressif.com/projects/esptool/".into()),
+        kind: "cli".into(),
+        winget_id: None,
+        install_url: None,
     }
 }
 
@@ -417,6 +459,9 @@ fn probe_arduino_ide(app: &AppHandle) -> ToolProbe {
                 free: true,
                 hint: format!("Arduino IDE ({src})"),
                 homepage: Some("https://www.arduino.cc/en/software".into()),
+                kind: "cli".into(),
+                winget_id: None,
+                install_url: None,
             };
         }
     }
@@ -430,6 +475,9 @@ fn probe_arduino_ide(app: &AppHandle) -> ToolProbe {
         free: true,
         hint: "Arduino IDE nie wykryte — możesz nadal otworzyć folder szkicu w systemie.".into(),
         homepage: Some("https://www.arduino.cc/en/software".into()),
+        kind: "cli".into(),
+        winget_id: None,
+        install_url: None,
     }
 }
 
@@ -447,6 +495,9 @@ fn probe_idf(app: &AppHandle) -> ToolProbe {
                 free: true,
                 hint: "ESP-IDF wykryte (ustawienia). Studio buduje framework Arduino — IDF jest opcjonalne.".into(),
                 homepage: Some("https://docs.espressif.com/projects/esp-idf/".into()),
+                kind: "cli".into(),
+                winget_id: None,
+                install_url: None,
             };
         }
     }
@@ -463,6 +514,9 @@ fn probe_idf(app: &AppHandle) -> ToolProbe {
                 free: true,
                 hint: "ESP-IDF przez IDF_PATH (detect-only).".into(),
                 homepage: Some("https://docs.espressif.com/projects/esp-idf/".into()),
+                kind: "cli".into(),
+                winget_id: None,
+                install_url: None,
             };
         }
     }
@@ -477,6 +531,9 @@ fn probe_idf(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "idf.py w PATH (detect-only).".into(),
             homepage: Some("https://docs.espressif.com/projects/esp-idf/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     ToolProbe {
@@ -489,6 +546,9 @@ fn probe_idf(app: &AppHandle) -> ToolProbe {
         free: true,
         hint: "ESP-IDF nie wykryte (opcjonalne; Studio używa Arduino framework).".into(),
         homepage: Some("https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/".into()),
+        kind: "cli".into(),
+        winget_id: None,
+        install_url: None,
     }
 }
 
@@ -506,6 +566,9 @@ fn probe_wokwi(app: &AppHandle) -> ToolProbe {
                 free: true,
                 hint: "Wokwi CLI (ścieżka z ustawień). Symulator web też jest darmowy.".into(),
                 homepage: Some("https://docs.wokwi.com/wokwi-ci/cli-installation".into()),
+                kind: "cli".into(),
+                winget_id: None,
+                install_url: None,
             };
         }
     }
@@ -520,6 +583,9 @@ fn probe_wokwi(app: &AppHandle) -> ToolProbe {
             free: true,
             hint: "wokwi-cli w PATH. Możesz też otworzyć darmowy edytor web.".into(),
             homepage: Some("https://wokwi.com/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
         };
     }
     ToolProbe {
@@ -532,6 +598,9 @@ fn probe_wokwi(app: &AppHandle) -> ToolProbe {
         free: true,
         hint: "CLI nie wykryte — otwórz darmowy symulator web Wokwi.".into(),
         homepage: Some("https://wokwi.com/arduino/new?template=esp32".into()),
+        kind: "cli".into(),
+        winget_id: None,
+        install_url: None,
     }
 }
 
@@ -625,6 +694,9 @@ pub fn set_tool_path_overrides(
     arduino_ide: Option<String>,
     idf: Option<String>,
     wokwi_cli: Option<String>,
+    vscode: Option<String>,
+    sloeber: Option<String>,
+    b4r: Option<String>,
 ) -> Result<ToolPathOverrides, String> {
     let next = ToolPathOverrides {
         platformio: clean_override(platformio),
@@ -633,6 +705,9 @@ pub fn set_tool_path_overrides(
         arduino_ide: clean_override(arduino_ide),
         idf: clean_override(idf),
         wokwi_cli: clean_override(wokwi_cli),
+        vscode: clean_override(vscode),
+        sloeber: clean_override(sloeber),
+        b4r: clean_override(b4r),
     };
     save_overrides(&app, &next)?;
     Ok(next)
@@ -640,12 +715,16 @@ pub fn set_tool_path_overrides(
 
 #[tauri::command]
 pub fn get_external_tools_status(app: AppHandle) -> ExternalToolsStatus {
+    let overrides = load_overrides(&app);
     ExternalToolsStatus {
         tools: vec![
             probe_platformio(&app),
             probe_arduino_cli(&app),
             probe_esptool(&app),
-            probe_arduino_ide(&app),
+            crate::host_ides::with_arduino_ide_install(probe_arduino_ide(&app)),
+            crate::host_ides::probe_vscode_platformio(&overrides),
+            crate::host_ides::probe_sloeber(&overrides),
+            crate::host_ides::probe_b4r(&overrides),
             probe_idf(&app),
             probe_wokwi(&app),
         ],
