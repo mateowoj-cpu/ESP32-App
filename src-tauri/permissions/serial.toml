@@ -4,6 +4,7 @@ description = "Allows listing, opening, writing and closing native serial (COM) 
 commands.allow = [
   "list_serial_ports",
   "open_serial_port",
+  "start_serial_read",
   "write_serial_port",
   "close_serial_port"
 ]

@@ -33,7 +33,8 @@ use tools::{
 use ota::{cancel_ota_firmware, discover_ota_hosts, flash_ota_firmware, get_ota_tool_info};
 use pc_agent::{get_pc_agent_info, start_pc_agent, stop_pc_agent, PcAgentState};
 use serial::{
-    close_serial_port, list_serial_ports, open_serial_port, write_serial_port, SerialManager,
+    close_serial_port, list_serial_ports, open_serial_port, start_serial_read, write_serial_port,
+    SerialManager,
 };
 use update_channel::{
     check_update_channel, download_and_install_channel, get_update_install_info,
@@ -67,6 +68,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             list_serial_ports,
             open_serial_port,
+            start_serial_read,
             write_serial_port,
             close_serial_port,
             get_pc_agent_info,
