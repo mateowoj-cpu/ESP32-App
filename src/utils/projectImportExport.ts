@@ -239,6 +239,65 @@ export function stripProjectCredentials(
   };
 }
 
+/** Clamp USB auto-switch screen index into [0, screenCount). */
+export function clampUsbSwitchScreenIndex(
+  index: number,
+  screenCount: number
+): number {
+  if (!Number.isFinite(index) || screenCount <= 0) return 0;
+  const floored = Math.floor(index);
+  if (floored < 0) return 0;
+  if (floored >= screenCount) return screenCount - 1;
+  return floored;
+}
+
+/**
+ * Drop dangling switch_screen targetScreenId values that no longer exist.
+ * Keeps the rule (including disabled ones) so editing stays recoverable.
+ */
+export function reconcileAutomationsForScreens(
+  automations: AutomationRule[],
+  screens: Screen[]
+): AutomationRule[] {
+  const screenIds = new Set(screens.map(s => s.id));
+  return automations.map(rule => {
+    const target = rule.action.targetScreenId;
+    if (target === undefined || screenIds.has(target)) return rule;
+    const { targetScreenId: _removed, ...actionRest } = rule.action;
+    return { ...rule, action: actionRest };
+  });
+}
+
+/** Normalize relations before export / after screen deletion. */
+export function normalizeProjectRelations(state: {
+  systemConfig: SystemConfig;
+  screens: Screen[];
+  automations: AutomationRule[];
+  activeScreenIndex?: number;
+}): {
+  systemConfig: SystemConfig;
+  screens: Screen[];
+  automations: AutomationRule[];
+  activeScreenIndex: number;
+} {
+  const screens = state.screens;
+  return {
+    screens,
+    automations: reconcileAutomationsForScreens(state.automations, screens),
+    systemConfig: {
+      ...state.systemConfig,
+      usbSwitchScreenIndex: clampUsbSwitchScreenIndex(
+        state.systemConfig.usbSwitchScreenIndex,
+        screens.length
+      ),
+    },
+    activeScreenIndex: resolveActiveScreenIndex(
+      state.activeScreenIndex,
+      screens.length
+    ),
+  };
+}
+
 export function buildProjectExport(
   state: {
     displayConfig: DisplayConfig;
@@ -250,10 +309,11 @@ export function buildProjectExport(
   },
   mode: ProjectExportMode
 ): ProjectDocumentV1 {
+  const normalized = normalizeProjectRelations(state);
   const secrets =
     mode === 'share'
-      ? stripProjectCredentials(state.systemConfig, state.apiConfig)
-      : { systemConfig: state.systemConfig, apiConfig: state.apiConfig };
+      ? stripProjectCredentials(normalized.systemConfig, state.apiConfig)
+      : { systemConfig: normalized.systemConfig, apiConfig: state.apiConfig };
 
   return {
     format: PROJECT_FORMAT,
@@ -261,12 +321,9 @@ export function buildProjectExport(
     displayConfig: state.displayConfig,
     systemConfig: secrets.systemConfig,
     apiConfig: secrets.apiConfig,
-    screens: state.screens,
-    automations: state.automations,
-    activeScreenIndex:
-      typeof state.activeScreenIndex === 'number' && state.activeScreenIndex >= 0
-        ? state.activeScreenIndex
-        : 0,
+    screens: normalized.screens,
+    automations: normalized.automations,
+    activeScreenIndex: normalized.activeScreenIndex,
     exportedAt: new Date().toISOString(),
     credentialsIncluded: mode === 'full',
   };
@@ -393,7 +450,7 @@ function validateDisplayConfig(raw: unknown): string | null {
   return null;
 }
 
-function validateSystemConfig(raw: unknown, screenCount: number): string | null {
+function validateSystemConfig(raw: unknown): string | null {
   if (!isPlainObject(raw)) return 'systemConfig: expected object';
   if (raw.wifiSsid !== undefined && !isSafeString(raw.wifiSsid)) {
     return 'systemConfig: wifiSsid too long';
@@ -407,13 +464,12 @@ function validateSystemConfig(raw: unknown, screenCount: number): string | null 
   if (raw.mdnsName !== undefined && !isSafeString(raw.mdnsName, MAX_ID)) {
     return 'systemConfig: invalid mdnsName';
   }
+  // Stale usbSwitchScreenIndex is clamped during migration — only reject non-numbers.
   if (
     raw.usbSwitchScreenIndex !== undefined &&
-    (!isFiniteNumber(raw.usbSwitchScreenIndex) ||
-      raw.usbSwitchScreenIndex < 0 ||
-      raw.usbSwitchScreenIndex >= screenCount)
+    !isFiniteNumber(raw.usbSwitchScreenIndex)
   ) {
-    return 'systemConfig: usbSwitchScreenIndex out of range';
+    return 'systemConfig: usbSwitchScreenIndex must be a number';
   }
   return null;
 }
@@ -446,14 +502,28 @@ function mergeDisplayConfig(raw: Record<string, unknown>): DisplayConfig {
 }
 
 function mergeSystemConfig(raw: Record<string, unknown>): SystemConfig {
-  return {
+  const merged: SystemConfig = {
     ...DEFAULT_SYSTEM_CONFIG,
     ...(raw as unknown as SystemConfig),
-    customPinFunctions: {
-      ...DEFAULT_SYSTEM_CONFIG.customPinFunctions,
-      ...((raw.customPinFunctions as SystemConfig['customPinFunctions']) || {}),
-    },
   };
+  // When present, customPinFunctions is a complete map — GPIO_FREE deletions
+  // remove keys; merging over defaults would resurrect those pins.
+  if (Object.prototype.hasOwnProperty.call(raw, 'customPinFunctions')) {
+    if (isPlainObject(raw.customPinFunctions)) {
+      merged.customPinFunctions = {
+        ...(raw.customPinFunctions as Record<number, NonNullable<
+          SystemConfig['customPinFunctions']
+        >[number]>),
+      };
+    } else {
+      merged.customPinFunctions = {};
+    }
+  } else {
+    merged.customPinFunctions = {
+      ...(DEFAULT_SYSTEM_CONFIG.customPinFunctions || {}),
+    };
+  }
+  return merged;
 }
 
 function mergeApiConfig(raw: Record<string, unknown>): ApiIntegrationsConfig {
@@ -579,7 +649,7 @@ export function parseProject(raw: unknown): ParseProjectResult {
   }
 
   if (raw.systemConfig !== undefined) {
-    const err = validateSystemConfig(raw.systemConfig, raw.screens.length);
+    const err = validateSystemConfig(raw.systemConfig);
     if (err) return { ok: false, error: err };
   }
 
@@ -594,13 +664,14 @@ export function parseProject(raw: unknown): ParseProjectResult {
   let systemConfig = mergeSystemConfig(
     isPlainObject(raw.systemConfig) ? raw.systemConfig : {}
   );
-  // Clamp USB switch index after merge if still out of range (defaults may exceed)
-  if (
-    systemConfig.usbSwitchScreenIndex < 0 ||
-    systemConfig.usbSwitchScreenIndex >= raw.screens.length
-  ) {
-    systemConfig = { ...systemConfig, usbSwitchScreenIndex: 0 };
-  }
+  // Clamp stale / default USB switch index into the imported screen list
+  systemConfig = {
+    ...systemConfig,
+    usbSwitchScreenIndex: clampUsbSwitchScreenIndex(
+      systemConfig.usbSwitchScreenIndex,
+      raw.screens.length
+    ),
+  };
 
   const apiConfig = mergeApiConfig(
     isPlainObject(raw.apiConfig) ? raw.apiConfig : {}

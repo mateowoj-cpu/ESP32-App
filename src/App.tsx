@@ -959,6 +959,10 @@ export default function App() {
                 setActiveScreenIndex={setActiveScreenIndex}
                 simState={simState}
                 setSimState={setSimState}
+                automations={automations}
+                setAutomations={setAutomations}
+                system={systemConfig}
+                setSystem={setSystemConfig}
               />
             )}
 
