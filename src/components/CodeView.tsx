@@ -9,7 +9,6 @@ import {
 import { 
   generateArduinoCppCode, 
   generatePlatformIoIni, 
-  generatePythonPcAgentScript 
 } from '../utils/codeGenerator';
 import { useLocale } from '../i18n/LocaleContext';
 import { 

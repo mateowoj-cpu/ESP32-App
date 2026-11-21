@@ -7,11 +7,13 @@ Agent wysyła telemetrię hosta do ESP32 Display Studio:
 
 ## Opcje dystrybucji
 
+Jeden artefakt źródłowy: `tools/pc-agent/esp32_pc_agent.py` (`--host` / `--port`).
+
 | Forma | Skąd | Kiedy |
 |-------|------|--------|
-| `esp32-pc-agent.exe` | GitHub Releases / folder instalacji Studio | użytkownicy Windows |
-| `tools/pc-agent/esp32_pc_agent.py` | repo | dev / Linux / macOS |
-| Przycisk w UI **Integracje** | generuje `.py` z IP/portem | szybki start |
+| `esp32-pc-agent.exe` | GitHub Releases / folder instalacji Studio (PyInstaller z tego samego `.py`) | użytkownicy Windows |
+| `tools/pc-agent/esp32_pc_agent.py` | repo / przycisk **Integracje → Pobierz .py** | macOS / Linux / dev |
+| UI **Integracje** | pobiera kanoniczny `.py` + komunikat o Pythonie (Unix) lub EXE (Windows) | szybki start |
 
 ## Build `.exe` (Windows)
 

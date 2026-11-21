@@ -80,7 +80,7 @@ Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkowni
 | `tauri:build:signed` | Build + lokalna nakładka Authenticode (`tauri.windows-signing.local.json`) |
 | `test:serial` … `test:marketplace` | Unit testy platformy |
 | `validate:board-catalog` | Walidacja `community.json` + offset↔chip + bundled parity |
-| `pc-agent:test` | Smoke agenta Pythona |
+| `pc-agent:test` | Test HTTP odbiornika agenta PC (dane + exit code) |
 
 ## Macierz build / release
 

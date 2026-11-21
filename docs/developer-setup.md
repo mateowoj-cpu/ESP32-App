@@ -131,7 +131,7 @@ Po instalacji ustaw / wyeksportuj `ESP32_STUDIO_PIO` i `ESP32_STUDIO_ESPOTA` (sk
 | `npm run test:board-cache` / `test:board-sync` / `test:board-catalog` | Flash cache / sync / walidacja |
 | `npm run test:ota` / `test:telemetry` / `test:marketplace` | OTA hosty, telemetria, marketplace sandbox |
 | `npm run validate:board-catalog` | `scripts/board-profiles/validate-community.ts` |
-| `npm run pc-agent:test` | Smoke agenta Pythona (`--once`) |
+| `npm run pc-agent:test` | Test HTTP odbiornika agenta PC (payload + exit code) |
 
 Przed PR: `npm run smoke` (minimum) albo `npm run compile:full` (smoke + cargo).
 
