@@ -33,6 +33,7 @@ Gdy przełącznik jest włączony **oraz** build definiuje `VITE_TELEMETRY_ENDPO
 
 - Ustaw `VITE_TELEMETRY_ENDPOINT=https://…` w czasie **buildu** desktop/web, jeśli ten build ma móc raportować.
 - Bez zmiennej środowiskowej włączenie przełącznika zapisuje tylko zgodę — **bez wywołań sieciowych**.
+- Desktop CSP (`app.security.csp.connect-src` w `tauri.conf.json`) dopuszcza `https:` pod opt-in telemetrię i HTTPS-owe API; skrypty/fonty pozostają zamknięte. Custom weather po **HTTP** (LAN / `.local`) idzie native `fetch_url_text`, nie przez WebView `fetch`.
 - **Nie** commituj sekretów ani prywatnych tokenów collectora do gita.
 - Udokumentowane w `.env.example` (zakomentowane). CI może wstrzyknąć sekret jako env builda tylko gdy człowiek to skonfiguruje.
 
