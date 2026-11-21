@@ -34,7 +34,16 @@ import {
   parseProjectJson,
   type ProjectExportMode,
 } from './utils/projectImportExport';
-import type { UpdateCheckResult } from './platform/updater';
+import type { UpdateCheckResult, UpdateInstallInfo } from './platform/updater';
+import {
+  GITHUB_RELEASES_URL,
+  checkForAppUpdate,
+  downloadAndInstallUpdate,
+  getUpdateInstallInfo,
+  openManualReleaseDownload,
+  shouldOfferManualDownload,
+  shouldOfferUpdaterInstall,
+} from './platform/updater';
 import type { OpenFilePayload } from './platform/flash';
 import { useLocale } from './i18n/LocaleContext';
 import { 
@@ -151,6 +160,7 @@ export default function App() {
   const [projectExported, setProjectExported] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
+  const [updateInstallInfo, setUpdateInstallInfo] = useState<UpdateInstallInfo | null>(null);
   const [updateBusy, setUpdateBusy] = useState(false);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
   const [openFileNotice, setOpenFileNotice] = useState<OpenFilePayload | null>(null);
@@ -234,15 +244,18 @@ export default function App() {
     let cancelled = false;
     (async () => {
       try {
+        const installInfo = await getUpdateInstallInfo();
+        if (cancelled) return;
+        setUpdateInstallInfo(installInfo);
+
         const { isTauri } = await import('@tauri-apps/api/core');
         if (!isTauri()) return;
-        const { checkForAppUpdate } = await import('./platform/updater');
         const result = await checkForAppUpdate(updateChannel);
         if (cancelled) return;
         setUpdateResult(result);
-        if (result.status === 'available') {
-          setShowUpdateBanner(true);
-        }
+        // Auto-banner: available updates or check failures (manual path for DEB is in Settings).
+        // Deep-link listener stays in a separate effect (#51) so channel changes don't remount it.
+        setShowUpdateBanner(result.status === 'available' || result.status === 'error');
       } catch {
         // browser / updater unavailable
       }
@@ -361,10 +374,16 @@ export default function App() {
   const handleCheckUpdates = async () => {
     setUpdateBusy(true);
     try {
-      const { checkForAppUpdate } = await import('./platform/updater');
+      const installInfo = await getUpdateInstallInfo();
+      setUpdateInstallInfo(installInfo);
       const result = await checkForAppUpdate(updateChannel);
       setUpdateResult(result);
-      setShowUpdateBanner(result.status === 'available' || result.status === 'error');
+      setShowUpdateBanner(
+        result.status === 'available' ||
+          result.status === 'error' ||
+          result.status === 'unavailable' ||
+          shouldOfferManualDownload(installInfo, result),
+      );
     } catch (err) {
       setUpdateResult({
         status: 'error',
@@ -379,9 +398,28 @@ export default function App() {
   const handleInstallUpdate = async () => {
     setUpdateBusy(true);
     try {
-      const { downloadAndInstallUpdate } = await import('./platform/updater');
       const result = await downloadAndInstallUpdate(updateChannel);
       if (result.status === 'error') {
+        setUpdateResult({ status: 'error', message: result.message });
+        setShowUpdateBanner(true);
+      }
+    } catch (err) {
+      setUpdateResult({
+        status: 'error',
+        message: err instanceof Error ? err.message : String(err),
+      });
+      setShowUpdateBanner(true);
+    } finally {
+      setUpdateBusy(false);
+    }
+  };
+
+  const handleManualReleaseDownload = async () => {
+    setUpdateBusy(true);
+    try {
+      const url = updateInstallInfo?.releasesUrl || GITHUB_RELEASES_URL;
+      const result = await openManualReleaseDownload(url);
+      if (!result.ok) {
         setUpdateResult({ status: 'error', message: result.message });
         setShowUpdateBanner(true);
       }
@@ -720,9 +758,20 @@ export default function App() {
             {updateResult.status === 'unavailable' && (
               <span>{t('update.unavailable')}</span>
             )}
+            {updateInstallInfo?.packageKind === 'deb' && (
+              <span className="block text-cyan-300/90 mt-1">{t('update.manualDebHint')}</span>
+            )}
+            {updateInstallInfo &&
+              updateInstallInfo.packageKind !== 'deb' &&
+              shouldOfferManualDownload(updateInstallInfo, updateResult) &&
+              updateResult.status !== 'available' && (
+                <span className="block text-cyan-300/90 mt-1">{t('update.manualFallbackHint')}</span>
+              )}
           </div>
           <div className="ui-cluster gap-2">
-            {updateResult.status === 'available' && (
+            {(updateInstallInfo
+              ? shouldOfferUpdaterInstall(updateInstallInfo, updateResult)
+              : updateResult.status === 'available') && (
               <button
                 type="button"
                 disabled={updateBusy}
@@ -730,6 +779,18 @@ export default function App() {
                 className="min-h-9 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 ui-type-caption font-bold disabled:opacity-50 ui-focus-ring"
               >
                 {t('update.install')}
+              </button>
+            )}
+            {(!updateInstallInfo ||
+              shouldOfferManualDownload(updateInstallInfo, updateResult)) && (
+              <button
+                type="button"
+                disabled={updateBusy}
+                onClick={() => void handleManualReleaseDownload()}
+                className="min-h-9 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-cyan-100 ui-type-caption font-semibold disabled:opacity-50 ui-focus-ring inline-flex items-center gap-1.5"
+              >
+                <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+                {t('update.manualDownload')}
               </button>
             )}
             <button

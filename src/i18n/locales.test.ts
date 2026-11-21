@@ -1,4 +1,9 @@
-import { translate, UPDATE_ENDPOINTS } from './locales';
+import {
+  BETA_CHANNEL_AVAILABLE,
+  resolveActiveUpdateChannel,
+  translate,
+  UPDATE_ENDPOINTS,
+} from './locales';
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg);
@@ -114,6 +119,18 @@ assert(translate('en', 'sim.disconnected').toLowerCase().includes('disconnect'),
 assert(translate('pl', 'auto.eventTypeLabel').toLowerCase().includes('zdarzenia'), 'pl auto event type');
 assert(translate('en', 'gpio.legend.adc').toLowerCase().includes('adc'), 'en gpio adc legend');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
-assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
+assert(
+  UPDATE_ENDPOINTS.beta.every(u => !u.includes('/releases/latest/')),
+  'beta must not point at stable releases/latest',
+);
+assert(
+  UPDATE_ENDPOINTS.beta[0].includes('beta-channel'),
+  'beta uses dedicated beta-channel tag',
+);
+assert(typeof resolveActiveUpdateChannel === 'function', 'resolveActiveUpdateChannel export');
+assert(resolveActiveUpdateChannel('beta') === 'stable' || BETA_CHANNEL_AVAILABLE, 'beta gated');
+assert(translate('pl', 'update.manualDownload').toLowerCase().includes('github'), 'pl manual');
+assert(translate('en', 'update.manualDebHint').toLowerCase().includes('deb'), 'en deb hint');
+assert(translate('pl', 'update.channel.betaSoon').toLowerCase().includes('beta'), 'pl beta soon');
 
 console.log('locales.test.ts: OK');
