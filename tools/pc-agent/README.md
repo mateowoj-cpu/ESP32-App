@@ -2,16 +2,28 @@
 
 Agent monitora zasobów PC dla ESP32 Display Studio.
 
+**Jeden artefakt źródłowy:** `esp32_pc_agent.py` (parametry `--host` / `--port`).  
+Windows: ten sam plik → PyInstaller → `esp32-pc-agent.exe`.  
+macOS / Linux: osobna instalacja Python 3 + zależności.
+
 Wysyła `CPU` / `RAM` / `Dysk` / opcjonalnie `GPU` (nvidia-smi) na:
 
 `POST http://<ESP32_IP>:<PORT>/api/pc-stats`
 
-## Python (dev)
+## Python (dev / macOS / Linux)
 
 ```bash
 cd tools/pc-agent
 pip install -r requirements.txt
-python esp32_pc_agent.py --host 192.168.1.150 --port 8080
+python3 esp32_pc_agent.py --host 192.168.1.150 --port 8080
+```
+
+Test odbiornika HTTP (asercje danych + kod wyjścia):
+
+```bash
+pip install -r requirements.txt
+python3 test_http_receiver.py
+# lub: npm run pc-agent:test
 ```
 
 ## Windows .exe (PyInstaller)

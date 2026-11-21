@@ -1,10 +1,13 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {defineConfig} from 'vite';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
+const pcAgentCanonicalPath = path.resolve(rootDir, 'tools/pc-agent/esp32_pc_agent.py');
+const pcAgentCanonical = fs.readFileSync(pcAgentCanonicalPath, 'utf8');
 
 export default defineConfig(() => {
   return {
@@ -15,6 +18,10 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(rootDir, '.'),
       },
+    },
+    define: {
+      // Single PC-agent source artifact for UI download (host/port remain CLI params).
+      __PC_AGENT_CANONICAL__: JSON.stringify(pcAgentCanonical),
     },
     server: {
       port: 3000,

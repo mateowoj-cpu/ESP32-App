@@ -13,7 +13,7 @@ Shell Tauri 2 + natywny serial / OTA / Build działają też na **Linux** i **ma
 | Build (PlatformIO / arduino-cli) | tak | tak | PATH albo sidecar (poniżej) |
 | Tray / close-to-tray | tak | tak | |
 | Autostart aplikacji | tak | LaunchAgent | `tauri-plugin-autostart` |
-| Autostart agenta PC | `.desktop` | `.desktop` w `~/.config/autostart` | wymaga `python3` + `tools/pc-agent/esp32_pc_agent.py` lub binarki |
+| Autostart agenta PC | `.desktop` | `.desktop` w `~/.config/autostart` | osobny Python 3 + kanoniczny `tools/pc-agent/esp32_pc_agent.py` (`--host` / `--port`); UI Integracje podaje komendę |
 
 ## Sidecar PlatformIO (Unix)
 

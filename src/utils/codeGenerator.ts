@@ -1148,74 +1148,35 @@ ${extraLibs.length ? `${extraLibs.join('\n')}\n` : ''}    Wire
 `;
 }
 
+/**
+ * Wrap the canonical tools/pc-agent/esp32_pc_agent.py body for UI download.
+ * Host/port stay CLI parameters; the header only documents the UI values.
+ */
+export function wrapPcAgentDownload(
+  canonicalSource: string,
+  ipAddress = '192.168.1.150',
+  port = 8080,
+): string {
+  const host = String(ipAddress).trim() || '192.168.1.150';
+  const portNum = Number.isFinite(port) && port > 0 ? Math.floor(port) : 8080;
+  const header = [
+    '# ESP32 Display Studio — download of the canonical PC agent source',
+    '# Source of truth: tools/pc-agent/esp32_pc_agent.py',
+    `# Run: python3 esp32_pc_agent.py --host ${host} --port ${portNum}`,
+    '# Windows: use esp32-pc-agent.exe from Releases (same --host / --port).',
+    '# macOS / Linux: install Python 3, then: pip install -r requirements.txt',
+    '#',
+    '',
+  ].join('\n');
+  const body = String(canonicalSource).replace(/^\uFEFF?/, '');
+  return header + body;
+}
+
+/**
+ * Download helper: inlines the single source artifact via Vite `define`
+ * (`__PC_AGENT_CANONICAL__` ← tools/pc-agent/esp32_pc_agent.py).
+ */
 export function generatePythonPcAgentScript(ipAddress = '192.168.1.150', port = 8080): string {
-  return `#!/usr/bin/env python3
-"""
-ESP32 Display Studio — PC Agent (wygenerowany skrypt)
-Pełna wersja narzędziowa: tools/pc-agent/esp32_pc_agent.py
-Windows .exe: Releases → esp32-pc-agent.exe
-
-Wymagania: pip install psutil requests
-Uruchomienie:
-  python esp32_pc_agent.py --host ${ipAddress} --port ${port}
-"""
-import argparse
-import os
-import shutil
-import subprocess
-import time
-import psutil
-import requests
-
-
-def root_disk():
-    return "C:\\\\" if os.name == "nt" else "/"
-
-
-def gpu_percent():
-    nvidia = shutil.which("nvidia-smi")
-    if not nvidia:
-        return 0
-    try:
-        out = subprocess.run(
-            [nvidia, "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=2, check=False,
-        )
-        line = (out.stdout or "").strip().splitlines()
-        return int(float(line[0])) if line else 0
-    except Exception:
-        return 0
-
-
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--host", default="${ipAddress}")
-    p.add_argument("--port", type=int, default=${port})
-    p.add_argument("--no-gpu", action="store_true")
-    args = p.parse_args()
-    url = f"http://{args.host}:{args.port}/api/pc-stats"
-    print(f"ESP32 PC Agent -> {url}")
-    print("Firewall Windows: zezwól na HTTP do IP ESP32 w LAN.")
-    while True:
-        try:
-            payload = {
-                "cpu": int(psutil.cpu_percent(interval=1)),
-                "ram": int(psutil.virtual_memory().percent),
-                "gpu": 0 if args.no_gpu else gpu_percent(),
-                "disk": int(psutil.disk_usage(root_disk()).percent),
-            }
-            res = requests.post(url, json=payload, timeout=2)
-            print(
-                f"CPU {payload['cpu']}% RAM {payload['ram']}% "
-                f"GPU {payload['gpu']}% DYSK {payload['disk']}% -> {res.status_code}"
-            )
-        except Exception as e:
-            print(f"Oczekiwanie na ESP32: {e}")
-        time.sleep(1)
-
-
-if __name__ == "__main__":
-    main()
-`;
+  return wrapPcAgentDownload(__PC_AGENT_CANONICAL__, ipAddress, port);
 }
 

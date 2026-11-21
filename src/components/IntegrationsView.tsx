@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { generatePythonPcAgentScript } from '../utils/codeGenerator';
 import type { PcAgentInfo } from '../platform/pcAgent';
+import { looksLikeWindowsHost } from '../platform/windowsDrivers';
 import { useLocale } from '../i18n/LocaleContext';
 import { POPULAR_CITIES } from '../data/popularCities';
 export { POPULAR_CITIES };
@@ -703,7 +704,14 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono"
               />
               <p className="ui-type-micro text-slate-500 leading-relaxed">
-                {t('integ.firewallHint')}
+                {looksLikeWindowsHost() ? t('integ.firewallHint') : t('integ.firewallHintUnix')}
+              </p>
+              <p className="ui-type-micro text-slate-500 leading-relaxed">
+                {looksLikeWindowsHost()
+                  ? t('integ.windowsExeHint')
+                  : t('integ.pythonUnixHint')
+                      .replace('{host}', esp32Host.trim() || '192.168.1.150')
+                      .replace('{port}', String(apiConfig.pcMonitor.port))}
               </p>
             </div>
 
@@ -854,22 +862,47 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
           </div>
 
           <div className="flex flex-col gap-2">
-            <button
-              onClick={handleDownloadPythonAgent}
-              className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition-colors"
-            >
-              <Download className="ui-icon-sm" aria-hidden="true" />
-              <span>{t('integ.downloadPy')}</span>
-            </button>
-            <a
-              href="https://github.com/mateowoj-cpu/ESP32-App/releases/latest"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-medium transition-colors"
-            >
-              <ExternalLink className="ui-icon-sm" aria-hidden="true" />
-              <span>{t('integ.downloadExe')}</span>
-            </a>
+            {looksLikeWindowsHost() ? (
+              <>
+                <a
+                  href="https://github.com/mateowoj-cpu/ESP32-App/releases/latest"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-medium transition-colors"
+                >
+                  <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+                  <span>{t('integ.downloadExe')}</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={handleDownloadPythonAgent}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition-colors"
+                >
+                  <Download className="ui-icon-sm" aria-hidden="true" />
+                  <span>{t('integ.downloadPy')}</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDownloadPythonAgent}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-xl text-xs font-medium transition-colors"
+                >
+                  <Download className="ui-icon-sm" aria-hidden="true" />
+                  <span>{t('integ.downloadPy')}</span>
+                </button>
+                <a
+                  href="https://github.com/mateowoj-cpu/ESP32-App/releases/latest"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition-colors"
+                >
+                  <ExternalLink className="ui-icon-sm" aria-hidden="true" />
+                  <span>{t('integ.downloadExe')}</span>
+                </a>
+              </>
+            )}
           </div>
         </div>
 

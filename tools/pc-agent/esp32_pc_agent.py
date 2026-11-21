@@ -172,22 +172,34 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"GPU: {'nvidia-smi (opcjonalnie)' if include_gpu else 'wyłączone'}")
     print("Ctrl+C aby zatrzymać. Firewall Windows: zezwól na ruch HTTP do ESP32 w LAN.")
 
+    last_error: Optional[BaseException] = None
+    last_status: Optional[int] = None
+
     while True:
         try:
             payload = collect_stats(include_gpu=include_gpu)
             status = post_stats(url, payload, timeout=args.timeout)
+            last_status = status
+            last_error = None
             print(
                 f"Wysłano: CPU {payload['cpu']}%, RAM {payload['ram']}%, "
                 f"GPU {payload['gpu']}%, Dysk {payload['disk']}% -> HTTP {status}"
             )
+            if args.once and not (200 <= status < 300):
+                print(f"Błąd HTTP {status} przy --once.", file=sys.stderr)
+                return 1
         except KeyboardInterrupt:
             print("\nZatrzymano agenta.")
             return 0
         except Exception as exc:
+            last_error = exc
             print(f"Oczekiwanie na połączenie z ESP32: {exc}")
+            if args.once:
+                print(f"Nie udało się wysłać próbki (--once): {exc}", file=sys.stderr)
+                return 1
 
         if args.once:
-            return 0
+            return 0 if last_error is None and last_status is not None else 1
         if args.interval > 0:
             time.sleep(args.interval)
 

@@ -83,10 +83,10 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: PC agent smoke (--once)
+      - name: PC agent HTTP receiver test
         run: |
           pip install -r tools/pc-agent/requirements.txt
-          python tools/pc-agent/esp32_pc_agent.py --once --host 127.0.0.1 --port 9 --no-gpu
+          python tools/pc-agent/test_http_receiver.py
 
   rust-smoke:
     name: Cargo check (Tauri)
