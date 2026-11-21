@@ -48,6 +48,9 @@ impl ResolvedCommand {
         {
             // Keep Settings readable: "…/python -m esptool"
             format!("{} -m esptool", self.argv[0])
+        } else if self.argv.len() >= 2 && is_python_script(Path::new(self.argv.last().unwrap())) {
+            // python[.exe] [-3] script.py → show full invoke line
+            self.argv.join(" ")
         } else if let Some(first) = self.argv.first() {
             first.clone()
         } else {
@@ -60,7 +63,68 @@ fn path_is_file(p: &Path) -> bool {
     p.is_file()
 }
 
-fn kill_pid(pid: u32) {
+fn is_python_script(p: &Path) -> bool {
+    p.extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.eq_ignore_ascii_case("py"))
+        .unwrap_or(false)
+}
+
+/// Prefer the venv interpreter next to a sidecar script (`…/penv/Scripts|bin/python`).
+fn sidecar_python_for_script(script: &Path) -> Option<PathBuf> {
+    let parent = script.parent()?;
+    let cand = if cfg!(windows) {
+        parent.join("python.exe")
+    } else {
+        parent.join("python")
+    };
+    if path_is_file(&cand) {
+        return Some(cand);
+    }
+    // Also try python3 in the same bin/Scripts dir.
+    let cand3 = if cfg!(windows) {
+        parent.join("python3.exe")
+    } else {
+        parent.join("python3")
+    };
+    if path_is_file(&cand3) {
+        Some(cand3)
+    } else {
+        None
+    }
+}
+
+fn first_path_python() -> Option<(PathBuf, bool)> {
+    for py in python_bins() {
+        if let Some(path) = which(py) {
+            return Some((path, py == "py"));
+        }
+    }
+    None
+}
+
+/// Build argv for a tool path. `.py` files always go through a Python interpreter
+/// (Windows cannot `Command::new("….py")`). Prefer the sidecar penv interpreter.
+pub fn argv_for_tool_path(path: &Path) -> Option<Vec<String>> {
+    if !path_is_file(path) {
+        return None;
+    }
+    if !is_python_script(path) {
+        return Some(vec![path.display().to_string()]);
+    }
+    let script = path.display().to_string();
+    if let Some(py) = sidecar_python_for_script(path) {
+        return Some(vec![py.display().to_string(), script]);
+    }
+    let (py_path, is_py_launcher) = first_path_python()?;
+    if is_py_launcher {
+        Some(vec![py_path.display().to_string(), "-3".into(), script])
+    } else {
+        Some(vec![py_path.display().to_string(), script])
+    }
+}
+
+fn kill_probe_tree(pid: u32) {
     #[cfg(windows)]
     {
         let mut cmd = Command::new("taskkill");
@@ -70,10 +134,12 @@ fn kill_pid(pid: u32) {
         hide_console(&mut cmd);
         let _ = cmd.status();
     }
-    #[cfg(not(windows))]
+    #[cfg(unix)]
     {
+        // Negative PID = process group (child was started with process_group(0)).
+        // Use `--` so `-<pgid>` is not parsed as another signal name.
         let mut cmd = Command::new("kill");
-        cmd.args(["-KILL", &pid.to_string()])
+        cmd.args(["-s", "KILL", "--", &format!("-{pid}")])
             .stdout(Stdio::null())
             .stderr(Stdio::null());
         hide_console(&mut cmd);
@@ -81,12 +147,19 @@ fn kill_pid(pid: u32) {
     }
 }
 
-/// Run a short probe with a hard timeout; kill the child if it hangs.
+/// Run a short probe with a hard timeout; kill the child (and Unix process group) if it hangs.
 pub fn output_with_timeout(mut cmd: Command, timeout: Duration) -> Option<std::process::Output> {
     hide_console(&mut cmd);
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    // Isolate the probe in its own process group so timeout can reap wrappers
+    // and their descendants (e.g. shell → sleep) together.
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
     let child = cmd.spawn().ok()?;
     let pid = child.id();
     let (tx, rx) = mpsc::channel();
@@ -97,7 +170,7 @@ pub fn output_with_timeout(mut cmd: Command, timeout: Duration) -> Option<std::p
         Ok(Ok(output)) => Some(output),
         Ok(Err(_)) => None,
         Err(_) => {
-            kill_pid(pid);
+            kill_probe_tree(pid);
             // Reap so we do not leave a zombie; ignore late output.
             let _ = rx.recv_timeout(Duration::from_secs(2));
             None
@@ -311,31 +384,37 @@ fn probe_python_esptool() -> Option<Vec<String>> {
 /// Shared esptool resolve used by Settings and flash.
 pub fn resolve_esptool(app: &AppHandle) -> Option<ResolvedCommand> {
     if let Some(path) = override_esptool(app) {
-        return Some(ResolvedCommand {
-            argv: vec![path.display().to_string()],
-            source: SRC_OVERRIDE,
-        });
+        if let Some(argv) = argv_for_tool_path(&path) {
+            return Some(ResolvedCommand {
+                argv,
+                source: SRC_OVERRIDE,
+            });
+        }
     }
     if let Some(path) = env_file("ESP32_STUDIO_ESPTOOL") {
-        return Some(ResolvedCommand {
-            argv: vec![path.display().to_string()],
-            source: SRC_ENV,
-        });
+        if let Some(argv) = argv_for_tool_path(&path) {
+            return Some(ResolvedCommand {
+                argv,
+                source: SRC_ENV,
+            });
+        }
     }
     let (local, resource) = app_dirs(app);
     for cand in esptool_sidecar_candidates(local.as_deref(), resource.as_deref()) {
-        if path_is_file(&cand) {
+        if let Some(argv) = argv_for_tool_path(&cand) {
             return Some(ResolvedCommand {
-                argv: vec![cand.display().to_string()],
+                argv,
                 source: SRC_SIDECAR,
             });
         }
     }
     if let Some(path) = which("esptool").or_else(|| which("esptool.py")) {
-        return Some(ResolvedCommand {
-            argv: vec![path.display().to_string()],
-            source: SRC_PATH,
-        });
+        if let Some(argv) = argv_for_tool_path(&path) {
+            return Some(ResolvedCommand {
+                argv,
+                source: SRC_PATH,
+            });
+        }
     }
     probe_python_esptool().map(|argv| ResolvedCommand {
         argv,
@@ -450,6 +529,48 @@ mod tests {
         assert_eq!(py.display_path(), "/usr/bin/python3 -m esptool");
         // Flash still uses the full argv; Settings shows display_path.
         assert_eq!(py.argv[0], "/usr/bin/python3");
+
+        let script = ResolvedCommand {
+            argv: vec![
+                r"C:\penv\Scripts\python.exe".into(),
+                r"C:\penv\Scripts\esptool.py".into(),
+            ],
+            source: SRC_SIDECAR,
+        };
+        assert_eq!(
+            script.display_path(),
+            r"C:\penv\Scripts\python.exe C:\penv\Scripts\esptool.py"
+        );
+        assert_eq!(script.argv.len(), 2);
+    }
+
+    #[test]
+    fn py_script_uses_interpreter_argv_not_bare_script() {
+        let root = temp_dir("py-wrap");
+        let scripts = if cfg!(windows) {
+            root.join("penv").join("Scripts")
+        } else {
+            root.join("penv").join("bin")
+        };
+        fs::create_dir_all(&scripts).unwrap();
+        let py = if cfg!(windows) {
+            scripts.join("python.exe")
+        } else {
+            scripts.join("python")
+        };
+        let script = scripts.join("esptool.py");
+        touch_file(&py);
+        touch_file(&script);
+
+        let argv = argv_for_tool_path(&script).expect("wrapped");
+        assert_eq!(argv.len(), 2, "must be [python, script.py], got {argv:?}");
+        assert_eq!(Path::new(&argv[0]), py.as_path());
+        assert_eq!(Path::new(&argv[1]), script.as_path());
+        assert!(
+            !argv[0].ends_with(".py"),
+            "Command::new must not target the .py alone"
+        );
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]
@@ -491,6 +612,59 @@ mod tests {
             "timeout should return quickly, got {:?}",
             start.elapsed()
         );
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn timeout_kills_wrapper_descendants() {
+        use std::os::unix::fs::PermissionsExt;
+        let root = temp_dir("hang-tree");
+        let pid_file = root.join("child.pid");
+        let hang = root.join("hang-tree.sh");
+        // Wrapper forks sleep then waits — killing only the wrapper would leave sleep.
+        fs::write(
+            &hang,
+            format!(
+                "#!/bin/sh\nsleep 120 &\necho $! > '{}'\nwait\n",
+                pid_file.display()
+            ),
+        )
+        .unwrap();
+        let mut perms = fs::metadata(&hang).unwrap().permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&hang, perms).unwrap();
+
+        let out = output_with_timeout(Command::new(&hang), Duration::from_millis(400));
+        assert!(out.is_none(), "must time out");
+
+        // Wait briefly for group kill + pid file flush race.
+        for _ in 0..50 {
+            if pid_file.is_file() {
+                break;
+            }
+            thread::sleep(Duration::from_millis(20));
+        }
+        if pid_file.is_file() {
+            let child_pid: u32 = fs::read_to_string(&pid_file)
+                .unwrap_or_default()
+                .trim()
+                .parse()
+                .unwrap_or(0);
+            assert!(child_pid > 0, "child pid should have been recorded");
+            // kill -0 fails when the process is gone.
+            let still = Command::new("kill")
+                .args(["-0", &child_pid.to_string()])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
+            assert!(
+                !still,
+                "descendant sleep (pid {child_pid}) must die with process-group kill"
+            );
+        }
         let _ = fs::remove_dir_all(&root);
     }
 
