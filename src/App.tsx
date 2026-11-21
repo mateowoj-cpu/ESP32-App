@@ -90,6 +90,18 @@ export default function App() {
     localStorage.setItem('esp32_nav_sidebar_open', navSidebarOpen ? '1' : '0');
   }, [navSidebarOpen]);
 
+  // Keep the workspace scrolled to the top when switching views so a tall
+  // previous tab cannot leave the next view partially off-screen / clipped.
+  useEffect(() => {
+    const workspace = document.getElementById('app-workspace');
+    if (!workspace) return;
+    workspace.scrollTop = 0;
+    const raf = requestAnimationFrame(() => {
+      workspace.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [activeTab]);
+
   // Application Global States
   const [displayConfig, setDisplayConfig] = useState<DisplayConfig>(DEFAULT_DISPLAY_CONFIG);
   const [systemConfig, setSystemConfig] = useState<SystemConfig>(DEFAULT_SYSTEM_CONFIG);
@@ -456,9 +468,9 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-dvh max-w-full overflow-x-hidden bg-slate-950 text-slate-100 flex flex-col font-sans ui-type-body">
+    <div className="h-dvh max-h-dvh max-w-full overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-sans ui-type-body">
       <a href="#main-workspace" className="ui-skip-link">
-        Przejdź do treści
+        {t('a11y.skipToContent')}
       </a>
       {/*
         TOP BAR CONTRACT:
@@ -467,7 +479,7 @@ export default function App() {
         Zone 3: Toggle for collapsible right-side app menu (desktop)
         Primary nav lives in the right sidebar (lg+) / mobile bar (<lg).
       */}
-      <header className="flex items-center justify-between gap-3 xl:gap-6 px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50 backdrop-blur-md min-w-0">
+      <header className="shrink-0 flex items-center justify-between gap-3 xl:gap-6 px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-950/95 z-50 backdrop-blur-md min-w-0">
         {/* Zone 1: Brand Wordmark */}
         <div className="flex items-center gap-3 whitespace-nowrap shrink-0">
           <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400" aria-hidden="true">
@@ -588,7 +600,7 @@ export default function App() {
 
       {showUpdateBanner && updateResult && (
         <div
-          className="border-b border-cyan-500/30 bg-cyan-950/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3"
+          className="shrink-0 border-b border-cyan-500/30 bg-cyan-950/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3"
           role="status"
           aria-live="polite"
         >
@@ -634,7 +646,7 @@ export default function App() {
 
       {importNotice && (
         <div
-          className="border-b border-emerald-500/30 bg-emerald-950/30 px-4 py-2 ui-type-caption text-emerald-100 flex items-center justify-between gap-3"
+          className="shrink-0 border-b border-emerald-500/30 bg-emerald-950/30 px-4 py-2 ui-type-caption text-emerald-100 flex items-center justify-between gap-3"
           role="status"
           aria-live="polite"
         >
@@ -651,22 +663,23 @@ export default function App() {
       )}
 
       {openFileNotice && (
-        <div className="border-b border-amber-500/30 bg-amber-950/30 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3" role="status">
+        <div className="shrink-0 border-b border-amber-500/30 bg-amber-950/30 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3" role="status">
           <div className="ui-type-caption text-amber-100 min-w-0">
             {openFileNotice.kind === 'sketch' && (
               <span>
-                Otwarto szkic <strong className="font-mono ui-token">{openFileNotice.fileName}</strong>
-                {' '}(<span className="font-mono ui-token">{openFileNotice.path}</span>). Studio nie nadpisuje .ino — użyj Generatora C++ / Flash helpera dla .bin.
+                {t('openFile.sketch')
+                  .replace('{name}', openFileNotice.fileName)
+                  .replace('{path}', openFileNotice.path)}
               </span>
             )}
             {openFileNotice.kind === 'firmware' && (
               <span>
-                Plik firmware <strong className="font-mono ui-token">{openFileNotice.fileName}</strong> — przejdź do USB → Flash helper i wskaż ten plik.
+                {t('openFile.firmware').replace('{name}', openFileNotice.fileName)}
               </span>
             )}
             {openFileNotice.kind !== 'sketch' && openFileNotice.kind !== 'firmware' && (
               <span>
-                Otwarto: <strong className="font-mono ui-token">{openFileNotice.fileName}</strong>
+                {t('openFile.generic').replace('{name}', openFileNotice.fileName)}
               </span>
             )}
           </div>
@@ -758,7 +771,7 @@ export default function App() {
                   onClick={() => handleDownloadInoQuick(customSketchName)}
                   className="min-h-10 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg ui-type-caption font-medium border border-slate-700 transition-colors shrink-0 ui-focus-ring"
                 >
-                  Pobierz Ponownie
+                  {t('ino.modalRedownload')}
                 </button>
               </div>
             </div>
@@ -775,7 +788,7 @@ export default function App() {
                 ) : (
                   <Copy className="ui-icon-sm" aria-hidden="true" />
                 )}
-                <span>{copiedIno ? 'Skopiowano!' : 'Kopiuj C++'}</span>
+                <span>{copiedIno ? t('action.copied') : t('action.copyCpp')}</span>
               </button>
 
               <div className="ui-cluster gap-2">
@@ -787,14 +800,14 @@ export default function App() {
                   }}
                   className="min-h-10 px-3 py-2 ui-type-caption text-cyan-400 hover:text-cyan-300 font-medium ui-focus-ring rounded-lg"
                 >
-                  Zobacz cały kod i biblioteki &rarr;
+                  {t('ino.modalViewCode')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setDownloadInoModal(false)}
                   className="min-h-10 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg ui-type-caption transition-colors ui-focus-ring"
                 >
-                  Gotowe
+                  {t('action.done')}
                 </button>
               </div>
             </div>
@@ -804,7 +817,7 @@ export default function App() {
 
       {/* Mobile Navigation Bar — horizontal scroll stays inside the bar */}
       <nav
-        className="ui-nav-scroll lg:hidden flex items-center gap-2 p-2 bg-slate-900 border-b border-slate-800"
+        className="ui-nav-scroll shrink-0 lg:hidden flex items-center gap-2 p-2 bg-slate-900 border-b border-slate-800"
         aria-label={t('a11y.mobileNav')}
       >
         {desktopNavTabs.map(tab => {
@@ -830,10 +843,21 @@ export default function App() {
         })}
       </nav>
 
-      <div className="flex flex-1 min-h-0 min-w-0">
-        <div className="flex flex-col flex-1 min-w-0 min-h-0">
+      <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden">
+        {/*
+          Workspace column scrolls independently of the right nav.
+          Avoid root overflow-x-hidden + sticky sidebar (pairs overflow-y to auto
+          and clips content when switching tabs / toggling the panel).
+        */}
+        <div
+          id="app-workspace"
+          className="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain"
+        >
           {/* Main Workspace Stage */}
-          <main id="main-workspace" className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 ui-section ui-section-gap">
+          <main
+            id="main-workspace"
+            className="flex-1 min-w-0 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 ui-section ui-section-gap"
+          >
             {activeTab === 'simulator' && (
               <HardwareSimulator
                 display={displayConfig}

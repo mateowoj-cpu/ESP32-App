@@ -1133,6 +1133,12 @@ const pl: Dict = {
   'a11y.closeUpdateBanner': 'Zamknij banner aktualizacji',
   'a11y.closeNotice': 'Zamknij powiadomienie',
   'a11y.closeFileNotice': 'Zamknij powiadomienie pliku',
+  'a11y.skipToContent': 'Przejdź do treści',
+  'openFile.sketch':
+    'Otwarto szkic {name} ({path}). Studio nie nadpisuje .ino — użyj Generatora C++ / Flash helpera dla .bin.',
+  'openFile.firmware':
+    'Plik firmware {name} — przejdź do USB → Flash helper i wskaż ten plik.',
+  'openFile.generic': 'Otwarto: {name}',
   'ino.modalTitle': 'Pobrano szkic Arduino IDE',
   'ino.modalFile': 'Plik:',
   'ino.modalRule': 'Ważna zasada Arduino IDE:',
@@ -1141,6 +1147,8 @@ const pl: Dict = {
   'ino.modalHint':
     '(Jeśli otworzysz plik bezpośrednio, Arduino IDE wyświetli okienko z zapytaniem i utworzy ten folder automatycznie).',
   'ino.modalRename': 'Zmień nazwę pliku przed wgraniem (opcjonalnie):',
+  'ino.modalRedownload': 'Pobierz ponownie',
+  'ino.modalViewCode': 'Zobacz cały kod i biblioteki →',
 };
 
 const en: Dict = {
@@ -2264,6 +2272,12 @@ const en: Dict = {
   'a11y.closeUpdateBanner': 'Close update banner',
   'a11y.closeNotice': 'Close notification',
   'a11y.closeFileNotice': 'Close file notification',
+  'a11y.skipToContent': 'Skip to content',
+  'openFile.sketch':
+    'Opened sketch {name} ({path}). Studio does not overwrite .ino — use the C++ Generator / Flash helper for .bin.',
+  'openFile.firmware':
+    'Firmware file {name} — go to USB → Flash helper and select this file.',
+  'openFile.generic': 'Opened: {name}',
   'ino.modalTitle': 'Arduino IDE sketch downloaded',
   'ino.modalFile': 'File:',
   'ino.modalRule': 'Important Arduino IDE rule:',
@@ -2272,6 +2286,8 @@ const en: Dict = {
   'ino.modalHint':
     '(If you open the file directly, Arduino IDE will prompt and create that folder automatically).',
   'ino.modalRename': 'Rename the file before flashing (optional):',
+  'ino.modalRedownload': 'Download again',
+  'ino.modalViewCode': 'View full code and libraries →',
 };
 
 const TABLES: Record<AppLocale, Dict> = { pl, en };

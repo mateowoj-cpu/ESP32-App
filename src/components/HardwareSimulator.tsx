@@ -844,12 +844,14 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               )}
             </div>
 
-            {/* Display Glass Bezel */}
+            {/* Display Glass Bezel — scale down inside narrow workspace / open sidebar */}
             <div 
-              className={`p-3 bg-black rounded-lg border border-slate-800 transition-all ${themeColors.glow} relative cursor-crosshair`}
+              className={`p-3 bg-black rounded-lg border border-slate-800 transition-all ${themeColors.glow} relative cursor-crosshair max-w-full`}
               style={{
                 width: display.width * 2.8 + 24,
-                height: display.height * 2.8 + 24,
+                maxWidth: '100%',
+                aspectRatio: `${display.width} / ${display.height}`,
+                height: 'auto',
               }}
             >
               {/* Glass Reflection Highlight */}
