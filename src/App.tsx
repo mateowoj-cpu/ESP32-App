@@ -229,10 +229,9 @@ export default function App() {
       .catch(() => undefined);
   }, [diagnosticsEnabled]);
 
-  // Auto-check updates + deep-link / file association listeners (Tauri)
+  // Auto-check updates (independent of deep-link listener — offline must not block opens)
   useEffect(() => {
     let cancelled = false;
-    let unlistenOpen: (() => void) | undefined;
     (async () => {
       try {
         const { isTauri } = await import('@tauri-apps/api/core');
@@ -244,13 +243,38 @@ export default function App() {
         if (result.status === 'available') {
           setShowUpdateBanner(true);
         }
-
-        const { listenAppOpenPaths } = await import('./platform/deepLink');
-        unlistenOpen = await listenAppOpenPaths(paths => {
-          void handleExternalOpen(paths);
-        });
       } catch {
         // browser / updater unavailable
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [updateChannel]);
+
+  // Deep-link / file association listener — mounted once, not remounted on channel change.
+  // Drains the Rust startup buffer after listen is registered; cleans up late subscriptions.
+  useEffect(() => {
+    let cancelled = false;
+    let unlistenOpen: (() => void) | undefined;
+    (async () => {
+      try {
+        const { isTauri } = await import('@tauri-apps/api/core');
+        if (!isTauri()) return;
+        const { bindAppOpenPaths } = await import('./platform/deepLink');
+        const stop = await bindAppOpenPaths(
+          paths => {
+            void handleExternalOpen(paths);
+          },
+          { isCancelled: () => cancelled },
+        );
+        if (cancelled) {
+          stop();
+          return;
+        }
+        unlistenOpen = stop;
+      } catch {
+        // browser / deep-link unavailable
       }
     })();
     return () => {
@@ -258,7 +282,7 @@ export default function App() {
       unlistenOpen?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateChannel]);
+  }, []);
 
   // Real-time ticking clock in simulation
   useEffect(() => {

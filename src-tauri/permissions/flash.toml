@@ -5,6 +5,7 @@ commands.allow = [
   "get_esptool_info",
   "flash_write_firmware",
   "read_open_file",
+  "take_pending_open_paths",
   "get_firmware_toolchain_info",
   "build_firmware_from_sketch",
   "get_external_tools_status",

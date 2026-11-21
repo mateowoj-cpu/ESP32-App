@@ -3,6 +3,7 @@ mod diagnostics;
 mod firmware_build;
 mod flash;
 mod host_ides;
+mod open_paths;
 mod ota;
 mod pc_agent;
 mod process_util;
@@ -23,6 +24,7 @@ use flash::{flash_write_firmware, get_esptool_info, read_open_file};
 use host_ides::{
     install_platformio_vscode_extension, open_host_ide_download, start_winget_install,
 };
+use open_paths::{enqueue_open_args, enqueue_open_paths, take_pending_open_paths, PendingOpenPaths};
 use tools::{
     export_and_open_arduino_ide, get_external_tools_status, get_tool_path_overrides,
     open_external_url, open_path_in_os, open_wokwi_simulator, set_tool_path_overrides,
@@ -33,19 +35,7 @@ use serial::{
     close_serial_port, list_serial_ports, open_serial_port, write_serial_port, SerialManager,
 };
 use update_channel::{check_update_channel, download_and_install_channel};
-use tauri::{Emitter, Manager};
-use tauri_plugin_autostart::MacosLauncher;
-
-fn emit_open_paths(app: &tauri::AppHandle, args: &[String]) {
-    let paths: Vec<String> = args
-        .iter()
-        .filter(|a| flash::classify_cli_arg(a))
-        .cloned()
-        .collect();
-    if !paths.is_empty() {
-        let _ = app.emit("app-open-paths", paths);
-    }
-}
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -55,11 +45,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_autostart::init(
-            MacosLauncher::LaunchAgent,
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--autostart"]),
         ))
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
-            emit_open_paths(app, &argv);
+            // Second instance: forward open targets (live emit once UI is ready).
+            enqueue_open_args(app, &argv);
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
                 let _ = window.set_focus();
@@ -69,6 +60,7 @@ pub fn run() {
         .manage(PcAgentState::default())
         .manage(DesktopPrefs::default())
         .manage(DiagnosticsState::default())
+        .manage(PendingOpenPaths::default())
         .invoke_handler(tauri::generate_handler![
             list_serial_ports,
             open_serial_port,
@@ -107,7 +99,8 @@ pub fn run() {
             append_diagnostics_log,
             get_diagnostics_log_path,
             open_diagnostics_folder,
-            export_diagnostics_zip
+            export_diagnostics_zip,
+            take_pending_open_paths
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {
@@ -124,25 +117,35 @@ pub fn run() {
                 let handle = app.handle().clone();
                 let _ = app.deep_link().on_open_url(move |event| {
                     let urls: Vec<String> = event.urls().iter().map(|u| u.to_string()).collect();
-                    let _ = handle.emit("app-open-paths", urls);
+                    enqueue_open_paths(&handle, urls);
                 });
 
                 desktop::setup_tray(app.handle())?;
                 desktop::attach_close_to_tray(app.handle());
             }
 
+            // Cold start (first instance): buffer argv until the UI takes them.
             let args: Vec<String> = std::env::args().skip(1).collect();
-            emit_open_paths(app.handle(), &args);
+            enqueue_open_args(app.handle(), &args);
 
             Ok(())
         })
         .build(tauri::generate_context!())
         .expect("error while building ESP32 Display Studio (Tauri)")
         .run(|app_handle, event| {
-            if let tauri::RunEvent::Exit = event {
-                if let Some(state) = app_handle.try_state::<PcAgentState>() {
-                    pc_agent::stop_on_exit(&state);
+            match event {
+                tauri::RunEvent::Exit => {
+                    if let Some(state) = app_handle.try_state::<PcAgentState>() {
+                        pc_agent::stop_on_exit(&state);
+                    }
                 }
+                // macOS Open With / Finder file associations deliver file URLs here.
+                #[cfg(any(target_os = "macos", target_os = "ios"))]
+                tauri::RunEvent::Opened { urls } => {
+                    let paths: Vec<String> = urls.iter().map(|u| u.to_string()).collect();
+                    enqueue_open_paths(app_handle, paths);
+                }
+                _ => {}
             }
         });
 }

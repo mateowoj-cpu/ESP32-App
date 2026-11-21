@@ -284,6 +284,18 @@ pub fn flash_write_firmware(
     }
 }
 
+/// Extensions accepted for argv / deep-link / Open With targets.
+pub const ALLOWED_OPEN_EXTENSIONS: &[&str] = &["esp32studio", "json", "ino", "bin", "elf"];
+
+fn open_file_kind(ext: &str) -> Option<&'static str> {
+    match ext {
+        "esp32studio" | "json" => Some("project"),
+        "ino" => Some("sketch"),
+        "bin" | "elf" => Some("firmware"),
+        _ => None,
+    }
+}
+
 #[tauri::command]
 pub fn read_open_file(path: String) -> Result<OpenFilePayload, String> {
     let p = PathBuf::from(path.trim());
@@ -295,13 +307,14 @@ pub fn read_open_file(path: String) -> Result<OpenFilePayload, String> {
         .and_then(|e| e.to_str())
         .unwrap_or("")
         .to_ascii_lowercase();
-    let kind = match ext.as_str() {
-        "esp32studio" | "json" => "project",
-        "ino" => "sketch",
-        "bin" | "elf" => "firmware",
-        _ => "unknown",
-    };
-    // Limit size for project/sketch text (~2 MiB)
+    let kind = open_file_kind(&ext).ok_or_else(|| {
+        format!(
+            "Niedozwolone rozszerzenie '.{}'. Dozwolone: {}.",
+            ext,
+            ALLOWED_OPEN_EXTENSIONS.join(", ")
+        )
+    })?;
+    // Limit size for project/sketch text (~2 MiB). Firmware: metadata only.
     let meta = std::fs::metadata(&p).map_err(|e| e.to_string())?;
     if meta.len() > 2 * 1024 * 1024 && kind != "firmware" {
         return Err("Plik jest zbyt duży (>2 MiB).".into());
@@ -310,6 +323,7 @@ pub fn read_open_file(path: String) -> Result<OpenFilePayload, String> {
     let content = if kind == "firmware" {
         None
     } else {
+        // Only read content for explicitly allowed text project/sketch types.
         Some(std::fs::read_to_string(&p).map_err(|e| e.to_string())?)
     };
 
@@ -335,17 +349,47 @@ pub struct OpenFilePayload {
 }
 
 pub fn classify_cli_arg(arg: &str) -> bool {
-    let p = Path::new(arg);
-    if !p.exists() {
-        // deep link URLs
-        return arg.starts_with("esp32studio://") || arg.starts_with("esp32studio:");
+    let trimmed = arg.trim();
+    if trimmed.starts_with("esp32studio://")
+        || trimmed.starts_with("esp32studio:")
+        || trimmed.starts_with("file:")
+    {
+        return true;
     }
-    matches!(
-        p.extension()
-            .and_then(|e| e.to_str())
-            .unwrap_or("")
-            .to_ascii_lowercase()
-            .as_str(),
-        "esp32studio" | "json" | "ino" | "bin" | "elf"
-    )
+    let p = Path::new(trimmed);
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    // Allow specific extensions even before the file exists on disk (cold start
+    // / Open With paths that arrive slightly before the FS view is ready).
+    ALLOWED_OPEN_EXTENSIONS.iter().any(|allowed| *allowed == ext)
+}
+
+#[cfg(test)]
+mod open_file_tests {
+    use super::*;
+
+    #[test]
+    fn classify_allows_scheme_and_extensions() {
+        assert!(classify_cli_arg("esp32studio://open?path=%2Ftmp%2Fx.esp32studio"));
+        assert!(classify_cli_arg("file:///tmp/zażółć%20projekt.esp32studio"));
+        assert!(classify_cli_arg("/tmp/my file.esp32studio"));
+        assert!(classify_cli_arg("/tmp/100%.ino"));
+        assert!(classify_cli_arg(r"C:\proj\demo.bin"));
+        assert!(!classify_cli_arg("/tmp/secrets.txt"));
+        assert!(!classify_cli_arg("--autostart"));
+    }
+
+    #[test]
+    fn open_file_kind_gates_content_types() {
+        assert_eq!(open_file_kind("esp32studio"), Some("project"));
+        assert_eq!(open_file_kind("json"), Some("project"));
+        assert_eq!(open_file_kind("ino"), Some("sketch"));
+        assert_eq!(open_file_kind("bin"), Some("firmware"));
+        assert_eq!(open_file_kind("elf"), Some("firmware"));
+        assert_eq!(open_file_kind("txt"), None);
+        assert_eq!(open_file_kind("exe"), None);
+    }
 }
