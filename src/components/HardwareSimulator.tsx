@@ -594,10 +594,31 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
       pirActive: nextVal,
       isDisplayAwake: true,
       activePetMood: nextVal ? 'surprised' : 'neutral',
-      lastTriggerFired: nextVal ? 'PIR: Wykryto ruch! (GPIO 14)' : 'PIR: Brak ruchu',
+      lastTriggerFired: nextVal
+        ? `PIR: Wykryto ruch! (GPIO ${system.pirPin ?? 14})`
+        : 'PIR: Brak ruchu',
     }));
     if (nextVal) {
       onTriggerAction('PIR Ruch', 'surprised');
+    }
+  };
+
+  // Handle A3144 Hall Sensor Toggle
+  const handleToggleHall = () => {
+    const nextVal = !simState.hallActive;
+    const pin = system.hallPin ?? 13;
+    setSimState(prev => ({
+      ...prev,
+      hallActive: nextVal,
+      isDisplayAwake: true,
+      activePetMood: nextVal ? 'surprised' : 'neutral',
+      lastTriggerFired: nextVal
+        ? t('sim.hall.on').replace('{pin}', String(pin))
+        : t('sim.hall.off'),
+    }));
+    if (nextVal) {
+      const hallRule = automations.find(r => r.enabled && r.trigger.type === 'hall_magnetic');
+      onTriggerAction(hallRule?.name || 'A3144 Hall', 'surprised');
     }
   };
 
@@ -1143,7 +1164,7 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                   <Activity className="ui-icon-sm" aria-hidden="true" />
                 </div>
                 <div>
-                  <div className="text-xs font-medium text-slate-200">{t('sim.pir')} (GPIO 14)</div>
+                  <div className="text-xs font-medium text-slate-200">{t('sim.pir')} (GPIO {system.pirPin ?? 14})</div>
                   <div className="ui-type-micro text-slate-400">GPIO / cyber-pet</div>
                 </div>
               </div>
@@ -1159,6 +1180,34 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 {simState.pirActive ? t('sim.on') : t('sim.off')}
               </button>
             </div>
+
+            {/* A3144 Hall Sensor Toggle (shown when pin assigned) */}
+            {system.hallPin != null && (
+              <div className="flex items-center justify-between p-3 bg-slate-950 border border-fuchsia-800/50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${simState.hallActive ? 'bg-fuchsia-500/20 text-fuchsia-400' : 'bg-slate-800 text-slate-500'}`}>
+                    <Radio className="ui-icon-sm" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-slate-200">
+                      {t('sim.hall')} (GPIO {system.hallPin})
+                    </div>
+                    <div className="ui-type-micro text-slate-400">{t('sim.hallHint')}</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleHall}
+                  className={`cursor-pointer px-3 py-1.5 min-h-10 rounded-lg text-xs font-mono font-medium transition-all ${
+                    simState.hallActive
+                      ? 'bg-fuchsia-500 text-slate-950 font-bold'
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {simState.hallActive ? t('sim.on') : t('sim.off')}
+                </button>
+              </div>
+            )}
 
             {/* Ambient Light Sensor LDR */}
             <div className="flex flex-col gap-2 p-3 bg-slate-950 border border-slate-800/80 rounded-xl">

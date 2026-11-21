@@ -388,6 +388,28 @@ export const CodeView: React.FC<CodeViewProps> = ({
                   <td className="py-2.5 px-3 text-emerald-400 font-bold">GPIO {system.pirPin ?? 14}</td>
                   <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.pir')}</td>
                 </tr>
+                {system.hallPin != null && (
+                  <>
+                    <tr className="hover:bg-slate-950/40 bg-fuchsia-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-fuchsia-300">{t('code.wiring.module.hall')}</td>
+                      <td className="py-2.5 px-3 text-rose-400">VCC</td>
+                      <td className="py-2.5 px-3 text-rose-400 font-bold">3.3V</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.hallVcc')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-fuchsia-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-fuchsia-300">{t('code.wiring.module.hall')}</td>
+                      <td className="py-2.5 px-3 text-slate-400">GND</td>
+                      <td className="py-2.5 px-3 text-slate-400 font-bold">GND</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.hallGnd')}</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/40 bg-fuchsia-950/10">
+                      <td className="py-2.5 px-3 font-semibold text-fuchsia-300">{t('code.wiring.module.hall')}</td>
+                      <td className="py-2.5 px-3 text-fuchsia-400">OUT / DO</td>
+                      <td className="py-2.5 px-3 text-fuchsia-400 font-bold">GPIO {system.hallPin}</td>
+                      <td className="py-2.5 px-3 text-slate-400">{t('code.wiring.note.hall')}</td>
+                    </tr>
+                  </>
+                )}
                 <tr className="hover:bg-slate-950/40">
                   <td className="py-2.5 px-3 font-semibold text-slate-200">{t('code.wiring.module.ldr')}</td>
                   <td className="py-2.5 px-3 text-yellow-400">SIG / ADC</td>

@@ -66,6 +66,7 @@ type StudioTab = 'visual_blocks' | 'script_dsl' | 'timeline';
 const TRIGGER_TYPE_OPTIONS: TriggerType[] = [
   'time_is',
   'pir_motion',
+  'hall_magnetic',
   'light_lux_below',
   'boot_button_pressed',
   'temp_above',
@@ -741,6 +742,7 @@ void updatePetTimeline() {
     return automations.map(r => {
       let trigStr = '';
       if (r.trigger.type === 'pir_motion') trigStr = `ON pir_motion(GPIO_${r.trigger.gpioPin || 14})`;
+      else if (r.trigger.type === 'hall_magnetic') trigStr = `ON hall_magnetic(GPIO_${r.trigger.gpioPin || 13})`;
       else if (r.trigger.type === 'light_lux_below') trigStr = `ON ambient_light < ${r.trigger.threshold || 20} lx`;
       else if (r.trigger.type === 'temp_above') trigStr = `ON temperature > ${r.trigger.threshold || 30} °C`;
       else if (r.trigger.type === 'time_is') trigStr = `ON clock_time == "${r.trigger.time || '22:00'}"`;
@@ -1091,6 +1093,28 @@ void updatePetTimeline() {
                       </div>
                     </div>
                   )}
+
+                  {newTriggerType === 'hall_magnetic' && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="ui-type-micro text-slate-400">{t('auto.hallPinLabel')}</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[13, 12, 14, 27, 4, 15].map(pin => (
+                          <button
+                            key={pin}
+                            type="button"
+                            onClick={() => setNewTriggerPin(pin)}
+                            className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-colors ${
+                              newTriggerPin === pin
+                                ? 'bg-fuchsia-500 text-slate-950'
+                                : 'bg-slate-900 text-slate-400 border border-slate-800'
+                            }`}
+                          >
+                            GPIO {pin}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Action (To wtedy) */}
@@ -1397,6 +1421,31 @@ void updatePetTimeline() {
                                   className={`px-2 py-0.5 rounded ui-type-micro font-mono ${
                                     (rule.trigger.gpioPin || 14) === pin
                                       ? 'bg-cyan-500 text-slate-950 font-bold'
+                                      : 'bg-slate-900 text-slate-400 border border-slate-800'
+                                  }`}
+                                >
+                                  GPIO {pin}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {rule.trigger.type === 'hall_magnetic' && (
+                          <div className="flex items-center justify-between">
+                            <span className="ui-type-micro text-slate-400">{t('auto.hallPinLabel')}</span>
+                            <div className="flex gap-1">
+                              {[13, 12, 14, 27, 4, 15].map(pin => (
+                                <button
+                                  key={pin}
+                                  type="button"
+                                  onClick={() => handleUpdateRule(rule.id, r => ({
+                                    ...r,
+                                    trigger: { ...r.trigger, gpioPin: pin }
+                                  }))}
+                                  className={`px-2 py-0.5 rounded ui-type-micro font-mono ${
+                                    (rule.trigger.gpioPin || 13) === pin
+                                      ? 'bg-fuchsia-500 text-slate-950 font-bold'
                                       : 'bg-slate-900 text-slate-400 border border-slate-800'
                                   }`}
                                 >

@@ -94,6 +94,10 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
     // Dynamic bindings based on simulator state
     if (pin === 0) return simState.bootPressed ? 'LOW' : 'HIGH';
     if (pin === 14) return simState.pirActive ? 'HIGH' : 'LOW';
+    // A3144 hall is active LOW when magnet is present (pull-up idle HIGH)
+    if (simState.hallActive && (pin === 13 || pin === 12 || pin === 15)) {
+      return 'LOW';
+    }
     if (pin === 35) return simState.userBtn1Pressed ? 'LOW' : 'HIGH';
     if (pin === 27) return simState.touchActive ? 'LOW' : 'HIGH'; // Touch IRQ active LOW
     if (pin === 2) return simState.isDisplayAwake ? 'HIGH' : 'LOW'; // Power/Status LED
