@@ -101,14 +101,17 @@ pub fn start_pc_agent(
         "Nie znaleziono esp32-pc-agent.exe w zasobach aplikacji. Zbuduj agenta lub dołącz go do releasu.".to_string()
     })?;
 
-    let child = Command::new(&path)
+    let mut agent_cmd = Command::new(&path);
+    agent_cmd
         .arg("--host")
         .arg(host)
         .arg("--port")
         .arg(port.to_string())
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(Stdio::null());
+    crate::process_util::hide_console(&mut agent_cmd);
+    let child = agent_cmd
         .spawn()
         .map_err(|e| format!("Nie uruchomiono agenta PC ({}): {e}", path.display()))?;
 

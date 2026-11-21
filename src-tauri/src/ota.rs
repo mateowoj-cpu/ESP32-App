@@ -43,10 +43,12 @@ fn set_ota_pid(pid: Option<u32>) {
 
 fn kill_pid(pid: u32) -> Result<(), String> {
     if cfg!(windows) {
-        let status = Command::new("taskkill")
-            .args(["/PID", &pid.to_string(), "/T", "/F"])
+        let mut cmd = Command::new("taskkill");
+        cmd.args(["/PID", &pid.to_string(), "/T", "/F"])
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::null());
+        hide_console(&mut cmd);
+        let status = cmd
             .status()
             .map_err(|e| format!("taskkill failed: {e}"))?;
         if status.success() {
@@ -55,12 +57,12 @@ fn kill_pid(pid: u32) -> Result<(), String> {
             Err(format!("taskkill exit {:?}", status.code()))
         }
     } else {
-        let status = Command::new("kill")
-            .args(["-TERM", &pid.to_string()])
+        let mut cmd = Command::new("kill");
+        cmd.args(["-TERM", &pid.to_string()])
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map_err(|e| format!("kill failed: {e}"))?;
+            .stderr(Stdio::null());
+        hide_console(&mut cmd);
+        let status = cmd.status().map_err(|e| format!("kill failed: {e}"))?;
         if status.success() {
             Ok(())
         } else {
@@ -144,42 +146,7 @@ pub struct DiscoveredOtaHost {
     pub fullname: String,
 }
 
-fn which(bin: &str) -> Option<PathBuf> {
-    let candidates = if cfg!(windows) {
-        vec![
-            format!("{bin}.exe"),
-            format!("{bin}.cmd"),
-            format!("{bin}.bat"),
-            bin.to_string(),
-        ]
-    } else {
-        vec![bin.to_string()]
-    };
-
-    for name in candidates {
-        let mut cmd = if cfg!(windows) {
-            let mut c = Command::new("where");
-            c.arg(&name);
-            c
-        } else {
-            let mut c = Command::new("which");
-            c.arg(&name);
-            c
-        };
-        if let Ok(output) = cmd.output() {
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                if let Some(line) = stdout.lines().next() {
-                    let trimmed = line.trim();
-                    if !trimmed.is_empty() {
-                        return Some(PathBuf::from(trimmed));
-                    }
-                }
-            }
-        }
-    }
-    None
-}
+use crate::process_util::{hide_console, which};
 
 fn python_bins() -> Vec<&'static str> {
     if cfg!(windows) {
@@ -257,6 +224,7 @@ fn resolve_espota_command(app: &AppHandle) -> Option<(Vec<String>, String)> {
         } else {
             probe.args(["-c", "import runpy"]);
         }
+        hide_console(&mut probe);
         // Keep looking for espota.py under common Arduino package trees
         let home = dirs_home();
         let mut search = Vec::new();
@@ -519,11 +487,14 @@ pub fn flash_ota_firmware(
         ),
     );
 
-    let mut child = Command::new(bin)
+    let mut ota_cmd = Command::new(bin);
+    ota_cmd
         .args(&args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::piped());
+    hide_console(&mut ota_cmd);
+    let mut child = ota_cmd
         .spawn()
         .map_err(|e| format!("Nie uruchomiono espota: {e}"))?;
 
@@ -647,11 +618,14 @@ fn flash_ota_http(
         ),
     );
 
-    let mut child = Command::new(&curl)
+    let mut curl_cmd = Command::new(&curl);
+    curl_cmd
         .args(&args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::piped());
+    hide_console(&mut curl_cmd);
+    let mut child = curl_cmd
         .spawn()
         .map_err(|e| format!("Nie uruchomiono curl: {e}"))?;
 

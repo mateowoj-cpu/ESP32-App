@@ -91,10 +91,10 @@ pub fn open_diagnostics_folder(app: AppHandle) -> Result<(), String> {
     let dir = logs_dir(&app)?;
     #[cfg(windows)]
     {
-        Command::new("explorer")
-            .arg(dir)
-            .spawn()
-            .map_err(|e| e.to_string())?;
+        let mut cmd = Command::new("explorer");
+        cmd.arg(dir);
+        crate::process_util::hide_console(&mut cmd);
+        cmd.spawn().map_err(|e| e.to_string())?;
     }
     #[cfg(target_os = "macos")]
     {

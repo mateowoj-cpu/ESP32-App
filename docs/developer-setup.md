@@ -1,6 +1,6 @@
 # Setup dla contributorów
 
-Jak uruchomić, testować i kompilować ESP32 Display Studio lokalnie. Linia: **0.2.12**. Indeks: [README.md](./README.md) · architektura: [architecture.md](./architecture.md).
+Jak uruchomić, testować i kompilować ESP32 Display Studio lokalnie. Linia: **0.2.13**. Indeks: [README.md](./README.md) · architektura: [architecture.md](./architecture.md).
 
 ## Wymagania
 

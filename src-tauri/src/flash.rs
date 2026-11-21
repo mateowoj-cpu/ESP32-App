@@ -25,42 +25,7 @@ pub struct FlashResult {
     pub message: String,
 }
 
-fn which(bin: &str) -> Option<PathBuf> {
-    let candidates = if cfg!(windows) {
-        vec![
-            format!("{bin}.exe"),
-            format!("{bin}.cmd"),
-            format!("{bin}.bat"),
-            bin.to_string(),
-        ]
-    } else {
-        vec![bin.to_string()]
-    };
-
-    for name in candidates {
-        let mut cmd = if cfg!(windows) {
-            let mut c = Command::new("where");
-            c.arg(&name);
-            c
-        } else {
-            let mut c = Command::new("which");
-            c.arg(&name);
-            c
-        };
-        if let Ok(output) = cmd.output() {
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                if let Some(line) = stdout.lines().next() {
-                    let trimmed = line.trim();
-                    if !trimmed.is_empty() {
-                        return Some(PathBuf::from(trimmed));
-                    }
-                }
-            }
-        }
-    }
-    None
-}
+use crate::process_util::{hide_console, which};
 
 fn python_bins() -> Vec<&'static str> {
     if cfg!(windows) {
@@ -90,6 +55,7 @@ fn resolve_esptool_command(app: &AppHandle) -> Option<Vec<String>> {
         } else {
             probe.args(["-m", "esptool", "version"]);
         }
+        hide_console(&mut probe);
         if let Ok(output) = probe.output() {
             if output.status.success() {
                 return if py == "py" {
@@ -114,18 +80,16 @@ fn resolve_esptool_command(app: &AppHandle) -> Option<Vec<String>> {
 
 fn run_version(cmd: &[String]) -> Option<String> {
     let (bin, args) = cmd.split_first()?;
-    let output = Command::new(bin)
-        .args(args)
-        .arg("version")
-        .output()
-        .ok()?;
+    let mut version_cmd = Command::new(bin);
+    version_cmd.args(args).arg("version");
+    hide_console(&mut version_cmd);
+    let output = version_cmd.output().ok()?;
     if !output.status.success() {
         // older esptool may use --version
-        let output2 = Command::new(bin)
-            .args(args)
-            .arg("--version")
-            .output()
-            .ok()?;
+        let mut version_cmd2 = Command::new(bin);
+        version_cmd2.args(args).arg("--version");
+        hide_console(&mut version_cmd2);
+        let output2 = version_cmd2.output().ok()?;
         if !output2.status.success() {
             return None;
         }
@@ -259,11 +223,14 @@ pub fn flash_write_firmware(
         ),
     );
 
-    let mut child = Command::new(bin)
+    let mut flash_cmd = Command::new(bin);
+    flash_cmd
         .args(&args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::piped());
+    hide_console(&mut flash_cmd);
+    let mut child = flash_cmd
         .spawn()
         .map_err(|e| format!("Nie uruchomiono esptool: {e}"))?;
 

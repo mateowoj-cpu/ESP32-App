@@ -31,6 +31,8 @@ Sterowniki COM: [windows-drivers.md](./windows-drivers.md).
 
 Profil płytki (esp32 / s3 / c3 / …) bierze się z wykrytego chipa.
 
+Wejście w zakładkę USB odświeża info o esptool / PlatformIO / arduino-cli **w tle**. Od **0.2.13** te probe’y i same procesy build/flash na Windows **nie otwierają okien CMD** (`CREATE_NO_WINDOW` — [windows-desktop.md](./windows-desktop.md) § „Brak migających okien CMD”). Postęp widać w panelu logów UI (`build-log` / `flash-log`).
+
 ## Artefakty
 
 - PlatformIO: `.pio/build/<env>/firmware.bin`

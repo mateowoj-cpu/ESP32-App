@@ -1,6 +1,6 @@
 # OTA firmware przez Wi‑Fi (Faza 9–11)
 
-Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB. IPC: `discover_ota_hosts`, `flash_ota_firmware`, `cancel_ota_firmware`, event `ota-log` — [architecture.md](./architecture.md). Linia **0.2.12**.
+Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB. IPC: `discover_ota_hosts`, `flash_ota_firmware`, `cancel_ota_firmware`, event `ota-log` — [architecture.md](./architecture.md). Linia **0.2.13**.
 
 ## Wymagania na płytce
 
@@ -26,6 +26,8 @@ Studio może wgrać `.bin` na ESP32 w LAN bez kabla USB. IPC: `discover_ota_host
 | Metoda | `espota` (ArduinoOTA) lub `HTTP /update` |
 
 Przycisk **OTA Upload** używa zbudowanego / wybranego `.bin`.
+
+Procesy `espota` / `curl` / `taskkill` na Windows od **0.2.13** nie otwierają okna CMD — logi tylko w UI (`ota-log`). Zob. [windows-desktop.md](./windows-desktop.md).
 
 ## Narzędzia PC
 
