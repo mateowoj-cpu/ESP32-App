@@ -1153,10 +1153,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             >
               {/* The Pixel Viewport */}
               <div
-                className="relative bg-black rounded border border-cyan-500/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+                className="relative bg-black rounded border border-cyan-500/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.15)] max-w-full"
                 style={{
                   width: display.width * scale,
                   height: display.height * scale,
+                  maxWidth: '100%',
                 }}
                 onClick={() => setSelectedWidgetId(null)}
               >

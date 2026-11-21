@@ -75,6 +75,9 @@ assert(translate('en', 'nav.sidebar.close').toLowerCase().includes('collapse'), 
 assert(translate('en', 'a11y.toggleNavSidebar').toLowerCase().includes('sidebar'), 'en a11y toggle sidebar');
 assert(translate('pl', 'nav.sidebar.title').toLowerCase().includes('menu'), 'pl sidebar title');
 assert(translate('pl', 'ino.modalTitle').toLowerCase().includes('arduino'), 'pl ino modal');
+assert(translate('en', 'a11y.skipToContent').toLowerCase().includes('skip'), 'en skip to content');
+assert(translate('pl', 'ino.modalRedownload').toLowerCase().includes('pobierz'), 'pl ino redownload');
+assert(translate('en', 'openFile.firmware').toLowerCase().includes('firmware'), 'en open firmware');
 assert(translate('en', 'usb.spec.psramExtra').includes('{psram}'), 'en psram extra');
 assert(translate('pl', 'code.wiring.title').toLowerCase().includes('schemat'), 'pl code wiring');
 assert(translate('en', 'code.guide.step1.title').toLowerCase().includes('libraries'), 'en code guide');

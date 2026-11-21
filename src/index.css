@@ -51,6 +51,19 @@
 }
 
 @layer base {
+  /*
+    App-shell viewport lock: scroll only inside #app-workspace / sidebar,
+    never the document. Prevents overflow-x pairing + sticky sidebar from
+    clipping primary content when switching views or resizing the window.
+  */
+  html,
+  body,
+  #root {
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
   html {
     font-size: 16px; /* skill: readable-font-size ≥16px body */
     transition: font-size var(--duration-base) var(--ease-out);
@@ -323,18 +336,22 @@
     border-radius: 9999px;
   }
 
-  /* Collapsible right-side app menu (desktop). */
+  /*
+    Collapsible right-side app menu (desktop).
+    Stretch to the body row height and scroll internally — do not use sticky
+    inside an overflow-x clipped ancestor (that pairs overflow-y and clips
+    primary content when switching views or resizing the window).
+  */
   .ui-nav-sidebar {
     display: none;
     flex-direction: column;
     flex-shrink: 0;
+    align-self: stretch;
+    height: 100%;
+    min-height: 0;
     border-left: 1px solid rgb(30 41 59);
     background: rgb(2 6 23 / 0.96);
-    min-height: 0;
-    position: sticky;
-    top: var(--header-height, 3.75rem);
-    align-self: flex-start;
-    max-height: calc(100dvh - var(--header-height, 3.75rem));
+    overflow: hidden;
     transition: width var(--duration-base) var(--ease-out);
   }
 
