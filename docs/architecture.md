@@ -232,7 +232,7 @@ Bez konta użytkownika:
 | `GEMINI_API_KEY` | Legacy / opcjonalny — obecnie nieużywany w UI |
 | `APP_URL` | URL hostingu appletu (AI Studio / self-ref) |
 | `VITE_TELEMETRY_ENDPOINT` | HTTPS ingest; bez niej toggle telemetrii nic nie wysyła |
-| `TAURI_*` | Prefiks dozwolony w `vite.config.ts` (`envPrefix`) |
+| `TAURI_ENV_*` | Metadane Tauri dostępne w kliencie przez `envPrefix` |
 
 ### Runtime (proces desktop / sidecar)
 
@@ -250,17 +250,14 @@ Bez konta użytkownika:
 
 | Cel | Workflow / config |
 |-----|-------------------|
-| Windows NSIS/MSI + updater | `.github/workflows/windows-release.yml`, `tauri.conf.json` |
+| Windows, Linux, macOS i podpisany updater | `desktop-release.yml` oraz `tauri.<platform>.conf.json` |
 | penv PlatformIO (opcjonalnie) | `windows-penv-artifact.yml` + `Stage-PlatformIoPenv.ps1` |
-| Linux AppImage + deb | `linux-release.yml` + `tauri.linux.json` (+ `*.signed.json` gdy sekret) |
-| macOS dmg | `macos-release.yml` + `tauri.macos.json` (+ notarize gdy sekrety) |
-| Multi-platform `latest.json` assembler | `desktop-unix-release.yml` (gdy signed updater) |
 | AppImage smoke (dispatch) | `desktop-unix-appimage-smoke.yml` |
 | Community board catalog | `board-catalog.yml` (path-filtered PR) |
 | Draft winget | `winget-draft.yml` + `scripts/winget/prepare-draft-manifest.sh` |
 | Smoke PR | `smoke.yml` → asserts + frontend suite + `cargo check` |
 
-Updater: `createUpdaterArtifacts` w `tauri.conf.json` domyślnie **`false`** (NSIS/MSI bez `.sig`). Windows CI włącza `tauri.windows.updater-signed.json` tylko przy poprawnym `TAURI_SIGNING_PRIVATE_KEY` (minisign `untrusted comment:`). Unix: unsigned overlays + signed overlays gdy sekret — [desktop-unix.md](./desktop-unix.md), [windows-updater.md](./windows-updater.md).
+Updater w CI wymaga `DESKTOP_UPDATER_SIGNED=true` i pasującego klucza. Zadanie wydawnicze weryfikuje podpisy i wersję przed dołączeniem wspólnego `latest.json`. [Updater](./windows-updater.md).
 
 ## Granice odpowiedzialności
 

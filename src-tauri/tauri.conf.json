@@ -1,11 +1,11 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ESP32 Display Studio",
-  "version": "0.2.13",
+  "version": "../package.json",
   "identifier": "studio.esp32.display",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://127.0.0.1:3000",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
@@ -34,6 +34,7 @@
   },
   "plugins": {
     "updater": {
+      "requireSignedVersion": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY3RkExOUJDRjAwRTg3MkEKUldRcWh3N3d2Qm42WjhjdlNjVWlYUEoyUXlQd2Jzd2tNOFBYOUtKTk92TWJETDg3QzJBY0VBTGQK",
       "endpoints": [
         "https://github.com/mateowoj-cpu/ESP32-App/releases/latest/download/latest.json"
@@ -51,7 +52,6 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": false,
-    "targets": ["nsis", "msi"],
     "publisher": "ESP32 Display Studio",
     "homepage": "https://github.com/mateowoj-cpu/ESP32-App",
     "category": "DeveloperTool",
@@ -82,38 +82,8 @@
       }
     ],
     "resources": [
-      "resources/windows/DRIVERS.txt",
-      "resources/windows/SIGNING.txt",
       "resources/sidecar/README.txt",
       "resources/sidecar/**/*"
-    ],
-    "windows": {
-      "digestAlgorithm": "sha256",
-      "timestampUrl": "http://timestamp.digicert.com",
-      "tsp": false,
-      "allowDowngrades": false,
-      "webviewInstallMode": {
-        "type": "downloadBootstrapper",
-        "silent": true
-      },
-      "nsis": {
-        "installMode": "currentUser",
-        "languages": ["Polish", "English"],
-        "customLanguageFiles": {
-          "Polish": "windows/nsis-languages/Polish.nsh"
-        },
-        "displayLanguageSelector": true,
-        "compression": "lzma",
-        "startMenuFolder": "ESP32 Display Studio",
-        "installerIcon": "icons/icon.ico",
-        "installerHooks": "windows/installer-hooks.nsh"
-      },
-      "wix": {
-        "language": {
-          "en-US": {}
-        },
-        "upgradeCode": "a7c3e9f1-5b2d-4e8a-9c1f-6d4b8a2e0f35"
-      }
-    }
+    ]
   }
 }

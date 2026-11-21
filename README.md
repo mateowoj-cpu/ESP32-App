@@ -1,7 +1,7 @@
 # ESP32 Display Studio
 
 [![Smoke](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml/badge.svg)](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml)
-[![Version](https://img.shields.io/badge/version-0.2.13-blue)](./package.json)
+[![Version](https://img.shields.io/github/v/release/mateowoj-cpu/ESP32-App)](./package.json)
 [![Tauri](https://img.shields.io/badge/desktop-Tauri%202-24C8DB)](./src-tauri/)
 [![i18n](https://img.shields.io/badge/i18n-PL%20%7C%20EN-informational)](./src/i18n/)
 
@@ -35,7 +35,7 @@ Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App
 | Serial native | crate `serialport` → komendy `list/open/write/close_serial_port` |
 | Flash / OTA | `esptool` (PATH), PlatformIO / arduino-cli, `espota.py`, HTTP `/update`, odkrywanie mDNS (`mdns-sd`) |
 | Packaging | Windows NSIS+MSI; Linux AppImage+deb; macOS dmg (+ opcjonalny notarize) |
-| CI | `smoke.yml`, `windows-release.yml`, `desktop-unix-release.yml`, `winget-draft.yml`, … |
+| CI | `smoke.yml`, `desktop-release.yml`, `winget-draft.yml`, … |
 
 Szczegóły warstw i IPC: [docs/architecture.md](./docs/architecture.md).
 
@@ -45,7 +45,7 @@ Szczegóły warstw i IPC: [docs/architecture.md](./docs/architecture.md).
 
 ```bash
 npm ci          # lub: npm install
-npm run dev     # http://localhost:3000 — Web Serial w Chromium
+npm run dev     # http://127.0.0.1:3000 — Web Serial w Chromium
 ```
 
 ### Desktop (Tauri)
@@ -69,7 +69,7 @@ Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkowni
 
 | Skrypt | Opis |
 |--------|------|
-| `dev` / `build` / `preview` | Vite (:3000 / produkcja) |
+| `dev` / `build` / `preview` | Vite (127.0.0.1:3000 / produkcja) |
 | `lint` | `tsc --noEmit` (include: `src/`, `scripts/**/*.ts`; bez `src-tauri/target`) |
 | `clean` | `rimraf dist` |
 | `smoke` | lint + `test:*` + `validate:board-catalog` + `build` |
@@ -90,13 +90,13 @@ Pełny setup: [docs/developer-setup.md](./docs/developer-setup.md) · użytkowni
 | Rust check | Linux/macOS/Windows + deps Tauri | `npm run compile:cargo` / job `rust-smoke` |
 | Linux AppImage + deb | **Linux** host / CI | `npm run compile:full -- --linux-bundle` lub `tauri:build -- --config src-tauri/tauri.linux.json` |
 | macOS dmg | **macOS** / CI | `tauri:build -- --config src-tauri/tauri.macos.json` |
-| Windows NSIS / MSI | **Windows** + MSVC / CI | `npm run tauri:build` · workflow `windows-release.yml` (`workflow_dispatch` lub tag `v*`) |
-| Linux AppImage + deb (CI) | `ubuntu-22.04` | `linux-release.yml` (osobno od macOS) |
-| macOS dmg (CI) | `macos-14` | `macos-release.yml` (osobno od Linux) |
+| Windows NSIS / MSI | **Windows** + MSVC / CI | `npm run tauri:build` · workflow `desktop-release.yml` |
+| Linux AppImage + deb (CI) | `ubuntu-22.04` | `desktop-release.yml` |
+| macOS dmg (CI) | `macos-15` i `macos-15-intel` | `desktop-release.yml` |
 | Authenticode / Apple notarize / signed updater | sekrety **człowieka** | docs signing / macos-notarize / desktop-unix |
 | winget | draft CI OK; live merge = human | `winget-draft.yml` + [windows-winget.md](./docs/windows-winget.md) |
 
-Wersja: jedno źródło prawdy `package.json` → `tauri.conf.json` + `Cargo.toml` + root `package-lock.json` (`npm run assert:app-version`). Każdy OS release osobno — nie używaj Re-run na starym runie; szczegóły: [desktop-unix.md](./docs/desktop-unix.md).
+Release Please aktualizuje `package.json`, `package-lock.json` i changelog. Tauri czyta wersję z `package.json`, a wszystkie platformy trafiają do wspólnego wydania. [Konfiguracja publikacji](./docs/desktop-unix.md).
 
 **Ta Linux VM / agent cloud:** web smoke + `cargo check` / opcjonalnie AppImage+deb. **Nie:** NSIS/MSI, dmg/notarize, Authenticode — bez Windows/macOS hosta i sekretów.
 
@@ -193,7 +193,7 @@ Skopiuj `.env.example` → `.env` przy potrzebie (Vite / build):
 
 ```text
 GEMINI_API_KEY=...             # opcjonalny / obecnie nieużywany w UI
-APP_URL=http://localhost:3000
+APP_URL=http://127.0.0.1:3000
 # VITE_TELEMETRY_ENDPOINT=     # build-time; bez tego toggle telemetrii nic nie wysyła
 ```
 

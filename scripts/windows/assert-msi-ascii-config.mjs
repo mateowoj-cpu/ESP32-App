@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "../..");
 const confPath = join(repoRoot, "src-tauri/tauri.conf.json");
-const windowsOverlayPath = join(repoRoot, "src-tauri/tauri.windows.json");
+const windowsOverlayPath = join(repoRoot, "src-tauri/tauri.windows.conf.json");
 
 function loadJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));

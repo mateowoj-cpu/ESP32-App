@@ -1,0 +1,277 @@
+name: Desktop Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release draft tag, or empty for a preview of main
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      tag: ${{ steps.plan.outputs.tag }}
+      signed: ${{ steps.plan.outputs.signed }}
+      system_signing: ${{ steps.plan.outputs.system_signing }}
+    steps:
+      - uses: actions/create-github-app-token@v3
+        if: github.event_name == 'push' || inputs.tag != ''
+        id: app
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+      - uses: googleapis/release-please-action@v4
+        if: github.event_name == 'push'
+        id: release
+        with:
+          token: ${{ steps.app.outputs.token }}
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - uses: actions/checkout@v4
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.release_created == 'true'
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Resolve build commit
+        if: github.event_name == 'workflow_dispatch' || steps.release.outputs.release_created == 'true'
+        id: plan
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          TAG: ${{ inputs.tag || steps.release.outputs.tag_name }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          UPDATER_SIGNING: ${{ vars.DESKTOP_UPDATER_SIGNED }}
+          SYSTEM_SIGNING: ${{ vars.DESKTOP_SYSTEM_SIGNED }}
+        run: |
+          set -euo pipefail
+          sha="$GITHUB_SHA"
+          signed=false
+          system_signing=false
+          if [[ -n "$TAG" ]]; then
+            [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+            gh release view "$TAG" --json isDraft,isPrerelease \
+              --jq '.isDraft and (.isPrerelease | not)' | grep -qx true
+            sha="$(git rev-parse "refs/tags/$TAG^{commit}")"
+            git merge-base --is-ancestor "$sha" HEAD
+            [[ -z "$RELEASE_SHA" || "$sha" == "$RELEASE_SHA" ]]
+            if [[ "$UPDATER_SIGNING" == true ]]; then signed=true; fi
+            if [[ "$SYSTEM_SIGNING" == true ]]; then system_signing=true; fi
+          fi
+          printf 'sha=%s\ntag=%s\nsigned=%s\nsystem_signing=%s\n' \
+            "$sha" "$TAG" "$signed" "$system_signing" >> "$GITHUB_OUTPUT"
+
+  quality:
+    needs: plan
+    if: needs.plan.outputs.sha != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run smoke
+        env:
+          APP_VERSION_TAG: ${{ needs.plan.outputs.tag }}
+
+  build:
+    needs: [plan, quality]
+    runs-on: ${{ matrix.key == 'windows-x86_64' && needs.plan.outputs.system_signing == 'true' && vars.WINDOWS_RUNNER || matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { key: windows-x86_64, runner: windows-2022 }
+          - { key: linux-x86_64, runner: ubuntu-22.04 }
+          - { key: darwin-aarch64, runner: macos-15 }
+          - { key: darwin-x86_64, runner: macos-15-intel }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - if: runner.os == 'Linux'
+        name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+            librsvg2-dev patchelf libudev-dev libssl-dev pkg-config file
+      - run: npm ci
+      - run: cargo check --locked --manifest-path src-tauri/Cargo.toml
+      - if: runner.os == 'Windows'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - if: runner.os == 'Windows'
+        name: Build Windows PC agent and validate WiX configuration
+        shell: pwsh
+        run: |
+          node ./scripts/windows/assert-msi-ascii-config.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./scripts/windows/Build-PcAgent.ps1
+          if (!(Test-Path "./src-tauri/binaries/esp32-pc-agent-x86_64-pc-windows-msvc.exe")) {
+            throw "Windows PC agent sidecar missing"
+          }
+      - if: runner.os == 'Windows' && needs.plan.outputs.system_signing == 'true'
+        name: Prepare Windows signing
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          WINDOWS_CERTIFICATE_THUMBPRINT: ${{ secrets.WINDOWS_CERTIFICATE_THUMBPRINT }}
+        run: |
+          ./scripts/windows/Resolve-CodeSigningOverlay.ps1
+          if (!(Test-Path "./src-tauri/tauri.windows-signing.local.json")) {
+            throw "Requested Authenticode signing, but no overlay was generated"
+          }
+      - name: Build native Tauri packages
+        shell: bash
+        env:
+          SIGNED_UPDATER: ${{ needs.plan.outputs.signed }}
+          SYSTEM_SIGNING: ${{ needs.plan.outputs.system_signing }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ needs.plan.outputs.signed == 'true' && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ needs.plan.outputs.signed == 'true' && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+          APPLE_CERTIFICATE: ${{ runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true' && secrets.APPLE_CERTIFICATE || '' }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true' && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
+          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true' && secrets.APPLE_SIGNING_IDENTITY || '' }}
+          APPLE_ID: ${{ runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true' && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true' && secrets.APPLE_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true' && secrets.APPLE_TEAM_ID || '' }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            args+=(--config src-tauri/tauri.windows-agent.example.json)
+            if [[ "$SYSTEM_SIGNING" == true ]]; then
+              args+=(--config src-tauri/tauri.windows-signing.local.json)
+            fi
+          elif [[ "$RUNNER_OS" == macOS ]]; then
+            if [[ "$SYSTEM_SIGNING" == true ]]; then
+              for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+                if [[ -z "${!name}" ]]; then echo "Missing $name" >&2; exit 1; fi
+              done
+            else
+              unset APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
+              export APPLE_SIGNING_IDENTITY=-
+            fi
+          fi
+          if [[ "$SIGNED_UPDATER" == true ]]; then
+            : "${TAURI_SIGNING_PRIVATE_KEY:?Updater signing key is required}"
+            printf '%s\n' '{"bundle":{"createUpdaterArtifacts":true}}' > src-tauri/tauri.updater.ci.json
+            args+=(--config src-tauri/tauri.updater.ci.json)
+          else
+            unset TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+          fi
+          npm run tauri:build -- "${args[@]}"
+      - name: Stage and validate native assets
+        env:
+          PLATFORM: ${{ matrix.key }}
+          APP_VERSION_TAG: ${{ needs.plan.outputs.tag }}
+          SIGNED_UPDATER: ${{ needs.plan.outputs.signed }}
+        run: node scripts/ci/desktop-assets.mjs stage
+      - if: runner.os == 'Windows' && needs.plan.outputs.system_signing == 'true'
+        name: Verify Windows installer signatures
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem desktop-assets -File | Where-Object Name -Match '(-setup\.exe|\.msi)$')
+          if ($installers.Count -ne 2) { throw "Expected two Windows installers" }
+          foreach ($installer in $installers) {
+            if ((Get-AuthenticodeSignature $installer.FullName).Status -ne 'Valid') {
+              throw "Invalid Authenticode signature: $($installer.Name)"
+            }
+          }
+      - if: runner.os == 'macOS' && needs.plan.outputs.system_signing == 'true'
+        name: Verify macOS signature and notarization
+        shell: bash
+        run: |
+          set -euo pipefail
+          for app in src-tauri/target/release/bundle/macos/*.app; do
+            codesign --verify --deep --strict "$app"
+            xcrun stapler validate "$app"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.key }}
+          path: desktop-assets/*
+          if-no-files-found: error
+          overwrite: true
+
+  release:
+    needs: [plan, build]
+    if: needs.plan.outputs.tag != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          path: desktop-artifacts
+      - if: needs.plan.outputs.signed == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y minisign
+      - name: Verify assets and create checksums
+        env:
+          APP_VERSION_TAG: ${{ needs.plan.outputs.tag }}
+          SIGNED_UPDATER: ${{ needs.plan.outputs.signed }}
+        run: node scripts/ci/desktop-assets.mjs collect
+      - name: Upload to draft and publish complete release when enabled
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.plan.outputs.tag }}
+          PUBLISH: ${{ vars.DESKTOP_AUTO_PUBLISH }}
+        run: |
+          set -euo pipefail
+          metadata="$(gh release view "$TAG" --json isDraft,isPrerelease)"
+          if [[ "$(jq -r '.isDraft' <<< "$metadata")" != true ]]; then
+            echo "Release $TAG already published; leaving it intact."
+            exit 0
+          fi
+          [[ "$(jq -r '.isPrerelease' <<< "$metadata")" == false ]]
+          gh release upload "$TAG" desktop-assets/* --clobber
+          find desktop-assets -type f -printf '%f\n' | LC_ALL=C sort > expected-assets.txt
+          gh release view "$TAG" --json assets --jq '.assets[].name' | LC_ALL=C sort > uploaded-assets.txt
+          diff -u expected-assets.txt uploaded-assets.txt
+          if [[ "$PUBLISH" == true ]]; then
+            gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+              --jq '.[] | select((.draft or .prerelease) | not) | .tag_name' > published-tags.txt
+            node scripts/ci/desktop-assets.mjs guard-publish "$TAG" published-tags.txt
+            gh release edit "$TAG" --draft=false --latest=true
+          fi

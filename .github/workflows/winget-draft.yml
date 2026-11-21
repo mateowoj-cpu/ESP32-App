@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag (e.g. v0.2.6). Empty = latest tag from github.ref_name if tag push."
-        required: false
+        description: "Published stable release tag (e.g. v0.3.0)"
+        required: true
         type: string
   release:
     types: [published]
@@ -36,12 +36,13 @@ jobs:
           INPUT_TAG: ${{ github.event.inputs.tag }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          set -euo pipefail
           TAG="${INPUT_TAG:-}"
           if [[ -z "$TAG" ]]; then
             TAG="${RELEASE_TAG:-}"
           fi
-          if [[ -z "$TAG" ]]; then
-            echo "No tag provided — use workflow_dispatch input or a published release." >&2
+          if [[ ! "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Expected a stable release tag (vMAJOR.MINOR.PATCH)." >&2
             exit 1
           fi
           VERSION="${TAG#v}"
@@ -58,20 +59,14 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/winget-nsis
 
-          # Use the actual asset name from the release. Do not assume a fixed file name.
-          ASSET=$(gh release view "$TAG" --repo "${GITHUB_REPOSITORY}" --json assets -q '.assets[].name' \
-            | grep -Ei 'ESP32[.-]Display[.-]Studio.*x64.*\.exe$|x64-setup\.exe$|.*-setup\.exe$' \
-            | head -n1 || true)
-
-          if [[ -z "$ASSET" ]]; then
-            ASSET=$(gh release view "$TAG" --repo "${GITHUB_REPOSITORY}" --json assets -q '.assets[].name' \
-              | grep -Ei '\.exe$' | head -n1 || true)
-          fi
-
-          if [[ -z "$ASSET" ]]; then
-            echo "No .exe installer asset on release $TAG — publish windows-release artifacts first." >&2
+          metadata=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets,isDraft,isPrerelease)
+          jq -e '(.isDraft or .isPrerelease) | not' <<< "$metadata" > /dev/null
+          mapfile -t installers < <(jq -r '.assets[].name | select(test("x64-setup\\.exe$"; "i"))' <<< "$metadata")
+          if [[ "${#installers[@]}" != 1 ]]; then
+            echo "Expected exactly one x64 NSIS installer on release $TAG." >&2
             exit 1
           fi
+          ASSET="${installers[0]}"
 
           echo "Downloading asset: $ASSET"
           gh release download "$TAG" --repo "${GITHUB_REPOSITORY}" --pattern "$ASSET" --dir /tmp/winget-nsis

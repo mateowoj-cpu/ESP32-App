@@ -13,7 +13,7 @@ ESP32 Display Studio buduje dwa cele Windows przez Tauri 2:
 - **NSIS** — `Polish` + `English` z selektorem; własne stringi Tauri dla PL w `src-tauri/windows/nsis-languages/Polish.nsh` (`customLanguageFiles.Polish`, ścieżka względem `src-tauri/`).
 - **MSI (WiX)** — tylko `en-US`. WiX 3 `light.exe` używa codepage **1252** dla metadanych produktu; polskie znaki (ą, ć, ę, ł, ń, ó, ś, ź, ż) powodują **LGHT0311**. Dlatego:
   - `bundle.windows.wix.language` = mapa `{ "en-US": {} }` (bez `pl-PL`) w `tauri.conf.json`,
-  - dodatkowo `src-tauri/tauri.windows.json` wymusza to samo przy merge platformowym Windows,
+  - język MSI konfiguruje `src-tauri/tauri.windows.conf.json`,
   - `copyright` / `shortDescription` / `longDescription` / opisy skojarzeń plików — ASCII (EN), bez diakrytyków i bez znaku `©` (używaj `(C)`),
   - preflight CI: `node scripts/windows/assert-msi-ascii-config.mjs`.
 
@@ -70,16 +70,7 @@ Nie zmieniaj go między wersjami — Windows traktowałby aplikację jako inną.
 
 ## CI
 
-Workflow: `.github/workflows/windows-release.yml`
-
-- Trigger: tag `v*` lub ręczne `workflow_dispatch`
-- Runner: `windows-latest`
-- Przed bundlem: assert `wix.language == en-US` + ASCII metadanych (+ obecność `Polish.nsh`)
-- Opcjonalny podpis Authenticode (sekrety — zob. [windows-signing.md](./windows-signing.md))
-- Opcjonalny podpis updatera: baza `createUpdaterArtifacts: false`; CI włącza signed overlay tylko przy poprawnym `TAURI_SIGNING_PRIVATE_KEY` ([windows-updater.md](./windows-updater.md))
-- Upload artefaktów jako GitHub Actions artifacts / Release (przy tagu)
-
-**Ważne — nie używaj Re-run:** GitHub trzyma **oryginalny** `head_sha`. Fail updatera po #31/#32 to był wielokrotny Re-run runu [43885121452](https://github.com/mateowoj-cpu/ESP32-App/actions/runs/43885121452) na **`cd3c09b` (#30)**, podczas gdy tip `main` miał już fixy. Workflow wymaga inputu `confirm_fresh_dispatch=NEW`, `run_attempt==1` oraz `HEAD == origin/main`. Po merge: Actions → Windows Release → **Run workflow** (świeży), nie Re-run.
+Workflow `desktop-release.yml` buduje NSIS, MSI i agenta przed dołączeniem plików do wspólnego draftu. Domyślny runner `windows-2022` wykonuje kontrolę WiX en-US i ASCII. Tryby podpisywania i ponawianie wydania opisuje [konfiguracja CI](./desktop-unix.md).
 
 Po udanym buildzie log musi zawierać tylko:
 

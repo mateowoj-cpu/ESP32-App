@@ -56,6 +56,6 @@ fi
 echo
 echo "Full compile OK."
 echo "Not covered on this script (by design):"
-echo "  - Windows NSIS/MSI  → Windows host or .github/workflows/windows-release.yml"
-echo "  - macOS dmg/notarize → macOS host or .github/workflows/desktop-unix-release.yml"
+echo "  - Windows NSIS/MSI  → Windows host or .github/workflows/desktop-release.yml"
+echo "  - macOS dmg/notarize → macOS host or .github/workflows/desktop-release.yml"
 echo "  - Authenticode / Apple / Tauri updater signing secrets → human ops only"

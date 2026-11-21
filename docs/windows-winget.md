@@ -30,7 +30,7 @@ Merge do [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) jest 
 ### Checklista po pierwszym signed release
 
 1. Sekrety CI (tylko w GitHub Actions / lokalnym sejfie — **nie w git**): `TAURI_SIGNING_PRIVATE_KEY`, opcjonalnie `WINDOWS_CERTIFICATE*`, opcjonalnie `WINGET_GITHUB_TOKEN`
-2. Tag signed `v0.2.7` lub nowszy (`v0.2.13`) → workflow `windows-release.yml`
+2. Opublikowany tag z `desktop-release.yml` → ręczny dispatch Winget Draft z tym tagiem
 3. Opcjonalnie: workflow `windows-penv-artifact.yml` → artifact penv → `Stage-PlatformIoPenv.ps1` przed bundlem
 4. Uruchom `winget-draft.yml` (lub poczekaj na `release: published`) — sprawdź artefakt SHA (**nie wymyślaj**)
 5. Szablon referencyjny w repo: `packaging/winget/.../0.2.13/Studio.ESP32DisplayStudio.yaml` (placeholder SHA do czasu releasu)

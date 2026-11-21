@@ -1,7 +1,7 @@
 # macOS codesign + notarize (Faza 14–16)
 
 Windows pozostaje główną ścieżką Authenticode / winget.  
-Pakiet `.dmg` z [desktop-unix-release.yml](../.github/workflows/desktop-unix-release.yml) buduje się **bez** notarize, dopóki nie ustawisz sekretów Apple.
+Pakiet `.dmg` z [desktop-release.yml](../.github/workflows/desktop-release.yml) buduje się **bez** notarize, dopóki nie ustawisz sekretów Apple.
 
 **Nie commituj** Apple ID, app-specific passwords, `.p12`, ani Team ID jako sekretów w gicie.
 
@@ -50,25 +50,9 @@ xcrun stapler staple path/to/ESP32*.dmg
 
 5. Smoke na czystym Macu: otwórz `.dmg`, przeciągnij app, uruchom bez Gatekeeper quarantine warning.
 
-## CI hooks (Faza 16)
+## Podpisywanie w CI
 
-Job `macos-dmg` w `desktop-unix-release.yml` **nie wymaga** sekretów Apple. Gdy są ustawione u właściciela:
-
-1. Import `.p12` do tymczasowego keychain (`APPLE_CERTIFICATE` + hasło).
-2. Build z `APPLE_SIGNING_IDENTITY` w env.
-3. `scripts/unix/macos-notarize-dmg.sh` gdy `APPLE_ID` / `APPLE_PASSWORD` / `APPLE_TEAM_ID` obecne.
-
-| Secret / env | Opis |
-|--------------|------|
-| `APPLE_CERTIFICATE` | Base64 `.p12` Developer ID |
-| `APPLE_CERTIFICATE_PASSWORD` | Hasło `.p12` |
-| `APPLE_KEYCHAIN_PASSWORD` | Opcjonalne hasło tymczasowego keychain (domyślnie = hasło `.p12`) |
-| `APPLE_SIGNING_IDENTITY` | Pełna nazwa identity |
-| `APPLE_ID` / `APPLE_PASSWORD` / `APPLE_TEAM_ID` | notarytool |
-| lub `APP_STORE_CONNECT_API_KEY` + issuer | preferowane przez Apple dla CI (follow-up — skrypt dziś używa Apple ID) |
-
-Bez sekretów: artefakt `.dmg` jak dziś (unsigned smoke).  
-**Nie** włączaj notarize na PR — tylko tag `v*` / `workflow_dispatch` release.
+Macierz [Desktop Release](./desktop-unix.md) buduje DMG Apple Silicon i Intel. Preview stosuje podpis ad-hoc. Dla draftu ustaw `DESKTOP_SYSTEM_SIGNED=true` i sekrety `APPLE_CERTIFICATE` (Base64 P12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` (hasło aplikacji) i `APPLE_TEAM_ID`. Tauri podpisuje i notaryzuje aplikację, a workflow kontroluje podpis i ticket. Na czystym Macu sprawdź także otwieranie pobranego DMG i uruchomienie z Applications.
 
 ## Updater multi-platform
 

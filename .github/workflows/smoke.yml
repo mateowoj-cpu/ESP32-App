@@ -10,6 +10,9 @@ concurrency:
   group: smoke-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   frontend-smoke:
     name: Lint · tests · build
@@ -32,56 +35,8 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Assert app version sync
-        run: npm run assert:app-version
-
-      - name: Assert updater key format helpers
-        run: npm run assert:updater-key-format
-
-      - name: Typecheck
-        run: npm run lint
-
-      - name: Serial mock tests
-        run: npm run test:serial
-
-      - name: Deep link unit tests
-        run: npm run test:deeplink
-
-      - name: i18n unit tests
-        run: npm run test:i18n
-
-      - name: PIO board mapping tests
-        run: npm run test:pio-board
-
-      - name: Board flash cache tests
-        run: npm run test:board-cache
-
-      - name: Board sync tests
-        run: npm run test:board-sync
-
-      - name: Board catalog validation tests
-        run: npm run test:board-catalog
-
-      - name: OTA host validation tests
-        run: npm run test:ota
-
-      - name: Telemetry unit tests
-        run: npm run test:telemetry
-
-      - name: Marketplace sandbox tests
-        run: npm run test:marketplace
-
-      - name: Free tooling detection tests
-        run: npm run test:tools
-
-      - name: Pin programming / peripheral tests
-        run: npm run test:pin-programming
-
-      - name: Community board catalog validate
-        run: npm run validate:board-catalog
-
-      - name: Production build
-        run: npm run build
+      - name: Frontend smoke
+        run: npm run smoke
 
       - name: PC agent smoke (--once)
         run: |
@@ -121,4 +76,4 @@ jobs:
 
       - name: Cargo check
         working-directory: src-tauri
-        run: cargo check
+        run: cargo check --locked
