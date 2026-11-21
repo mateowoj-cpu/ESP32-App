@@ -2,13 +2,15 @@
 
 Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 18+ jako ukończonych** bez merge’a funkcji.
 
-## Stan (main · 0.2.11+)
+## Stan (main · 0.2.12+)
 
 - **Fazy 0–17** na `main` (marketplace sandbox publisher bootstrap, board catalog, Unix/Windows packaging CI).
-- **0.2.11 UX / CI** — osobne workflow Linux/macOS/Windows (#34), hardened winget draft (#35), non-blocking USB detect (#36), marketplace board/GitHub add-ons (#37), free tooling detect (#38), collapsible right-side nav (#39).
+- **0.2.11 UX / CI** — osobne workflow Linux/macOS/Windows (#34), hardened winget draft (#35), non-blocking USB detect (#36), marketplace board/GitHub add-ons (#37), free tooling detect (#38), collapsible right-side nav (#39), docs/screenshots bump (#40).
+- **0.2.12 gap-closure** — app-shell clipping fix (#41), graphical USB pinout + A3144 pin programming (#42), peripheral / LCD·OLED catalog expansion (#43), Cargo.lock + smoke CI parity, Windows release concurrency, high-value Automations/Simulator/GPIO i18n leftovers.
 - **Full build closure** — udokumentowana i zweryfikowana ścieżka: `npm run smoke` + `cargo check` (+ Linux AppImage/deb w środowisku Linux). Checklist: [developer-setup.md](./developer-setup.md) § „Pełna kompilacja”; skrypt `npm run compile:full` / `scripts/full-compile.sh`.
 - **Docs** — README + [architecture.md](./architecture.md) opisują IPC / macierz build; oficjalne screenshoty w [media/](./media/); indeks: [README.md](./README.md).
 - **Board catalog community validation** — PR flow (szablon + path-filtered CI), walidacja offset ↔ esptool chip family, bundled ↔ disk parity, reject złego remote przed apply. Docs: [board-catalog.md](./board-catalog.md).
+- **Windows updater** — `createUpdaterArtifacts: false` w bazie; signed path tylko przy poprawnym `TAURI_SIGNING_PRIVATE_KEY` (minisign). Dispatch: `confirm_fresh_dispatch=NEW`, tip `main`, **nie** Re-run.
 
 ## Priorytety dalej (kolejność)
 
@@ -16,7 +18,7 @@ Indeks docs: [README.md](./README.md). **Nie oznaczaj Faz 18+ jako ukończonych*
 2. Authenticode EV na self-hosted / cloud HSM w praktyce (sekrety + runner — human).
 3. Apple notarize secrets na CI (human) + App Store Connect API key path w skrypcie.
 4. Dodatkowe signed community packs (live publishers, nie sandbox) + allowlista hostów gdy potrzeba.
-5. ~~Dalsze i18n / UX polish~~ — **done (kod):** identifyEsp32 + FlashHelper + USB/App chrome (#28), Simulator / Automations / Settings / CodeView + GPIO (#29), Automations option-list/DSL residual (#30); product UI i18n backlog exhausted; **Phase 18 ops remains human-only.**
+5. ~~Dalsze i18n / UX polish~~ — **done (kod):** identifyEsp32 + FlashHelper + USB/App chrome (#28), Simulator / Automations / Settings / CodeView + GPIO (#29), Automations option-list/DSL residual (#30), Automations/Simulator/GPIO form labels (#0.2.12); VisualEditor canvas hardcodes remain optional polish; **Phase 18 ops remains human-only.**
 
 ## Human-only (nie blokuje compile w kodzie) — deferred
 

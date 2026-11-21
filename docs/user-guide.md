@@ -1,6 +1,6 @@
 # Przewodnik użytkownika — ESP32 Display Studio
 
-Krótki przewodnik po aplikacji **0.2.11**. Warstwy / IPC / env: [architecture.md](./architecture.md). Sterowniki, OTA, winget: dokumenty poniżej.
+Krótki przewodnik po aplikacji **0.2.12**. Warstwy / IPC / env: [architecture.md](./architecture.md). Sterowniki, OTA, winget: dokumenty poniżej.
 
 ## Dwa tryby uruchomienia
 
@@ -33,13 +33,13 @@ Linux / macOS: [desktop-unix.md](./desktop-unix.md).
 
 - **Symulator sprzętowy** — OLED/LCD, sensory, GPIO  
 - **Edytor UI** — widgety, animacje, sekwencje ekranów  
-- **Automatyzacje / cyber-zwierzak** — PIR, czas, dotyk, USB  
+- **Automatyzacje / cyber-zwierzak** — PIR, A3144, HC-SR04, czas, dotyk, USB, relay/servo  
 - **Marketplace** — widget/rule packs, **board packs**, curated **GitHub add-ons** + formularz „Dodaj opcję” (sandbox bez wykonywania kodu) — [marketplace-github-addons.md](./marketplace-github-addons.md)  
-- **USB** — **Wykryj ESP32** z nieblokującym banerem oczekiwania (UI zostaje responsywne podczas skanu)  
+- **USB** — **Wykryj ESP32** z nieblokującym banerem oczekiwania; po detekcji **graficzna mapa pinów** (WROOM-32) z programowaniem ról (A3144, DHT22, DS18B20, HC-SR04, servo, relay, WS2812, L298N, SPI/I²C)  
 - **Nawigacja** — na desktopie (`lg+`) zwijane **menu aplikacji po prawej**; stan zapamiętany w `localStorage`  
 - **Tooling** — detekcja PlatformIO / Arduino CLI·IDE / esptool / ESP-IDF / Wokwi + override ścieżek w Ustawieniach desktop — [esp32-tooling-integrations.md](./esp32-tooling-integrations.md)  
 - **Integracje** — pogoda (Open-Meteo itd.), **Monitor PC** (CPU/RAM/dysk)  
-- **Generator C++** — Arduino / PlatformIO + mapa pinów  
+- **Generator C++** — Arduino / PlatformIO + mapa pinów / wiring cheat-sheet dla przypisanych peryferiów  
 - **i18n** — PL / EN (**Ustawienia → Aplikacja desktopowa → Język interfejsu**; w przeglądarce ten sam przełącznik w panelu Desktop)
 
 ### Podgląd UI (screenshoty)

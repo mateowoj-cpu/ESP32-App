@@ -4,7 +4,7 @@
 
 Short EN summary: Studio detects optional free host tools (PlatformIO, Arduino CLI/IDE, esptool, ESP-IDF, Wokwi), lets you override binary paths in Desktop Settings, pick a build tool in Flash Helper, and launch Arduino IDE / Wokwi without requiring every tool to be installed.
 
-Linia: **0.2.11**. Indeks: [README.md](./README.md).
+Linia: **0.2.12**. Indeks: [README.md](./README.md).
 
 ## Resolve order
 

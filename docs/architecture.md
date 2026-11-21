@@ -1,6 +1,6 @@
 # Architektura — ESP32 Display Studio
 
-Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danych w linii **0.2.11** (Fazy 0–17 + multi-OS CI + tooling/marketplace UX). Indeks: [README.md](./README.md).
+Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danych w linii **0.2.12** (Fazy 0–17 + multi-OS CI + tooling/marketplace UX + board pinout / peripheral catalog). Indeks: [README.md](./README.md).
 
 ## Stack
 
@@ -241,10 +241,13 @@ Bez konta użytkownika:
 |-----|-------------------|
 | Windows NSIS/MSI + updater | `.github/workflows/windows-release.yml`, `tauri.conf.json` |
 | penv PlatformIO (opcjonalnie) | `windows-penv-artifact.yml` + `Stage-PlatformIoPenv.ps1` |
-| Linux / macOS | `desktop-unix-release.yml` + `tauri.linux.json` / `tauri.macos.json` (+ `*.signed.json` gdy sekret) |
+| Linux AppImage + deb | `linux-release.yml` + `tauri.linux.json` (+ `*.signed.json` gdy sekret) |
+| macOS dmg | `macos-release.yml` + `tauri.macos.json` (+ notarize gdy sekrety) |
+| Multi-platform `latest.json` assembler | `desktop-unix-release.yml` (gdy signed updater) |
 | AppImage smoke (dispatch) | `desktop-unix-appimage-smoke.yml` |
+| Community board catalog | `board-catalog.yml` (path-filtered PR) |
 | Draft winget | `winget-draft.yml` + `scripts/winget/prepare-draft-manifest.sh` |
-| Smoke PR | `smoke.yml` → frontend suite + `cargo check` |
+| Smoke PR | `smoke.yml` → asserts + frontend suite + `cargo check` |
 
 Updater: `createUpdaterArtifacts` w `tauri.conf.json` domyślnie **`false`** (NSIS/MSI bez `.sig`). Windows CI włącza `tauri.windows.updater-signed.json` tylko przy poprawnym `TAURI_SIGNING_PRIVATE_KEY` (minisign `untrusted comment:`). Unix: unsigned overlays + signed overlays gdy sekret — [desktop-unix.md](./desktop-unix.md), [windows-updater.md](./windows-updater.md).
 

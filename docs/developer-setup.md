@@ -1,6 +1,6 @@
 # Setup dla contributorów
 
-Jak uruchomić, testować i kompilować ESP32 Display Studio lokalnie. Linia: **0.2.11**. Indeks: [README.md](./README.md) · architektura: [architecture.md](./architecture.md).
+Jak uruchomić, testować i kompilować ESP32 Display Studio lokalnie. Linia: **0.2.12**. Indeks: [README.md](./README.md) · architektura: [architecture.md](./architecture.md).
 
 ## Wymagania
 
@@ -48,7 +48,7 @@ npm run compile:full
 
 `npm run smoke` uruchamia (kolejność z `package.json`):
 
-`lint` → `test:serial` → `test:deeplink` → `test:i18n` → `test:pio-board` → `test:board-cache` → `test:board-sync` → `test:board-catalog` → `test:ota` → `test:telemetry` → `test:marketplace` → `validate:board-catalog` → `build`.
+`assert:app-version` → `assert:updater-key-format` → `lint` → `test:serial` → `test:deeplink` → `test:i18n` → `test:pio-board` → `test:board-cache` → `test:board-sync` → `test:board-catalog` → `test:ota` → `test:telemetry` → `test:marketplace` → `test:tools` → `test:pin-programming` → `validate:board-catalog` → `build`.
 
 ### 2) Rust release binary (opcjonalnie, wolniej)
 
@@ -185,16 +185,17 @@ tools/pc-agent/      Agent monitora PC (Python)
 
 | Workflow | Trigger | Co robi |
 |----------|---------|---------|
-| `smoke.yml` | PR / push `main` | Job frontend = suite jak `smoke` + pc-agent; job `rust-smoke` = `cargo check` |
+| `smoke.yml` | PR / push `main` | Job frontend = suite jak `npm run smoke` + pc-agent; job `rust-smoke` = `cargo check` |
 | `windows-release.yml` | tag `v*` / `workflow_dispatch` | NSIS/MSI + updater (Windows runner) — osobno od Unix |
 | `linux-release.yml` | tag `v*` / `workflow_dispatch` | AppImage + deb (`ubuntu-22.04`) |
 | `macos-release.yml` | tag `v*` / `workflow_dispatch` | dmg (`macos-14`) |
+| `board-catalog.yml` | PR (path-filtered) | Walidacja community board profiles |
 | `windows-penv-artifact.yml` | dispatch | Artifact penv PlatformIO |
 | `desktop-unix-release.yml` | tag `v*` / dispatch | Opcjonalny assembler multi-platform `latest.json` (gdy signed) |
 | `desktop-unix-appimage-smoke.yml` | `workflow_dispatch` | Szybki smoke paczek Linux |
 | `winget-draft.yml` | dispatch / po releasie | SHA z assetu + draft manifest (**publish = human**) |
 
-Wersja: `npm run assert:app-version` (package.json = tauri.conf = Cargo.toml). Przy ręcznym dispatch: `confirm_fresh_dispatch=NEW`, tip `main`, **nie** Re-run starych runów. Szczegóły: [desktop-unix.md](./desktop-unix.md).
+Wersja: `npm run assert:app-version` (package.json ≡ tauri.conf ≡ Cargo.toml ≡ package-lock ≡ Cargo.lock `esp32-display-studio`). Przy ręcznym dispatch Windows/Unix: `confirm_fresh_dispatch=NEW`, tip `main`, **nie** Re-run starych runów. Szczegóły: [desktop-unix.md](./desktop-unix.md), [windows-updater.md](./windows-updater.md).
 
 **Nie commituj** prywatnych kluczy, `.pfx`, prawdziwych SHA winget z niesprawdzonych binarek, ani tokenów. Zobacz [windows-signing.md](./windows-signing.md), [windows-winget.md](./windows-winget.md).
 
