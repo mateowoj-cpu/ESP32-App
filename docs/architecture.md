@@ -177,10 +177,12 @@ UI (UsbDetectorView)
 1. Generate  — szkic + platformio.ini z konfiguracji Studio
 2. Build     — invoke build_firmware_from_sketch
                resolve: ESP32_STUDIO_PIO → sidecar → PATH (pio / arduino-cli)
-               stream: build-log
-3. Flash     — invoke flash_write_firmware { port, baud, chip, firmwarePath, flashOffset? }
+               izolowane artifacts/<build_id>/ + FlashPlan (flasher_args.json)
+               stream: build-log; nowy build unieważnia poprzedni auto wynik
+3. Flash     — invoke flash_write_firmware
+               { port, baud, chip, flashPlan?, buildId? }  — auto USB (zaufany plan)
+               lub { firmwarePath, flashOffset }           — ręczny plik (offset jawny)
                resolve: esptool / esptool.py / python -m esptool
-               default offset 0x1000 (nadpisywany z board cache / profilu)
                stream: flash-log
 4. Board     — boardCache zapisuje ostatni udany profil (VID:PID → chip/offset)
 ```

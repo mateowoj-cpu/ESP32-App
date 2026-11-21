@@ -11,13 +11,42 @@ export interface ToolchainInfo {
   hint: string;
 }
 
+/** One esptool write_flash segment. */
+export interface FlashSegment {
+  offset: string;
+  path: string;
+  /** `bootloader` | `partition-table` | `boot-app0` | `app` | `other` */
+  role: string;
+}
+
+/**
+ * Verified write plan from toolchain metadata, or a manual single-file plan.
+ * `imageKind`: `otaApp` | `usbFullSet` | `manual`
+ */
+export interface FlashPlan {
+  buildId: string;
+  imageKind: 'otaApp' | 'usbFullSet' | 'manual' | string;
+  chipFamily: string;
+  segments: FlashSegment[];
+  otaPath?: string | null;
+  metadataTrusted: boolean;
+  artifactDir: string;
+}
+
 export interface BuildResult {
   ok: boolean;
   tool: string;
   projectDir?: string | null;
+  /** OTA / app path when available (never bootloader-only). */
   firmwarePath?: string | null;
   exitCode?: number | null;
   message: string;
+  buildId?: string | null;
+  imageKind?: string | null;
+  chipFamily?: string | null;
+  flashPlan?: FlashPlan | null;
+  /** True only when USB Build & Flash may use `flashPlan`. */
+  autoFlashAllowed: boolean;
 }
 
 export async function getFirmwareToolchainInfo(): Promise<ToolchainInfo> {

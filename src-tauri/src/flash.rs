@@ -8,6 +8,8 @@ use std::thread;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 
+use crate::firmware_build::{assert_plan_flashable, FlashPlan};
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EsptoolInfo {
@@ -168,19 +170,73 @@ fn normalize_port(port: &str) -> String {
     port.trim().to_string()
 }
 
+/// Resolve the write_flash address/file pairs from either a trusted plan or a manual path.
+fn resolve_write_pairs(
+    firmware_path: Option<String>,
+    flash_offset: Option<String>,
+    flash_plan: Option<FlashPlan>,
+    build_id: Option<String>,
+) -> Result<(Vec<(String, PathBuf)>, String /*mode label*/), String> {
+    if let Some(plan) = flash_plan {
+        assert_plan_flashable(&plan, build_id.as_deref())?;
+        if plan.image_kind == "usbFullSet" && !plan.metadata_trusted {
+            return Err("Brak wiarygodnych metadanych — auto-flash zablokowany".into());
+        }
+        if plan.image_kind == "otaApp" {
+            return Err(
+                "Obraz OTA nie może być wgrany przez auto USB flash bez planu adresów".into(),
+            );
+        }
+        let mut pairs = Vec::new();
+        for seg in &plan.segments {
+            let p = validate_firmware_path(&seg.path)?;
+            pairs.push((seg.offset.clone(), p));
+        }
+        if pairs.is_empty() {
+            return Err("Plan flash nie zawiera segmentów".into());
+        }
+        let label = format!(
+            "plan={} kind={} segments={}",
+            plan.build_id,
+            plan.image_kind,
+            pairs.len()
+        );
+        return Ok((pairs, label));
+    }
+
+    let path = firmware_path.ok_or_else(|| {
+        "Podaj ścieżkę firmware albo zweryfikowany flash_plan z buildu".to_string()
+    })?;
+    let firmware = validate_firmware_path(&path)?;
+    // Manual flash requires an explicit offset — never silently default an app image to 0x1000.
+    let offset = flash_offset
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| {
+            "Ręczny flash wymaga jawnego offsetu (auto 0x1000 usunięte — unikamy złego adresu)"
+                .to_string()
+        })?;
+    let label = format!("manual offset={offset}");
+    let _ = build_id;
+    Ok((vec![(offset, firmware)], label))
+}
+
 #[tauri::command]
 pub fn flash_write_firmware(
     app: AppHandle,
     port: String,
     baud: u32,
     chip: String,
-    firmware_path: String,
+    firmware_path: Option<String>,
     flash_offset: Option<String>,
+    flash_plan: Option<FlashPlan>,
+    build_id: Option<String>,
 ) -> Result<FlashResult, String> {
     let cmd = resolve_esptool_command(&app).ok_or_else(|| {
         "Nie znaleziono esptool. Zainstaluj: pip install esptool".to_string()
     })?;
-    let firmware = validate_firmware_path(&firmware_path)?;
+    let (pairs, plan_label) =
+        resolve_write_pairs(firmware_path, flash_offset, flash_plan, build_id)?;
     let port = normalize_port(&port);
     if port.is_empty() {
         return Err("Podaj port COM / serial (np. COM3).".into());
@@ -191,10 +247,6 @@ pub fn flash_write_firmware(
     } else {
         chip.trim().to_string()
     };
-    let offset = flash_offset
-        .unwrap_or_else(|| "0x1000".into())
-        .trim()
-        .to_string();
 
     let (bin, prefix) = cmd
         .split_first()
@@ -210,14 +262,16 @@ pub fn flash_write_firmware(
         baud.to_string(),
         "write_flash".into(),
         "-z".into(),
-        offset.clone(),
-        firmware.display().to_string(),
     ]);
+    for (offset, path) in &pairs {
+        args.push(offset.clone());
+        args.push(path.display().to_string());
+    }
 
     emit_log(
         &app,
         format!(
-            "$ {} {}  (chip={chip}, port={port}, baud={baud}, offset={offset})",
+            "$ {} {}  (chip={chip}, port={port}, baud={baud}, {plan_label})",
             bin,
             args.join(" ")
         ),

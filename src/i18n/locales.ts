@@ -359,6 +359,13 @@ const pl: Dict = {
   'flash.refreshTitle': 'Odśwież toolchain / porty',
   'flash.err.noSketch': 'Brak generatora szkicu — otwórz projekt w Studio.',
   'flash.err.needPortBin': 'Wybierz port COM i plik .bin (lub skompiluj firmware).',
+  'flash.err.needOffset': 'Podaj jawny offset flash dla ręcznie wybranego pliku.',
+  'flash.err.noTrustedPlan':
+    'Brak wiarygodnych metadanych USB (flasher_args) — auto-flash zablokowany. Użyj OTA albo wskaż plik ręcznie z offsetem.',
+  'flash.offsetFromPlan': 'Offset (z planu buildu)',
+  'flash.planSummary': 'Plan flash',
+  'flash.autoFlashBlocked':
+    'Zbudowano obraz OTA, ale auto USB flash wymaga flasher_args.json z toolchainu.',
   'flash.log.startBuild': '--- start build ---',
   'flash.log.startFlash': '--- start flash ---',
   'flash.preferredTool': 'Narzędzie kompilacji',
@@ -1671,6 +1678,13 @@ const en: Dict = {
   'flash.refreshTitle': 'Refresh toolchain / ports',
   'flash.err.noSketch': 'No sketch generator — open a project in Studio.',
   'flash.err.needPortBin': 'Select a COM port and .bin file (or build firmware).',
+  'flash.err.needOffset': 'Provide an explicit flash offset for a manually chosen file.',
+  'flash.err.noTrustedPlan':
+    'No trusted USB metadata (flasher_args) — auto-flash blocked. Use OTA or pick a file with an explicit offset.',
+  'flash.offsetFromPlan': 'Offset (from build plan)',
+  'flash.planSummary': 'Flash plan',
+  'flash.autoFlashBlocked':
+    'OTA image built, but auto USB flash requires toolchain flasher_args.json.',
   'flash.log.startBuild': '--- start build ---',
   'flash.log.startFlash': '--- start flash ---',
   'flash.preferredTool': 'Build tool',

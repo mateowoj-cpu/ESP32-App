@@ -63,6 +63,9 @@ assert(translate('en', 'market.filterGithub').toLowerCase().includes('github'), 
 assert(translate('pl', 'market.addBoards').toLowerCase().includes('profil'), 'pl market add boards');
 assert(translate('en', 'market.openRepo').toLowerCase().includes('github'), 'en market open repo');
 assert(translate('pl', 'flash.err.needPortBin').toLowerCase().includes('com'), 'pl flash need port');
+assert(translate('en', 'flash.err.noTrustedPlan').toLowerCase().includes('metadata'), 'en no trusted plan');
+assert(translate('pl', 'flash.autoFlashBlocked').toLowerCase().includes('ota'), 'pl auto flash blocked');
+assert(translate('en', 'flash.planSummary').toLowerCase().includes('plan'), 'en plan summary');
 assert(translate('en', 'usb.identify.s3.f0').toLowerCase().includes('usb'), 'en identify s3');
 assert(translate('pl', 'usb.identify.s3.model').toLowerCase().includes('s3'), 'pl identify s3 model');
 assert(translate('en', 'usb.identify.s3.arch').toLowerCase().includes('xtensa'), 'en identify s3 arch');
