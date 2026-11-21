@@ -4,43 +4,83 @@
 //! registers its listener only after mount. Events emitted with no listener are
 //! dropped — so we stash paths until `take_pending_open_paths` marks the UI ready.
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
+
+struct PendingInner {
+    ready: bool,
+    paths: Vec<String>,
+}
+
+impl Default for PendingInner {
+    fn default() -> Self {
+        Self {
+            ready: false,
+            paths: Vec::new(),
+        }
+    }
+}
 
 /// Startup / early open targets waiting for the frontend.
+///
+/// Readiness and the path buffer share one mutex so an open that races the
+/// initial drain cannot observe `ready == false`, pause across
+/// `take_and_mark_ready`, then push into an emptied buffer that nobody drains.
 #[derive(Default)]
 pub struct PendingOpenPaths {
-    ready: AtomicBool,
-    pending: Mutex<Vec<String>>,
+    inner: Mutex<PendingInner>,
+}
+
+/// Result of trying to enqueue while holding the readiness lock.
+pub enum EnqueueDecision {
+    /// UI not ready — paths were appended to the buffer.
+    Buffered,
+    /// UI ready — caller must emit live (`app-open-paths`).
+    EmitLive(Vec<String>),
 }
 
 impl PendingOpenPaths {
     /// Drain buffered paths and mark the UI ready so later opens emit live.
     pub fn take_and_mark_ready(&self) -> Vec<String> {
-        self.ready.store(true, Ordering::SeqCst);
-        self.pending
+        self.inner
             .lock()
-            .map(|mut pending| std::mem::take(&mut *pending))
+            .map(|mut inner| {
+                inner.ready = true;
+                std::mem::take(&mut inner.paths)
+            })
             .unwrap_or_default()
+    }
+
+    /// Atomically either buffer paths or hand them back for live emit.
+    pub fn enqueue(&self, paths: Vec<String>) -> EnqueueDecision {
+        if paths.is_empty() {
+            return EnqueueDecision::Buffered;
+        }
+        match self.inner.lock() {
+            Ok(mut inner) => {
+                if inner.ready {
+                    EnqueueDecision::EmitLive(paths)
+                } else {
+                    inner.paths.extend(paths);
+                    EnqueueDecision::Buffered
+                }
+            }
+            Err(_) => EnqueueDecision::EmitLive(paths),
+        }
     }
 
     /// True after the frontend has claimed the startup buffer.
     pub fn is_ready(&self) -> bool {
-        self.ready.load(Ordering::SeqCst)
-    }
-
-    /// Push paths into the buffer (used before the UI is ready).
-    pub fn push_all(&self, paths: impl IntoIterator<Item = String>) {
-        if let Ok(mut pending) = self.pending.lock() {
-            pending.extend(paths);
-        }
+        self.inner
+            .lock()
+            .map(|inner| inner.ready)
+            .unwrap_or(false)
     }
 
     #[cfg(test)]
     fn pending_len(&self) -> usize {
-        self.pending.lock().map(|p| p.len()).unwrap_or(0)
+        self.inner.lock().map(|inner| inner.paths.len()).unwrap_or(0)
     }
 }
 
@@ -63,10 +103,11 @@ pub fn enqueue_open_paths(app: &AppHandle, paths: Vec<String>) {
         let _ = app.emit("app-open-paths", paths);
         return;
     };
-    if state.is_ready() {
-        let _ = app.emit("app-open-paths", paths);
-    } else {
-        state.push_all(paths);
+    match state.enqueue(paths) {
+        EnqueueDecision::Buffered => {}
+        EnqueueDecision::EmitLive(paths) => {
+            let _ = app.emit("app-open-paths", paths);
+        }
     }
 }
 
@@ -84,10 +125,13 @@ mod tests {
     fn first_instance_buffers_until_ui_ready() {
         let buf = PendingOpenPaths::default();
         assert!(!buf.is_ready());
-        buf.push_all([
-            "esp32studio://open?path=%2Ftmp%2Fdemo.esp32studio".into(),
-            "/tmp/demo.esp32studio".into(),
-        ]);
+        assert!(matches!(
+            buf.enqueue(vec![
+                "esp32studio://open?path=%2Ftmp%2Fdemo.esp32studio".into(),
+                "/tmp/demo.esp32studio".into(),
+            ]),
+            EnqueueDecision::Buffered
+        ));
         assert_eq!(buf.pending_len(), 2);
 
         let drained = buf.take_and_mark_ready();
@@ -101,17 +145,40 @@ mod tests {
     }
 
     #[test]
-    fn second_instance_path_after_ready_stays_unbuffered() {
+    fn second_instance_after_ready_emits_live() {
         let buf = PendingOpenPaths::default();
         let _ = buf.take_and_mark_ready();
         assert!(buf.is_ready());
-        // After ready, callers should emit live rather than push — simulate by
-        // asserting push is only for the not-ready path in enqueue helpers.
-        buf.push_all(["/tmp/second.esp32studio".into()]);
-        // Direct push still works (state API), but take drains it for late arrivals
-        // that raced the ready flip.
-        let late = buf.take_and_mark_ready();
-        assert_eq!(late, vec!["/tmp/second.esp32studio".to_string()]);
+        match buf.enqueue(vec!["/tmp/second.esp32studio".into()]) {
+            EnqueueDecision::EmitLive(paths) => {
+                assert_eq!(paths, vec!["/tmp/second.esp32studio".to_string()]);
+            }
+            EnqueueDecision::Buffered => panic!("expected live emit after ready"),
+        }
+        assert_eq!(buf.pending_len(), 0);
+    }
+
+    #[test]
+    fn enqueue_during_drain_cannot_strand_paths() {
+        // Simulate the race Codex flagged: observe not-ready, then drain flips
+        // ready, then a late enqueue must still emit (not push into a dead buffer).
+        let buf = PendingOpenPaths::default();
+        assert!(matches!(
+            buf.enqueue(vec!["/tmp/cold.esp32studio".into()]),
+            EnqueueDecision::Buffered
+        ));
+        let drained = buf.take_and_mark_ready();
+        assert_eq!(drained, vec!["/tmp/cold.esp32studio".to_string()]);
+
+        // Any open that loses the race and calls enqueue after drain must EmitLive.
+        match buf.enqueue(vec!["/tmp/raced.esp32studio".into()]) {
+            EnqueueDecision::EmitLive(paths) => {
+                assert_eq!(paths, vec!["/tmp/raced.esp32studio".to_string()]);
+            }
+            EnqueueDecision::Buffered => panic!("raced open stranded in buffer"),
+        }
+        assert_eq!(buf.pending_len(), 0);
+        assert!(buf.take_and_mark_ready().is_empty());
     }
 
     #[test]
@@ -122,7 +189,7 @@ mod tests {
             "/tmp/my file.esp32studio".to_string(),
             "/tmp/100%.esp32studio".to_string(),
         ];
-        buf.push_all(names.clone());
+        assert!(matches!(buf.enqueue(names.clone()), EnqueueDecision::Buffered));
         assert_eq!(buf.take_and_mark_ready(), names);
     }
 }

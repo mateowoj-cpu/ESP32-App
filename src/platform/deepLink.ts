@@ -80,9 +80,10 @@ export function resolveOpenTarget(raw: string): string | null {
       if (pathParam) return pathParam;
 
       // esp32studio://open/C:/path/file.esp32studio  or //import/...
-      // url.pathname is already decoded by the URL parser.
+      // Query params are decoded by URLSearchParams; pathname stays encoded —
+      // decode once here (same as file://).
       const host = url.hostname;
-      let pathname = url.pathname || '';
+      let pathname = decodeUriComponentOnce(url.pathname || '');
       if (host && host !== 'open' && host !== 'import' && host !== 'flash') {
         // Windows-style: esp32studio://C:/Users/...
         pathname = `/${host}${pathname}`;

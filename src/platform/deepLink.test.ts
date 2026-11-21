@@ -60,6 +60,24 @@ assert(
   'macOS Open With file:// URL',
 );
 
+// Pathname form stays percent-encoded in URL.pathname — decode once.
+assert(
+  resolveOpenTarget('esp32studio://open/tmp/my%20file.esp32studio') ===
+    '/tmp/my file.esp32studio',
+  'pathname space',
+);
+assert(
+  resolveOpenTarget(
+    'esp32studio://open/tmp/za%C5%BC%C3%B3%C5%82%C4%87%20projekt.esp32studio',
+  ) === '/tmp/zażółć projekt.esp32studio',
+  'pathname Polish + space',
+);
+assert(
+  resolveOpenTarget('esp32studio://open/tmp/100%25.esp32studio') ===
+    '/tmp/100%.esp32studio',
+  'pathname percent',
+);
+
 assert(
   resolveOpenTarget('file:///C:/Users/Demo/my%20file.esp32studio') ===
     'C:/Users/Demo/my file.esp32studio',
