@@ -7,7 +7,7 @@
   Copies (or builds) a PlatformIO virtualenv into:
     src-tauri/resources/sidecar/platformio/penv/
 
-  The folder is gitignored — never commit a full penv. Use this script on a signed-release
+  The folder is gitignored -- never commit a full penv. Use this script on a signed-release
   machine / CI job that already has Python + network, then run `npm run tauri:build:windows`
   so Tauri packs `resources/sidecar/**/*`.
 
@@ -37,7 +37,7 @@ $ErrorActionPreference = "Stop"
 function Resolve-RepoRoot {
   if ($RepoRoot) { return (Resolve-Path $RepoRoot).Path }
   $here = Split-Path -Parent $PSScriptRoot
-  # scripts/windows → repo root
+  # scripts/windows -> repo root
   return (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 }
 
@@ -57,7 +57,12 @@ if (-not (Test-Path $pioMarker)) {
   }
   $installer = Join-Path $root "scripts\windows\Install-PlatformIoSidecar.ps1"
   Write-Host "==> Building LocalAppData sidecar via $installer"
-  & powershell -NoProfile -File $installer
+  # Invoke in-process (same host as this script). Do NOT spawn Windows PowerShell 5.1
+  # via `powershell -File`: UTF-8 scripts without BOM are mis-decoded as ANSI and can
+  # fail to parse (smart-quote terminator errors from bytes in arrows/dashes).
+  $installerArgs = @{}
+  if ($SkipEspota) { $installerArgs["SkipEspota"] = $true }
+  & $installer @installerArgs
   if (-not (Test-Path $pioMarker)) {
     throw "Install-PlatformIoSidecar.ps1 did not produce $pioMarker"
   }
@@ -77,7 +82,7 @@ if (Test-Path $destPenv) {
 $rc = Start-Process -FilePath "robocopy.exe" -ArgumentList @(
   $SourcePenv, $destPenv, "/E", "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np"
 ) -Wait -PassThru
-# robocopy exit codes 0–7 are success-ish
+# robocopy exit codes 0-7 are success-ish
 if ($rc.ExitCode -ge 8) {
   throw "robocopy failed with exit $($rc.ExitCode)"
 }
@@ -87,7 +92,7 @@ if (-not $SkipEspota) {
   if (Test-Path $srcEspota) {
     New-Item -ItemType Directory -Force -Path $destOta | Out-Null
     Copy-Item -Force $srcEspota (Join-Path $destOta "espota.py")
-    Write-Host "==> Staged espota.py → resources/sidecar/ota/"
+    Write-Host "==> Staged espota.py -> resources/sidecar/ota/"
   }
 }
 
@@ -100,6 +105,6 @@ Write-Host ""
 Write-Host "Staged. Next:"
 Write-Host "  1. Confirm tauri.conf.json bundles resources/sidecar/**/*"
 Write-Host "  2. npm run tauri:build:windows  (or signed CI job)"
-Write-Host "  3. Do NOT commit penv/ — it stays gitignored"
+Write-Host "  3. Do NOT commit penv/ -- it stays gitignored"
 Write-Host ""
 Write-Host "Done."
