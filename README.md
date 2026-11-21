@@ -202,6 +202,7 @@ Runtime (proces Tauri / sidecar — nie commituj ścieżek sekretnych):
 | Zmienna | Rola |
 |---------|------|
 | `ESP32_STUDIO_PIO` | Pełna ścieżka do `pio` / `pio.exe` |
+| `ESP32_STUDIO_ESPTOOL` | Pełna ścieżka do `esptool` / `esptool.py` |
 | `ESP32_STUDIO_ESPOTA` | Pełna ścieżka do `espota.py` |
 | `ESP32_STUDIO_DATA_DIR` | Katalog danych sidecar (Unix installer) |
 

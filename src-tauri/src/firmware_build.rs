@@ -17,7 +17,7 @@ pub struct ToolchainInfo {
     pub arduino_cli: Option<String>,
     pub preferred: Option<String>,
     pub available: bool,
-    /// `sidecar` | `path` | `none`
+    /// `override` | `env` | `sidecar` | `path` | `none`
     pub source: String,
     pub hint: String,
 }
@@ -34,64 +34,10 @@ pub struct BuildResult {
 }
 
 use crate::process_util::{hide_console, which};
+use crate::toolchain::{self, ResolvedBinary};
 
-fn path_is_executable_candidate(p: &Path) -> bool {
-    p.is_file()
-}
-
-/// Sidecar / offline PlatformIO locations (no user PATH required).
-fn sidecar_pio_candidates(app: &AppHandle) -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    if let Ok(env) = std::env::var("ESP32_STUDIO_PIO") {
-        out.push(PathBuf::from(env));
-    }
-    if let Ok(dir) = app.path().app_local_data_dir() {
-        let base = dir.join("sidecar").join("platformio");
-        if cfg!(windows) {
-            out.push(base.join("penv").join("Scripts").join("pio.exe"));
-            out.push(base.join("penv").join("Scripts").join("platformio.exe"));
-            out.push(base.join("pio.exe"));
-        } else {
-            out.push(base.join("penv").join("bin").join("pio"));
-            out.push(base.join("penv").join("bin").join("platformio"));
-            out.push(base.join("pio"));
-        }
-    }
-    if let Ok(res) = app.path().resource_dir() {
-        let base = res.join("sidecar").join("platformio");
-        if cfg!(windows) {
-            out.push(base.join("penv").join("Scripts").join("pio.exe"));
-            out.push(base.join("pio.exe"));
-        } else {
-            out.push(base.join("penv").join("bin").join("pio"));
-            out.push(base.join("pio"));
-        }
-    }
-    out
-}
-
-fn resolve_pio(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
-    if let Some(p) = crate::tools::override_platformio(app) {
-        return Some((p, "override"));
-    }
-    for cand in sidecar_pio_candidates(app) {
-        if path_is_executable_candidate(&cand) {
-            // ESP32_STUDIO_PIO is first in candidates; treat env separately in source label
-            let src = if std::env::var("ESP32_STUDIO_PIO")
-                .ok()
-                .map(|e| PathBuf::from(e) == cand)
-                .unwrap_or(false)
-            {
-                "env"
-            } else {
-                "sidecar"
-            };
-            return Some((cand, src));
-        }
-    }
-    which("pio")
-        .or_else(|| which("platformio"))
-        .map(|p| (p, "path"))
+fn resolve_pio(app: &AppHandle) -> Option<ResolvedBinary> {
+    toolchain::resolve_platformio(app)
 }
 
 fn resolve_arduino_cli(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
@@ -106,21 +52,7 @@ fn emit_log(app: &AppHandle, line: impl Into<String>) {
 }
 
 fn version_of(bin: &Path) -> Option<String> {
-    let mut cmd = Command::new(bin);
-    cmd.arg("--version");
-    hide_console(&mut cmd);
-    let output = cmd.output().ok()?;
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let line = text.lines().next()?.trim();
-    if line.is_empty() {
-        None
-    } else {
-        Some(line.to_string())
-    }
+    toolchain::version_of(bin, &["--version"])
 }
 
 #[tauri::command]
@@ -136,20 +68,22 @@ pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
     };
 
     let source = match (&pio, &arduino) {
-        (Some((_, src)), _) => (*src).to_string(),
+        (Some(hit), _) => hit.source.to_string(),
         (None, Some((_, src))) => (*src).to_string(),
-        (None, None) => "none".to_string(),
+        (None, None) => toolchain::SRC_NONE.to_string(),
     };
 
     let hint = match (&pio, &arduino) {
-        (Some((p, src)), Some((a, asrc))) => format!(
-            "PlatformIO ({src}) + arduino-cli ({asrc}). {} · {}",
-            version_of(p).unwrap_or_else(|| p.display().to_string()),
+        (Some(hit), Some((a, asrc))) => format!(
+            "PlatformIO ({}) + arduino-cli ({asrc}). {} · {}",
+            hit.source,
+            version_of(&hit.path).unwrap_or_else(|| hit.path.display().to_string()),
             version_of(a).unwrap_or_else(|| a.display().to_string())
         ),
-        (Some((p, src)), None) => format!(
-            "PlatformIO ({src}): {}",
-            version_of(p).unwrap_or_else(|| p.display().to_string())
+        (Some(hit), None) => format!(
+            "PlatformIO ({}): {}",
+            hit.source,
+            version_of(&hit.path).unwrap_or_else(|| hit.path.display().to_string())
         ),
         (None, Some((a, asrc))) => format!(
             "arduino-cli ({asrc}): {}",
@@ -167,7 +101,7 @@ pub fn get_firmware_toolchain_info(app: AppHandle) -> ToolchainInfo {
     ToolchainInfo {
         available: preferred.is_some(),
         preferred: preferred.clone(),
-        platformio: pio.map(|(p, _)| p.display().to_string()),
+        platformio: pio.map(|hit| hit.path.display().to_string()),
         arduino_cli: arduino.map(|(p, _)| p.display().to_string()),
         source,
         hint,
@@ -379,7 +313,7 @@ pub fn build_firmware_from_sketch(
     };
 
     if use_pio {
-        let Some((pio_bin, pio_src)) = pio else {
+        let Some(pio_hit) = pio else {
             return Ok(BuildResult {
                 ok: false,
                 tool: "platformio".into(),
@@ -396,7 +330,11 @@ pub fn build_firmware_from_sketch(
 
         emit_log(
             &app,
-            format!("Używam PlatformIO ({pio_src}): {}", pio_bin.display()),
+            format!(
+                "Używam PlatformIO ({}): {}",
+                pio_hit.source,
+                pio_hit.path.display()
+            ),
         );
 
         let args = vec![
@@ -406,7 +344,7 @@ pub fn build_firmware_from_sketch(
             "-d".into(),
             root.display().to_string(),
         ];
-        let code = run_streaming(&app, &pio_bin, &args, &root)?;
+        let code = run_streaming(&app, &pio_hit.path, &args, &root)?;
         let firmware = find_firmware_bin(&root, env);
         let ok = code == 0 && firmware.is_some();
         return Ok(BuildResult {
@@ -416,7 +354,11 @@ pub fn build_firmware_from_sketch(
             firmware_path: firmware.as_ref().map(|p| p.display().to_string()),
             exit_code: Some(code),
             message: if ok {
-                format!("Zbudowano ({pio_src}): {}", firmware.unwrap().display())
+                format!(
+                    "Zbudowano ({}): {}",
+                    pio_hit.source,
+                    firmware.unwrap().display()
+                )
             } else if code != 0 {
                 format!("PlatformIO zakończył się kodem {code}. Zobacz log build.")
             } else {

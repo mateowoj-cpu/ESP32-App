@@ -100,21 +100,7 @@ fn clean_override(value: Option<String>) -> Option<String> {
 }
 
 fn version_of(bin: &Path, args: &[&str]) -> Option<String> {
-    let mut cmd = Command::new(bin);
-    cmd.args(args);
-    hide_console(&mut cmd);
-    let output = cmd.output().ok()?;
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let line = text.lines().next()?.trim();
-    if line.is_empty() {
-        None
-    } else {
-        Some(line.to_string())
-    }
+    crate::toolchain::version_of(bin, args)
 }
 
 fn resolve_override_file(raw: &str) -> Option<PathBuf> {
@@ -146,118 +132,43 @@ pub fn override_esptool(app: &AppHandle) -> Option<PathBuf> {
     o.esptool.as_deref().and_then(resolve_override_file)
 }
 
-fn sidecar_pio(app: &AppHandle) -> Option<(PathBuf, &'static str)> {
-    if let Ok(env) = std::env::var("ESP32_STUDIO_PIO") {
-        let p = PathBuf::from(&env);
-        if path_is_file(&p) {
-            return Some((p, "env"));
-        }
-    }
-    if let Ok(dir) = app.path().app_local_data_dir() {
-        let base = dir.join("sidecar").join("platformio");
-        let cands: Vec<PathBuf> = if cfg!(windows) {
-            vec![
-                base.join("penv").join("Scripts").join("pio.exe"),
-                base.join("penv").join("Scripts").join("platformio.exe"),
-                base.join("pio.exe"),
-            ]
-        } else {
-            vec![
-                base.join("penv").join("bin").join("pio"),
-                base.join("penv").join("bin").join("platformio"),
-                base.join("pio"),
-            ]
-        };
-        for c in cands {
-            if path_is_file(&c) {
-                return Some((c, "sidecar"));
-            }
-        }
-    }
-    if let Ok(res) = app.path().resource_dir() {
-        let base = res.join("sidecar").join("platformio");
-        let cands: Vec<PathBuf> = if cfg!(windows) {
-            vec![
-                base.join("penv").join("Scripts").join("pio.exe"),
-                base.join("pio.exe"),
-            ]
-        } else {
-            vec![
-                base.join("penv").join("bin").join("pio"),
-                base.join("pio"),
-            ]
-        };
-        for c in cands {
-            if path_is_file(&c) {
-                return Some((c, "sidecar"));
-            }
-        }
-    }
-    None
-}
-
 fn probe_platformio(app: &AppHandle) -> ToolProbe {
-    if let Some(p) = override_platformio(app) {
-        return ToolProbe {
+    match crate::toolchain::resolve_platformio(app) {
+        Some(hit) => {
+            let hint = match hit.source {
+                crate::toolchain::SRC_OVERRIDE => "PlatformIO (ścieżka z ustawień)".into(),
+                crate::toolchain::SRC_PATH => "PlatformIO w PATH".into(),
+                src => format!("PlatformIO ({src})"),
+            };
+            ToolProbe {
+                id: "platformio".into(),
+                label: "PlatformIO CLI".into(),
+                available: true,
+                version: version_of(&hit.path, &["--version"]),
+                path: Some(hit.path.display().to_string()),
+                source: hit.source.into(),
+                free: true,
+                hint,
+                homepage: Some("https://platformio.org/".into()),
+                kind: "cli".into(),
+                winget_id: None,
+                install_url: None,
+            }
+        }
+        None => ToolProbe {
             id: "platformio".into(),
             label: "PlatformIO CLI".into(),
-            available: true,
-            version: version_of(&p, &["--version"]),
-            path: Some(p.display().to_string()),
-            source: "override".into(),
+            available: false,
+            path: None,
+            version: None,
+            source: crate::toolchain::SRC_NONE.into(),
             free: true,
-            hint: "PlatformIO (ścieżka z ustawień)".into(),
-            homepage: Some("https://platformio.org/".into()),
+            hint: "Brak PlatformIO — sidecar lub `pip install platformio`.".into(),
+            homepage: Some("https://platformio.org/install/cli".into()),
             kind: "cli".into(),
             winget_id: None,
             install_url: None,
-        };
-    }
-    if let Some((p, src)) = sidecar_pio(app) {
-        return ToolProbe {
-            id: "platformio".into(),
-            label: "PlatformIO CLI".into(),
-            available: true,
-            version: version_of(&p, &["--version"]),
-            path: Some(p.display().to_string()),
-            source: src.into(),
-            free: true,
-            hint: format!("PlatformIO ({src})"),
-            homepage: Some("https://platformio.org/".into()),
-            kind: "cli".into(),
-            winget_id: None,
-            install_url: None,
-        };
-    }
-    if let Some(p) = which("pio").or_else(|| which("platformio")) {
-        return ToolProbe {
-            id: "platformio".into(),
-            label: "PlatformIO CLI".into(),
-            available: true,
-            version: version_of(&p, &["--version"]),
-            path: Some(p.display().to_string()),
-            source: "path".into(),
-            free: true,
-            hint: "PlatformIO w PATH".into(),
-            homepage: Some("https://platformio.org/".into()),
-            kind: "cli".into(),
-            winget_id: None,
-            install_url: None,
-        };
-    }
-    ToolProbe {
-        id: "platformio".into(),
-        label: "PlatformIO CLI".into(),
-        available: false,
-        path: None,
-        version: None,
-        source: "none".into(),
-        free: true,
-        hint: "Brak PlatformIO — sidecar lub `pip install platformio`.".into(),
-        homepage: Some("https://platformio.org/install/cli".into()),
-        kind: "cli".into(),
-        winget_id: None,
-        install_url: None,
+        },
     }
 }
 
@@ -311,91 +222,47 @@ fn probe_arduino_cli(app: &AppHandle) -> ToolProbe {
 }
 
 fn probe_esptool(app: &AppHandle) -> ToolProbe {
-    if let Some(p) = override_esptool(app) {
-        return ToolProbe {
-            id: "esptool".into(),
-            label: "esptool".into(),
-            available: true,
-            version: version_of(&p, &["version"]),
-            path: Some(p.display().to_string()),
-            source: "override".into(),
-            free: true,
-            hint: "esptool (ścieżka z ustawień)".into(),
-            homepage: Some("https://github.com/espressif/esptool".into()),
-            kind: "cli".into(),
-            winget_id: None,
-            install_url: None,
-        };
-    }
-    if let Some(p) = which("esptool").or_else(|| which("esptool.py")) {
-        return ToolProbe {
-            id: "esptool".into(),
-            label: "esptool".into(),
-            available: true,
-            version: version_of(&p, &["version"]),
-            path: Some(p.display().to_string()),
-            source: "path".into(),
-            free: true,
-            hint: "esptool w PATH".into(),
-            homepage: Some("https://github.com/espressif/esptool".into()),
-            kind: "cli".into(),
-            winget_id: None,
-            install_url: None,
-        };
-    }
-    // python -m esptool
-    let pys: &[&str] = if cfg!(windows) {
-        &["py", "python", "python3"]
-    } else {
-        &["python3", "python"]
-    };
-    for py in pys {
-        let Some(py_path) = which(py) else { continue };
-        let mut probe = Command::new(&py_path);
-        if *py == "py" {
-            probe.args(["-3", "-m", "esptool", "version"]);
-        } else {
-            probe.args(["-m", "esptool", "version"]);
-        }
-        hide_console(&mut probe);
-        if let Ok(output) = probe.output() {
-            if output.status.success() {
-                let ver = String::from_utf8_lossy(&output.stdout)
-                    .lines()
-                    .next()
-                    .unwrap_or("esptool")
-                    .trim()
-                    .to_string();
-                return ToolProbe {
-                    id: "esptool".into(),
-                    label: "esptool".into(),
-                    available: true,
-                    version: Some(ver),
-                    path: Some(format!("{} -m esptool", py_path.display())),
-                    source: "path".into(),
-                    free: true,
-                    hint: "esptool przez Python module".into(),
-                    homepage: Some("https://github.com/espressif/esptool".into()),
-                    kind: "cli".into(),
-                    winget_id: None,
-                    install_url: None,
-                };
+    match crate::toolchain::resolve_esptool(app) {
+        Some(hit) => {
+            let path = hit.display_path();
+            let version = crate::toolchain::esptool_version(&hit.argv);
+            let hint = match hit.source {
+                crate::toolchain::SRC_OVERRIDE => "esptool (ścieżka z ustawień)".into(),
+                crate::toolchain::SRC_PATH if hit.argv.iter().any(|a| a == "-m") => {
+                    "esptool przez Python module".into()
+                }
+                crate::toolchain::SRC_PATH => "esptool w PATH".into(),
+                src => format!("esptool ({src})"),
+            };
+            ToolProbe {
+                id: "esptool".into(),
+                label: "esptool".into(),
+                available: true,
+                version,
+                path: Some(path),
+                source: hit.source.into(),
+                free: true,
+                hint,
+                homepage: Some("https://github.com/espressif/esptool".into()),
+                kind: "cli".into(),
+                winget_id: None,
+                install_url: None,
             }
         }
-    }
-    ToolProbe {
-        id: "esptool".into(),
-        label: "esptool".into(),
-        available: false,
-        path: None,
-        version: None,
-        source: "none".into(),
-        free: true,
-        hint: "Brak esptool — `pip install esptool`.".into(),
-        homepage: Some("https://docs.espressif.com/projects/esptool/".into()),
-        kind: "cli".into(),
-        winget_id: None,
-        install_url: None,
+        None => ToolProbe {
+            id: "esptool".into(),
+            label: "esptool".into(),
+            available: false,
+            path: None,
+            version: None,
+            source: crate::toolchain::SRC_NONE.into(),
+            free: true,
+            hint: "Brak esptool — `pip install esptool`.".into(),
+            homepage: Some("https://docs.espressif.com/projects/esptool/".into()),
+            kind: "cli".into(),
+            winget_id: None,
+            install_url: None,
+        },
     }
 }
 

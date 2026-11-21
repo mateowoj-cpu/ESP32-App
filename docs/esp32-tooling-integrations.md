@@ -8,11 +8,14 @@ Linia: **0.2.13**. Indeks: [README.md](./README.md).
 
 ## Resolve order
 
-For PlatformIO / arduino-cli / esptool:
+For PlatformIO and esptool (single shared resolver used by **Settings**, **Build**, and **Flash**):
 
 1. Path override from Desktop Settings (`tool-paths.json` in app local data)
-2. Env / sidecar (`ESP32_STUDIO_PIO`, bundled penv)
-3. PATH (`which` / `where`) via shared `process_util::which`
+2. Env (`ESP32_STUDIO_PIO` / `ESP32_STUDIO_ESPTOOL`)
+3. Sidecar (bundled / local-data penv under `sidecar/platformio/`)
+4. PATH (`which` / `where`) via shared `process_util::which` — including `python -m esptool`
+
+Each hit returns a `source` of `override` | `env` | `sidecar` | `path`. `--version` / `version` probes use an 8s timeout. Arduino CLI stays override → PATH (no sidecar).
 
 ## Windows: no flashing CMD (0.2.13+)
 

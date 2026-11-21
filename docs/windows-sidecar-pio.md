@@ -43,10 +43,13 @@ Bez stage’owania instalator nadal dostarcza `README.txt` + NSIS hook z instruk
 
 Kolejność:
 
-1. `ESP32_STUDIO_PIO` (pełna ścieżka do `pio.exe`)
-2. Sidecar w `app_local_data_dir` / zasobach instalatora (`resources/sidecar/…`)
-3. `pio` / `platformio` w PATH
-4. `arduino-cli` w PATH (fallback)
+1. Override ścieżki w Ustawieniach (`tool-paths.json`)
+2. `ESP32_STUDIO_PIO` (pełna ścieżka do `pio.exe`)
+3. Sidecar w `app_local_data_dir` / zasobach instalatora (`resources/sidecar/…`)
+4. `pio` / `platformio` w PATH
+5. `arduino-cli` w PATH (fallback)
+
+Ta sama kolejność (override → env → sidecar → PATH) obowiązuje dla **esptool** (`ESP32_STUDIO_ESPTOOL`, penv sidecar). Settings i Build/Flash korzystają z jednego resolvera.
 
 W UI: **USB → Build → Flash** — hint pokazuje `(sidecar)` gdy użyto lokalnego penv.
 
