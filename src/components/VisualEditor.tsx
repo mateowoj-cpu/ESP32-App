@@ -10,8 +10,11 @@ import {
   WidgetAnimationType,
   WidgetAnimationLoop,
   WidgetBinding,
-  HardwareSimState
+  HardwareSimState,
+  AutomationRule,
+  SystemConfig,
 } from '../types';
+import { normalizeProjectRelations } from '../utils/projectImportExport';
 import { 
   Plus, 
   Trash2, 
@@ -58,6 +61,11 @@ interface VisualEditorProps {
   setActiveScreenIndex: (index: number) => void;
   simState?: HardwareSimState;
   setSimState?: React.Dispatch<React.SetStateAction<HardwareSimState>>;
+  /** Optional: keep automations / USB index consistent when a screen is removed. */
+  automations?: AutomationRule[];
+  setAutomations?: React.Dispatch<React.SetStateAction<AutomationRule[]>>;
+  system?: SystemConfig;
+  setSystem?: React.Dispatch<React.SetStateAction<SystemConfig>>;
 }
 
 interface DragState {
@@ -79,6 +87,10 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
   setActiveScreenIndex,
   simState,
   setSimState,
+  automations,
+  setAutomations,
+  system,
+  setSystem,
 }) => {
   const { t } = useLocale();
   const currentScreen = screens[activeScreenIndex] || screens[0];
@@ -584,11 +596,31 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
     setActiveScreenIndex(screens.length);
   };
 
-  // Delete current screen
+  // Delete current screen — also drop dangling automation targets / clamp USB index
   const handleDeleteScreen = () => {
     if (screens.length <= 1) return;
-    setScreens(prev => prev.filter((_, i) => i !== activeScreenIndex));
+    const deletedId = screens[activeScreenIndex]?.id;
+    const nextScreens = screens.filter((_, i) => i !== activeScreenIndex);
+    setScreens(nextScreens);
     setActiveScreenIndex(Math.max(0, activeScreenIndex - 1));
+
+    if ((setAutomations || setSystem) && (automations || system)) {
+      const normalized = normalizeProjectRelations({
+        screens: nextScreens,
+        automations: automations ?? [],
+        systemConfig: system ?? ({ usbSwitchScreenIndex: 0 } as SystemConfig),
+        activeScreenIndex: Math.max(0, activeScreenIndex - 1),
+      });
+      if (setAutomations && deletedId) {
+        setAutomations(normalized.automations);
+      }
+      if (setSystem && system) {
+        setSystem(prev => ({
+          ...prev,
+          usbSwitchScreenIndex: normalized.systemConfig.usbSwitchScreenIndex,
+        }));
+      }
+    }
   };
 
   // Re-sequence timing automatically

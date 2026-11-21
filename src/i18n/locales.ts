@@ -97,6 +97,11 @@ const pl: Dict = {
   'import.ok': 'Zaimportowano projekt: {name}',
   'import.badJson': 'Niepoprawny JSON projektu: {name}',
   'import.parseError': 'Błąd podczas parsowania pliku projektu',
+  'import.rejected': 'Import odrzucony ({name}): {reason}',
+  'export.share': 'Eksport do udostępnienia (bez haseł)',
+  'export.full': 'Pełny eksport (z poświadczeniami)',
+  'export.fullConfirm':
+    'Pełny eksport zawiera hasła Wi‑Fi/OTA i klucz API pogody. Kontynuować?',
   'footer.copy': 'ESP32 Display Studio © 2026 · Kompatybilny z ESP32 WROOM / ESP32-S3 / ESP32-C3 · Adafruit_SSD1306, TFT_eSPI, U8g2',
   'action.update': 'Aktualizuj',
   'action.exportProject': '.esp32studio',
@@ -1302,7 +1307,8 @@ const pl: Dict = {
   'a11y.fontLabel': 'Tekst:',
   'a11y.checkUpdates': 'Sprawdź aktualizacje aplikacji (Tauri)',
   'a11y.importProject': 'Importuj projekt (.esp32studio / .json)',
-  'a11y.exportProject': 'Zapisz projekt (.esp32studio) — skojarzony z aplikacją na Windows',
+  'a11y.exportProject':
+    'Zapisz projekt (.esp32studio) — domyślnie bez haseł; pełny eksport po jawnym wyborze',
   'a11y.closeUpdateBanner': 'Zamknij banner aktualizacji',
   'a11y.closeNotice': 'Zamknij powiadomienie',
   'a11y.closeFileNotice': 'Zamknij powiadomienie pliku',
@@ -1408,6 +1414,11 @@ const en: Dict = {
   'import.ok': 'Imported project: {name}',
   'import.badJson': 'Invalid project JSON: {name}',
   'import.parseError': 'Failed to parse project file',
+  'import.rejected': 'Import rejected ({name}): {reason}',
+  'export.share': 'Share export (no passwords)',
+  'export.full': 'Full export (includes credentials)',
+  'export.fullConfirm':
+    'Full export includes Wi‑Fi/OTA passwords and the weather API key. Continue?',
   'footer.copy':
     'ESP32 Display Studio © 2026 · Compatible with ESP32 WROOM / ESP32-S3 / ESP32-C3 · Adafruit_SSD1306, TFT_eSPI, U8g2',
   'action.update': 'Update',
@@ -2614,7 +2625,8 @@ const en: Dict = {
   'a11y.fontLabel': 'Text:',
   'a11y.checkUpdates': 'Check for app updates (Tauri)',
   'a11y.importProject': 'Import project (.esp32studio / .json)',
-  'a11y.exportProject': 'Save project (.esp32studio) — file association on Windows',
+  'a11y.exportProject':
+    'Save project (.esp32studio) — share export strips secrets; full export needs explicit choice',
   'a11y.closeUpdateBanner': 'Close update banner',
   'a11y.closeNotice': 'Close notification',
   'a11y.closeFileNotice': 'Close file notification',
