@@ -1,5 +1,13 @@
 import { DisplayConfig, SystemConfig, ApiIntegrationsConfig, Screen, AutomationRule } from '../types';
 
+function isColorTftModel(model: DisplayConfig['model']): boolean {
+  return (
+    model.startsWith('st7789') ||
+    model.startsWith('ili9341') ||
+    model.startsWith('gc9a01')
+  );
+}
+
 export function generateArduinoCppCode(
   display: DisplayConfig,
   system: SystemConfig,
@@ -8,19 +16,107 @@ export function generateArduinoCppCode(
   automations: AutomationRule[]
 ): string {
   const isI2C = display.bus === 'i2c';
+  const useColorTft = !isI2C || isColorTftModel(display.model);
   const width = display.width;
   const height = display.height;
+  const miso = display.misoPin ?? 19;
 
-  return `/*
+  const displayIncludes = useColorTft
+    ? display.model.startsWith('ili9341')
+      ? `#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>`
+      : display.model.startsWith('gc9a01')
+        ? `#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_GC9A01A.h>`
+        : `#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7789.h>`
+    : `#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>`;
+
+  const displayObject = useColorTft
+    ? display.model.startsWith('ili9341')
+      ? `Adafruit_ILI9341 display = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST, TFT_MISO);`
+      : display.model.startsWith('gc9a01')
+        ? `Adafruit_GC9A01A display = Adafruit_GC9A01A(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST, TFT_MISO);`
+        : `Adafruit_ST7789 display = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);`
+    : `Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);`;
+
+  const displayInit = useColorTft
+    ? display.model.startsWith('ili9341')
+      ? `  display.begin();
+  display.setRotation(1);
+  pinMode(TFT_BL, OUTPUT);
+  digitalWrite(TFT_BL, HIGH);
+  display.fillScreen(COLOR_BG);
+  display.setTextColor(COLOR_FG);
+  display.setTextSize(1);
+  display.setCursor(10, 20);
+  display.println(F("ESP32 Studio Booting..."));`
+      : display.model.startsWith('gc9a01')
+        ? `  display.begin();
+  pinMode(TFT_BL, OUTPUT);
+  digitalWrite(TFT_BL, HIGH);
+  display.fillScreen(COLOR_BG);
+  display.setTextColor(COLOR_FG);
+  display.setTextSize(1);
+  display.setCursor(40, 110);
+  display.println(F("ESP32 Studio"));`
+        : `  display.init(SCREEN_WIDTH, SCREEN_HEIGHT);
+  display.setRotation(0);
+  pinMode(TFT_BL, OUTPUT);
+  digitalWrite(TFT_BL, HIGH);
+  display.fillScreen(COLOR_BG);
+  display.setTextColor(COLOR_FG);
+  display.setTextSize(1);
+  display.setCursor(10, 20);
+  display.println(F("ESP32 Studio Booting..."));`
+    : `  // Inicjalizacja magistrali I2C
+  Wire.begin(SDA_PIN, SCL_PIN);
+
+  // Inicjalizacja wyświetlacza OLED
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("BŁĄD: Nie znaleziono wyświetlacza SSD1306!"));
+    for (;;); // Zatrzymaj jeśli brak ekranu
+  }
+
+  display.clearDisplay();
+  display.setTextColor(COLOR_FG);
+  display.setTextSize(1);
+  display.setCursor(10, 20);
+  display.println(F("ESP32 Studio Booting..."));
+  display.display();`;
+
+  const libList = useColorTft
+    ? ` *  1. "Adafruit ST7789" / "Adafruit ILI9341" / "Adafruit GC9A01A" (wg modelu)
+ *  2. "Adafruit GFX Library" (by Adafruit)
+ *  3. "ArduinoJson" (by Benoit Blanchon, wersja 6 lub 7)`
+    : ` *  1. "Adafruit SSD1306" (by Adafruit)
+ *  2. "Adafruit GFX Library" (by Adafruit)
+ *  3. "ArduinoJson" (by Benoit Blanchon, wersja 6 lub 7)`;
+
+  const needsWireForSensors = Boolean(system.bme280Enabled || system.mpu6050Enabled);
+  const peripheralIncludes = [
+    useColorTft && needsWireForSensors ? '#include <Wire.h>' : '',
+    system.dhtPin != null ? '#include <DHT.h>' : '',
+    system.ds18b20Pin != null ? '#include <OneWire.h>\n#include <DallasTemperature.h>' : '',
+    system.servoPin != null ? '#include <ESP32Servo.h>' : '',
+    system.ws2812Pin != null ? '#include <Adafruit_NeoPixel.h>' : '',
+    system.bme280Enabled ? '#include <Adafruit_BME280.h>' : '',
+    system.mpu6050Enabled ? '#include <Adafruit_MPU6050.h>\n#include <Adafruit_Sensor.h>' : '',
+  ].filter(Boolean).join('\n');
+
+  const code = `/*
  * ==============================================================================
  *  PROJEKT ESP32 DISPLAY STUDIO - WYGENEROWANY KOD C++
  *  Wyświetlacz: ${display.model.toUpperCase()} (${width}x${height})
- *  Magistrala:  ${display.bus.toUpperCase()} ${isI2C ? `(SDA: GPIO ${display.sdaPin}, SCL: GPIO ${display.sclPin}, Adres: ${display.i2cAddress})` : `(MOSI: ${display.mosiPin}, SCK: ${display.sckPin}, CS: ${display.csPin})`}
+ *  Magistrala:  ${display.bus.toUpperCase()} ${isI2C ? `(SDA: GPIO ${display.sdaPin}, SCL: GPIO ${display.sclPin}, Adres: ${display.i2cAddress})` : `(MOSI: ${display.mosiPin}, MISO: ${miso}, SCK: ${display.sckPin}, CS: ${display.csPin}, DC: ${display.dcPin}, RST: ${display.rstPin}, BL: ${display.backlightPin})`}
  * ==============================================================================
  *  WYMAGANE BIBLIOTEKI W ARDUINO IDE (Zainstaluj przez Library Manager):
- *  1. "Adafruit SSD1306" (by Adafruit)
- *  2. "Adafruit GFX Library" (by Adafruit)
- *  3. "ArduinoJson" (by Benoit Blanchon, wersja 6 lub 7)
+${libList}
  *  4. "WiFi", "HTTPClient", "WebServer" (wbudowane w pakiet ESP32)
  *  5. "ArduinoOTA", "Update" (wbudowane — OTA Wi‑Fi ze Studio)${system.otaEnabled === false ? ' [WYŁĄCZONE]' : ''}
  * ==============================================================================
@@ -30,25 +126,39 @@ export function generateArduinoCppCode(
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+${displayIncludes}
 #include <WebServer.h>
 #include <Update.h>
 #include <ArduinoOTA.h>
 #include <time.h>
+${peripheralIncludes}
 ${system.bluetoothEnabled ? (system.bluetoothMode === 'classic_spp' ? '#include <BluetoothSerial.h>' : '#include <BLEDevice.h>\n#include <BLEServer.h>\n#include <BLEUtils.h>\n#include <BLE2902.h>') : '// Bluetooth wyłączony w opcjach'}
 
 // --- KONFIGURACJA EKRANU ---
 #define SCREEN_WIDTH  ${width}
 #define SCREEN_HEIGHT ${height}
+#define USE_COLOR_TFT ${useColorTft ? 1 : 0}
+#if USE_COLOR_TFT
+#define COLOR_FG 0xFFFF
+#define COLOR_BG 0x0000
+#define TFT_MOSI ${display.mosiPin}
+#define TFT_MISO ${miso}
+#define TFT_SCLK ${display.sckPin}
+#define TFT_CS   ${display.csPin}
+#define TFT_DC   ${display.dcPin}
+#define TFT_RST  ${display.rstPin}
+#define TFT_BL   ${display.backlightPin}
+#else
+// SSD1306 monochrome: WHITE=1, BLACK=0
+#define COLOR_FG 1
+#define COLOR_BG 0
 #define OLED_RESET    ${display.rstPin}
 #define SCREEN_ADDRESS ${display.i2cAddress}
-
 #define SDA_PIN       ${display.sdaPin}
 #define SCL_PIN       ${display.sclPin}
+#endif
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+${displayObject}
 ${system.bluetoothEnabled ? (system.bluetoothMode === 'classic_spp' ? 'BluetoothSerial SerialBT;' : 'BLEServer* pServer = NULL;\nBLECharacteristic* pTelemetryChar = NULL;\nbool bleConnected = false;') : ''}
 
 // --- KONFIGURACJA SIECI & NTP ---
@@ -78,11 +188,50 @@ const char* TIMEZONE      = "${system.timezone}";
 #define PIN_PIR_SENSOR ${system.pirPin ?? 14}    // Czujnik ruchu PIR (cyfrowy)
 #define PIN_HALL_ENABLED ${system.hallPin != null ? 1 : 0}
 #define PIN_HALL_SENSOR ${system.hallPin ?? 13}  // A3144 hall (cyfrowy, aktywny LOW + pull-up)
+#define PIN_DHT_ENABLED ${system.dhtPin != null ? 1 : 0}
+#define PIN_DHT_SENSOR  ${system.dhtPin ?? 4}    // DHT22 DATA
+#define PIN_DS18_ENABLED ${system.ds18b20Pin != null ? 1 : 0}
+#define PIN_DS18_SENSOR  ${system.ds18b20Pin ?? 4} // DS18B20 DQ (+ 4.7k pull-up)
+#define PIN_US_ENABLED ${system.ultrasonicTrigPin != null && system.ultrasonicEchoPin != null ? 1 : 0}
+#define PIN_US_TRIG ${system.ultrasonicTrigPin ?? 5}
+#define PIN_US_ECHO ${system.ultrasonicEchoPin ?? 18}
+#define PIN_SERVO_ENABLED ${system.servoPin != null ? 1 : 0}
+#define PIN_SERVO ${system.servoPin ?? 13}
+#define PIN_RELAY_ENABLED ${system.relayPin != null ? 1 : 0}
+#define PIN_RELAY ${system.relayPin ?? 26}
+#define PIN_WS2812_ENABLED ${system.ws2812Pin != null ? 1 : 0}
+#define PIN_WS2812 ${system.ws2812Pin ?? 16}
+#define PIN_L298N_ENABLED ${system.l298nIn1Pin != null && system.l298nIn2Pin != null ? 1 : 0}
+#define PIN_L298N_IN1 ${system.l298nIn1Pin ?? 27}
+#define PIN_L298N_IN2 ${system.l298nIn2Pin ?? 26}
+#define PIN_L298N_ENA ${system.l298nEnaPin ?? 14}
+#define BME280_ENABLED ${system.bme280Enabled ? 1 : 0}
+#define MPU6050_ENABLED ${system.mpu6050Enabled ? 1 : 0}
 #define PIN_LDR_SENSOR ${system.ldrPin ?? 36}    // Fotorezystor (ADC1_CH0)
 #define PIN_USER_BTN1  ${system.userBtn1Pin ?? 35}    // Opcjonalny przycisk dodatkowy
 #define PIN_POT_ADC    ${system.potPin ?? 34}    // Potencjometr (ADC1_CH6)
 #define PIN_BUZZER_PWM ${system.buzzerPin ?? 18}   // Generator tonów / PWM Buzzer
 #define PIN_STATUS_LED ${system.ledPin ?? 2}      // Dioda statusowa / LED
+
+#if PIN_DHT_ENABLED
+DHT dht(PIN_DHT_SENSOR, DHT22);
+#endif
+#if PIN_DS18_ENABLED
+OneWire oneWire(PIN_DS18_SENSOR);
+DallasTemperature ds18(&oneWire);
+#endif
+#if PIN_SERVO_ENABLED
+Servo hobbyServo;
+#endif
+#if PIN_WS2812_ENABLED
+Adafruit_NeoPixel strip(8, PIN_WS2812, NEO_GRB + NEO_KHZ800);
+#endif
+#if BME280_ENABLED
+Adafruit_BME280 bme;
+#endif
+#if MPU6050_ENABLED
+Adafruit_MPU6050 mpu;
+#endif
 
 // --- KONFIGURACJA EKRANU DOTYKOWEGO (${display.touchController.toUpperCase()}) ---
 #define TOUCH_ENABLED     ${display.touchEnabled ? 1 : 0}
@@ -110,6 +259,7 @@ unsigned long lastUsbPacketMillis = 0;
 // Stany symulowane/odczytane
 float currentTemperature = 21.5;
 float currentHumidity = 50.0;
+float currentDistanceCm = -1.0;
 int currentAmbientLux = 350;
 
 // Zasoby komputera PC (RAM, CPU, Karta graficzna, Dysk)
@@ -173,21 +323,7 @@ void setup() {
   Serial.printf("[SPRZĘT] Flash: %d MB, Taktowanie CPU: %d MHz\\n", ESP.getFlashChipSize() / (1024 * 1024), ESP.getCpuFreqMHz());
   Serial.printf("[SPRZĘT] Wi-Fi MAC: %s\\n", WiFi.macAddress().c_str());
 
-  // Inicjalizacja magistrali I2C
-  Wire.begin(SDA_PIN, SCL_PIN);
-
-  // Inicjalizacja wyświetlacza OLED
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("BŁĄD: Nie znaleziono wyświetlacza SSD1306!"));
-    for (;;); // Zatrzymaj jeśli brak ekranu
-  }
-
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
-  display.setCursor(10, 20);
-  display.println(F("ESP32 Studio Booting..."));
-  display.display();
+${displayInit}
 
   // Konfiguracja pinów GPIO
   pinMode(PIN_BOOT_BTN, INPUT_PULLUP);
@@ -195,6 +331,63 @@ void setup() {
   #if PIN_HALL_ENABLED
   // A3144: wyjście open-collector — INPUT_PULLUP, aktywny LOW przy magnesie
   pinMode(PIN_HALL_SENSOR, INPUT_PULLUP);
+  #endif
+  #if PIN_DHT_ENABLED
+  dht.begin();
+  Serial.println(F("[DHT22] Sensor temperatury/wilgotności gotowy"));
+  #endif
+  #if PIN_DS18_ENABLED
+  ds18.begin();
+  Serial.println(F("[DS18B20] 1-Wire temp gotowy (wymaga 4.7k pull-up)"));
+  #endif
+  #if PIN_US_ENABLED
+  pinMode(PIN_US_TRIG, OUTPUT);
+  pinMode(PIN_US_ECHO, INPUT);
+  digitalWrite(PIN_US_TRIG, LOW);
+  Serial.println(F("[HC-SR04] Ultradźwiękowy: ECHO przez dzielnik 1k/2k do 3.3V!"));
+  #endif
+  #if PIN_SERVO_ENABLED
+  hobbyServo.attach(PIN_SERVO, 500, 2500);
+  hobbyServo.write(90);
+  #endif
+  #if PIN_RELAY_ENABLED
+  pinMode(PIN_RELAY, OUTPUT);
+  digitalWrite(PIN_RELAY, LOW);
+  #endif
+  #if PIN_WS2812_ENABLED
+  strip.begin();
+  strip.show();
+  #endif
+  #if PIN_L298N_ENABLED
+  pinMode(PIN_L298N_IN1, OUTPUT);
+  pinMode(PIN_L298N_IN2, OUTPUT);
+  ledcSetup(1, 1000, 8);
+  ledcAttachPin(PIN_L298N_ENA, 1);
+  digitalWrite(PIN_L298N_IN1, LOW);
+  digitalWrite(PIN_L298N_IN2, LOW);
+  #endif
+  #if BME280_ENABLED || MPU6050_ENABLED
+  #if !USE_COLOR_TFT
+  // I2C już uruchomione dla OLED
+  #else
+  Wire.begin(${display.sdaPin}, ${display.sclPin});
+  #endif
+  #endif
+  #if BME280_ENABLED
+  if (!bme.begin(0x76) && !bme.begin(0x77)) {
+    Serial.println(F("[BME280] Brak urządzenia na I2C (0x76/0x77)"));
+  } else {
+    Serial.println(F("[BME280] OK"));
+  }
+  #endif
+  #if MPU6050_ENABLED
+  if (!mpu.begin()) {
+    Serial.println(F("[MPU6050] Brak urządzenia na I2C (0x68)"));
+  } else {
+    mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+    mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+    Serial.println(F("[MPU6050] OK"));
+  }
   #endif
   pinMode(PIN_USER_BTN1, INPUT_PULLUP);
   pinMode(PIN_STATUS_LED, OUTPUT);
@@ -289,6 +482,31 @@ void loop() {
     int ldrRaw = analogRead(PIN_LDR_SENSOR);
     currentAmbientLux = map(ldrRaw, 0, 4095, 1000, 0);
 
+    #if PIN_DHT_ENABLED
+    float t = dht.readTemperature();
+    float h = dht.readHumidity();
+    if (!isnan(t)) currentTemperature = t;
+    if (!isnan(h)) currentHumidity = h;
+    #endif
+    #if PIN_DS18_ENABLED
+    ds18.requestTemperatures();
+    float dsT = ds18.getTempCByIndex(0);
+    if (dsT > -100.0f) currentTemperature = dsT;
+    #endif
+    #if BME280_ENABLED
+    currentTemperature = bme.readTemperature();
+    currentHumidity = bme.readHumidity();
+    #endif
+    #if PIN_US_ENABLED
+    digitalWrite(PIN_US_TRIG, LOW);
+    delayMicroseconds(2);
+    digitalWrite(PIN_US_TRIG, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(PIN_US_TRIG, LOW);
+    long usDur = pulseIn(PIN_US_ECHO, HIGH, 30000);
+    currentDistanceCm = usDur > 0 ? (usDur * 0.0343f / 2.0f) : -1.0f;
+    #endif
+
     // Sprawdzenie automatyzacji i zdarzeń sensorów
     checkAutomations();
   }
@@ -374,7 +592,15 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
       return `      // Odczyt potencjometru ADC (GPIO 34)
       display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
-      display.printf("POT: %d", analogRead(PIN_POT_SENSOR));`;
+      display.printf("POT: %d", analogRead(PIN_POT_ADC));`;
+    } else if (w.binding === 'distance') {
+      return `      display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
+      display.setCursor(${w.x}, ${w.y});
+      #if PIN_US_ENABLED
+      display.printf("%.0f ${w.unit || 'cm'}", currentDistanceCm >= 0 ? currentDistanceCm : 0.0f);
+      #else
+      display.print("--");
+      #endif`;
     } else if (w.binding === 'temp' || w.binding === 'temperature') {
       return `      display.setTextSize(${w.fontSize && w.fontSize > 12 ? 2 : 1});
       display.setCursor(${w.x}, ${w.y});
@@ -410,7 +636,7 @@ ${[...screen.widgets].sort((a, b) => (a.sequenceOrder ?? 1) - (b.sequenceOrder ?
   } else if (w.type === 'gauge' || w.type === 'progress_bar') {
     const bindExpr = (w.binding === 'temp' || w.binding === 'temperature') ? 'currentTemperature' :
       (w.binding === 'lux' || w.binding === 'ambientLux') ? 'currentAmbientLux' :
-      (w.binding === 'pot' || w.binding === 'potAdc') ? 'analogRead(PIN_POT_SENSOR)' :
+      (w.binding === 'pot' || w.binding === 'potAdc') ? 'analogRead(PIN_POT_ADC)' :
       (w.binding === 'humidity') ? 'currentHumidity' :
       (w.binding === 'ram') ? 'currentRamUsage' :
       (w.binding === 'gpu') ? 'currentGpuUsage' :
@@ -836,6 +1062,13 @@ void setupOta() {
 }
 #endif
 `;
+
+  // Adafruit color TFT shares GFX draw APIs but uses 16-bit colors and has no clearDisplay()/display().
+  return code
+    .replace(/\bSSD1306_WHITE\b/g, 'COLOR_FG')
+    .replace(/\bSSD1306_BLACK\b/g, 'COLOR_BG')
+    .replace(/\bdisplay\.clearDisplay\(\);/g, useColorTft ? 'display.fillScreen(COLOR_BG);' : 'display.clearDisplay();')
+    .replace(/\bdisplay\.display\(\);/g, useColorTft ? '/* TFT: immediate draw */' : 'display.display();');
 }
 
 export type PioBoardProfile = 'esp32' | 'esp32s2' | 'esp32s3' | 'esp32c3' | 'esp32c6';
@@ -867,8 +1100,33 @@ export function pioBoardId(profile: PioBoardProfile): { env: string; board: stri
 export function generatePlatformIoIni(
   display: DisplayConfig,
   boardProfile: PioBoardProfile = 'esp32',
+  system?: SystemConfig,
 ): string {
   const { env, board } = pioBoardId(boardProfile);
+  const useColorTft = display.bus === 'spi' || isColorTftModel(display.model);
+  const displayLibs = useColorTft
+    ? display.model.startsWith('ili9341')
+      ? `    adafruit/Adafruit ILI9341@^1.6.1
+    adafruit/Adafruit GFX Library@^1.11.9`
+      : display.model.startsWith('gc9a01')
+        ? `    adafruit/Adafruit GC9A01A@^1.1.1
+    adafruit/Adafruit GFX Library@^1.11.9`
+        : `    adafruit/Adafruit ST7735 and ST7789 Library@^1.10.4
+    adafruit/Adafruit GFX Library@^1.11.9`
+    : `    adafruit/Adafruit SSD1306@^2.5.9
+    adafruit/Adafruit GFX Library@^1.11.9`;
+
+  const extraLibs: string[] = [];
+  if (system?.dhtPin != null) extraLibs.push('    adafruit/DHT sensor library@^1.4.6');
+  if (system?.ds18b20Pin != null) {
+    extraLibs.push('    paulstoffregen/OneWire@^2.3.8');
+    extraLibs.push('    milesburton/DallasTemperature@^3.11.0');
+  }
+  if (system?.servoPin != null) extraLibs.push('    madhephaestus/ESP32Servo@^1.2.1');
+  if (system?.ws2812Pin != null) extraLibs.push('    adafruit/Adafruit NeoPixel@^1.12.3');
+  if (system?.bme280Enabled) extraLibs.push('    adafruit/Adafruit BME280 Library@^2.2.4');
+  if (system?.mpu6050Enabled) extraLibs.push('    adafruit/Adafruit MPU6050@^2.2.6');
+
   return `; ==============================================================================
 ;  PLATFORMIO CONFIGURATION (platformio.ini)
 ;  Display: ${display.model} · board profile: ${boardProfile}
@@ -881,10 +1139,9 @@ monitor_speed = 115200
 upload_speed = 921600
 
 lib_deps =
-    adafruit/Adafruit SSD1306@^2.5.9
-    adafruit/Adafruit GFX Library@^1.11.9
+${displayLibs}
     bblanchon/ArduinoJson@^6.21.4
-    Wire
+${extraLibs.length ? `${extraLibs.join('\n')}\n` : ''}    Wire
     WiFi
     HTTPClient
     WebServer

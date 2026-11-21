@@ -1237,12 +1237,14 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
               </div>
             </div>
 
-            {/* DHT22 Temperature & Humidity */}
+            {/* DHT22 / ambient Temperature & Humidity */}
             <div className="flex flex-col gap-2 p-3 bg-slate-950 border border-slate-800/80 rounded-xl">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 text-slate-300 font-medium">
                   <Thermometer className="ui-icon-sm text-rose-400" aria-hidden="true" />
-                  {t('sim.temp')}
+                  {system.dhtPin != null
+                    ? `${t('sim.dht')} (GPIO ${system.dhtPin})`
+                    : t('sim.temp')}
                 </span>
                 <span className="font-mono text-rose-400 font-semibold">{simState.temperature.toFixed(1)} °C</span>
               </div>
@@ -1258,7 +1260,118 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                 }}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-400"
               />
+              <div className="flex items-center justify-between text-xs mt-1">
+                <span className="text-slate-400">{t('sim.humidity')}</span>
+                <span className="font-mono text-sky-400 font-semibold">{simState.humidity.toFixed(0)} %</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={simState.humidity}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  setSimState(prev => ({ ...prev, humidity: val }));
+                }}
+                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-400"
+              />
             </div>
+
+            {system.ultrasonicTrigPin != null && system.ultrasonicEchoPin != null && (
+              <div className="flex flex-col gap-2 p-3 bg-slate-950 border border-lime-800/50 rounded-xl">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300 font-medium">{t('sim.distance')}</span>
+                  <span className="font-mono text-lime-400 font-semibold">{simState.distanceCm.toFixed(0)} cm</span>
+                </div>
+                <input
+                  type="range"
+                  min="2"
+                  max="400"
+                  step="1"
+                  value={simState.distanceCm}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setSimState(prev => ({ ...prev, distanceCm: val }));
+                  }}
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-lime-400"
+                />
+                <div className="ui-type-micro text-slate-500 font-mono">
+                  TRIG {system.ultrasonicTrigPin} · ECHO {system.ultrasonicEchoPin}
+                </div>
+              </div>
+            )}
+
+            {system.relayPin != null && (
+              <div className="flex items-center justify-between p-3 bg-slate-950 border border-red-800/50 rounded-xl">
+                <div className="text-xs font-medium text-slate-200">
+                  {t('sim.relay')} (GPIO {system.relayPin})
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSimState(prev => ({
+                      ...prev,
+                      relayOn: !prev.relayOn,
+                      lastTriggerFired: !prev.relayOn ? t('sim.relay.on') : t('sim.relay.off'),
+                    }))
+                  }
+                  className={`cursor-pointer px-3 py-1.5 min-h-10 rounded-lg text-xs font-mono font-medium transition-all ${
+                    simState.relayOn
+                      ? 'bg-red-500 text-slate-950 font-bold'
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {simState.relayOn ? t('sim.on') : t('sim.off')}
+                </button>
+              </div>
+            )}
+
+            {system.servoPin != null && (
+              <div className="flex flex-col gap-2 p-3 bg-slate-950 border border-violet-800/50 rounded-xl">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300 font-medium">
+                    {t('sim.servo')} (GPIO {system.servoPin})
+                  </span>
+                  <span className="font-mono text-violet-400 font-semibold">{simState.servoAngle}°</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="180"
+                  step="1"
+                  value={simState.servoAngle}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setSimState(prev => ({ ...prev, servoAngle: val }));
+                  }}
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-400"
+                />
+              </div>
+            )}
+
+            {system.ws2812Pin != null && (
+              <div className="flex flex-col gap-2 p-3 bg-slate-950 border border-pink-800/50 rounded-xl">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300 font-medium">
+                    {t('sim.ws2812')} (GPIO {system.ws2812Pin})
+                  </span>
+                  <span className="font-mono text-pink-400 font-semibold">{simState.ws2812Hue}°</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  step="1"
+                  value={simState.ws2812Hue}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    setSimState(prev => ({ ...prev, ws2812Hue: val }));
+                  }}
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-pink-400"
+                />
+              </div>
+            )}
 
             {/* Analog Potentiometer (ADC 0-4095) */}
             <div className="flex flex-col gap-2 p-3 bg-slate-950 border border-slate-800/80 rounded-xl">

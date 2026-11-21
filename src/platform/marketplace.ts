@@ -145,6 +145,7 @@ const TRIGGER_TYPES = new Set<TriggerType>([
   'hall_magnetic',
   'light_lux_below',
   'temp_above',
+  'ultrasonic_below',
   'boot_button_pressed',
   'gpio_button_pressed',
   'time_is',
@@ -163,6 +164,8 @@ const ACTION_TYPES = new Set<ActionType>([
   'set_pet_mood',
   'set_brightness',
   'sound_buzzer',
+  'toggle_relay',
+  'set_servo_angle',
   'show_notification',
 ]);
 

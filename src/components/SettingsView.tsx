@@ -45,29 +45,71 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleModelChange = (model: DisplayModel) => {
     let width = 128;
     let height = 64;
+    // Popular DevKit pinouts from common ESP32 + OLED/TFT tutorials
+    let busPatch: Partial<DisplayConfig> = {};
 
     switch (model) {
       case 'ssd1306_128x64':
       case 'sh1106_128x64':
         width = 128;
         height = 64;
+        busPatch = { bus: 'i2c', sdaPin: 21, sclPin: 22, i2cAddress: '0x3C' };
         break;
       case 'ssd1306_128x32':
         width = 128;
         height = 32;
+        busPatch = { bus: 'i2c', sdaPin: 21, sclPin: 22, i2cAddress: '0x3C' };
         break;
       case 'st7789_240x240':
       case 'gc9a01_240x240_round':
         width = 240;
         height = 240;
+        // ST7789 / GC9A01: VSPI MOSI23 SCK18, CS5, DC2, RST4, BL32
+        busPatch = {
+          bus: 'spi',
+          mosiPin: 23,
+          misoPin: 19,
+          sckPin: 18,
+          csPin: 5,
+          dcPin: 2,
+          rstPin: 4,
+          backlightPin: 32,
+        };
         break;
       case 'st7789_135x240':
         width = 135;
         height = 240;
+        busPatch = {
+          bus: 'spi',
+          mosiPin: 23,
+          misoPin: 19,
+          sckPin: 18,
+          csPin: 5,
+          dcPin: 2,
+          rstPin: 4,
+          backlightPin: 32,
+        };
         break;
       case 'ili9341_320x240':
         width = 320;
         height = 240;
+        // ILI9341 + XPT2046 common VSPI: CS15 DC2 RST4 BL21 TOUCH_CS5
+        busPatch = {
+          bus: 'spi',
+          mosiPin: 23,
+          misoPin: 19,
+          sckPin: 18,
+          csPin: 15,
+          dcPin: 2,
+          rstPin: 4,
+          backlightPin: 21,
+          touchEnabled: true,
+          touchController: 'xpt2046',
+          touchSdaPin: 23,
+          touchSclPin: 18,
+          touchIntPin: 27,
+          touchRstPin: 5,
+        };
         break;
     }
 
@@ -76,6 +118,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       model,
       width,
       height,
+      ...busPatch,
     }));
   };
 
