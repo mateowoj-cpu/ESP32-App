@@ -1,10 +1,13 @@
 /**
  * Tauri native serial adapter — talks to Rust commands in src-tauri/src/serial.rs.
  * Registered at bootstrap when `isTauri()` is true.
+ *
+ * Open does not start RX until the first `onData` subscriber (after Tauri listeners
+ * are registered), so the first frame is not lost to a race with JS registration.
  */
 
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { invoke as tauriInvoke } from '@tauri-apps/api/core';
+import { listen as tauriListen, type UnlistenFn } from '@tauri-apps/api/event';
 import type {
   OpenSerialPort,
   RequestPortOptions,
@@ -15,7 +18,7 @@ import type {
 } from './serial';
 import { SerialRequestCancelledError } from './serial';
 
-interface NativePortDto {
+export interface NativePortDto {
   id: string;
   label: string;
   path: string;
@@ -24,16 +27,31 @@ interface NativePortDto {
   manufacturer?: string | null;
   product?: string | null;
   likelyEsp32: boolean;
+  /** Present on open_serial_port result. */
+  sessionId?: number;
 }
 
-interface SerialDataPayload {
+export interface SerialDataPayload {
+  sessionId: number;
   path: string;
   chunk: string;
 }
 
-interface SerialDisconnectedPayload {
+export interface SerialDisconnectedPayload {
+  sessionId: number;
   path: string;
   reason: string;
+}
+
+export type NativeInvokeFn = <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
+export type NativeListenFn = <T>(
+  event: string,
+  handler: (event: { payload: T }) => void
+) => Promise<UnlistenFn>;
+
+export interface NativeSerialDeps {
+  invoke?: NativeInvokeFn;
+  listen?: NativeListenFn;
 }
 
 const ESP_VENDOR_IDS = new Set([0x303a, 0x10c4, 0x1a86, 0x0403]);
@@ -45,6 +63,20 @@ function toPortInfo(dto: NativePortDto): SerialPortInfo {
     usbVendorId: dto.usbVendorId ?? undefined,
     usbProductId: dto.usbProductId ?? undefined,
   };
+}
+
+/** True when an event belongs to the active open session. */
+export function isActiveSerialSession(
+  eventSessionId: number | undefined,
+  activeSessionId: number,
+  eventPath: string,
+  portId: string,
+  portPath: string
+): boolean {
+  if (eventSessionId != null && eventSessionId !== activeSessionId) {
+    return false;
+  }
+  return eventPath === portId || eventPath === portPath;
 }
 
 function pickBestPort(ports: NativePortDto[], options?: RequestPortOptions): NativePortDto {
@@ -94,9 +126,28 @@ function pickBestPort(ports: NativePortDto[], options?: RequestPortOptions): Nat
   );
 }
 
-export function createNativeSerialAdapter(): SerialAdapter {
+export function createNativeSerialAdapter(deps: NativeSerialDeps = {}): SerialAdapter {
+  const invoke: NativeInvokeFn = deps.invoke ?? ((cmd, args) => tauriInvoke(cmd, args));
+  const listen: NativeListenFn = deps.listen ?? ((event, handler) => tauriListen(event, handler));
+
   let unlistenData: UnlistenFn | null = null;
   let unlistenDisconnect: UnlistenFn | null = null;
+  /** Serializes overlapping requestPort / close calls on the JS side. */
+  let lifecycleQueue: Promise<void> = Promise.resolve();
+
+  const runExclusive = async <T>(fn: () => Promise<T>): Promise<T> => {
+    let release!: () => void;
+    const prev = lifecycleQueue;
+    lifecycleQueue = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    await prev;
+    try {
+      return await fn();
+    } finally {
+      release();
+    }
+  };
 
   const cleanupListeners = async () => {
     if (unlistenData) {
@@ -122,71 +173,143 @@ export function createNativeSerialAdapter(): SerialAdapter {
       return ports.map(toPortInfo);
     },
     async requestPort(options?: RequestPortOptions) {
-      const ports = await invoke<NativePortDto[]>('list_serial_ports');
-      let selected: NativePortDto;
-      try {
-        selected = pickBestPort(ports, options);
-      } catch (err) {
-        // Surface as cancelled when UI is expected to show a picker (multiple ports).
-        const message = err instanceof Error ? err.message : String(err);
-        if (message.includes('Wybierz port')) {
-          throw new SerialRequestCancelledError(message);
+      return runExclusive(async () => {
+        const ports = await invoke<NativePortDto[]>('list_serial_ports');
+        let selected: NativePortDto;
+        try {
+          selected = pickBestPort(ports, options);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          if (message.includes('Wybierz port')) {
+            throw new SerialRequestCancelledError(message);
+          }
+          throw err;
         }
-        throw err;
-      }
 
-      const baudRate = options?.baudRate ?? 115200;
-      const opened = await invoke<NativePortDto>('open_serial_port', {
-        path: selected.path,
-        baudRate,
-      });
+        const baudRate = options?.baudRate ?? 115200;
 
-      const info = toPortInfo(opened);
-      const dataListeners = new Set<SerialDataListener>();
-      const disconnectListeners = new Set<SerialDisconnectListener>();
-      let closed = false;
+        // Close any previous native session before opening (Rust also serializes).
+        try {
+          await invoke('close_serial_port');
+        } catch {
+          // ignore — may already be closed
+        }
+        await cleanupListeners();
 
-      await cleanupListeners();
-
-      unlistenData = await listen<SerialDataPayload>('serial-data', event => {
-        if (closed) return;
-        if (event.payload.path !== info.id && event.payload.path !== selected.path) return;
-        dataListeners.forEach(listener => listener(event.payload.chunk));
-      });
-
-      unlistenDisconnect = await listen<SerialDisconnectedPayload>('serial-disconnected', event => {
-        if (closed) return;
-        if (event.payload.path !== info.id && event.payload.path !== selected.path) return;
-        closed = true;
-        disconnectListeners.forEach(listener => listener());
-        void cleanupListeners();
-      });
-
-      return {
-        info,
-        async write(data: string) {
-          if (closed) throw new Error('Port szeregowy jest zamknięty');
-          await invoke('write_serial_port', { data });
-        },
-        async close() {
-          if (closed) return;
-          closed = true;
+        let opened: NativePortDto;
+        try {
+          opened = await invoke<NativePortDto>('open_serial_port', {
+            path: selected.path,
+            baudRate,
+          });
+        } catch (err) {
+          // Partial failure: ensure Rust state is cleared and listeners are gone.
           try {
             await invoke('close_serial_port');
-          } finally {
-            await cleanupListeners();
-            disconnectListeners.forEach(listener => listener());
+          } catch {
+            // ignore
           }
-        },
-        onData(listener: SerialDataListener) {
-          dataListeners.add(listener);
-          return () => dataListeners.delete(listener);
-        },
-        onDisconnect(listener: SerialDisconnectListener) {
-          disconnectListeners.add(listener);
-          return () => disconnectListeners.delete(listener);
-        },
-      } satisfies OpenSerialPort;
+          await cleanupListeners();
+          throw err;
+        }
+
+        const sessionId = opened.sessionId;
+        if (sessionId == null || !Number.isFinite(sessionId)) {
+          try {
+            await invoke('close_serial_port');
+          } catch {
+            // ignore
+          }
+          throw new Error('open_serial_port nie zwrócił sessionId');
+        }
+
+        const info = toPortInfo(opened);
+        const dataListeners = new Set<SerialDataListener>();
+        const disconnectListeners = new Set<SerialDisconnectListener>();
+        let closed = false;
+        let readStarted = false;
+        let readStartPromise: Promise<void> | null = null;
+
+        // Register Tauri listeners BEFORE starting the Rust reader.
+        unlistenData = await listen<SerialDataPayload>('serial-data', event => {
+          if (closed) return;
+          if (
+            !isActiveSerialSession(
+              event.payload.sessionId,
+              sessionId,
+              event.payload.path,
+              info.id,
+              selected.path
+            )
+          ) {
+            return;
+          }
+          dataListeners.forEach(listener => listener(event.payload.chunk));
+        });
+
+        unlistenDisconnect = await listen<SerialDisconnectedPayload>(
+          'serial-disconnected',
+          event => {
+            if (closed) return;
+            if (
+              !isActiveSerialSession(
+                event.payload.sessionId,
+                sessionId,
+                event.payload.path,
+                info.id,
+                selected.path
+              )
+            ) {
+              return;
+            }
+            closed = true;
+            disconnectListeners.forEach(listener => listener());
+            void cleanupListeners();
+          }
+        );
+
+        const ensureReadStarted = () => {
+          if (readStarted || closed) return readStartPromise ?? Promise.resolve();
+          readStarted = true;
+          readStartPromise = invoke('start_serial_read', { sessionId }).then(
+            () => undefined,
+            err => {
+              readStarted = false;
+              readStartPromise = null;
+              throw err;
+            }
+          );
+          return readStartPromise;
+        };
+
+        return {
+          info,
+          async write(data: string) {
+            if (closed) throw new Error('Port szeregowy jest zamknięty');
+            await invoke('write_serial_port', { data, sessionId });
+          },
+          async close() {
+            if (closed) return;
+            closed = true;
+            try {
+              await invoke('close_serial_port', { sessionId });
+            } finally {
+              await cleanupListeners();
+              disconnectListeners.forEach(listener => listener());
+            }
+          },
+          onData(listener: SerialDataListener) {
+            dataListeners.add(listener);
+            // Align RX start with first JS subscriber (mirrors Web Serial).
+            void ensureReadStarted();
+            return () => dataListeners.delete(listener);
+          },
+          onDisconnect(listener: SerialDisconnectListener) {
+            disconnectListeners.add(listener);
+            return () => disconnectListeners.delete(listener);
+          },
+        } satisfies OpenSerialPort;
+      });
     },
   };
 }
@@ -194,7 +317,7 @@ export function createNativeSerialAdapter(): SerialAdapter {
 /** List native ports for UI pickers (returns empty outside Tauri / on error). */
 export async function listNativeSerialPortsDetailed(): Promise<NativePortDto[]> {
   try {
-    return await invoke<NativePortDto[]>('list_serial_ports');
+    return await tauriInvoke<NativePortDto[]>('list_serial_ports');
   } catch {
     return [];
   }
