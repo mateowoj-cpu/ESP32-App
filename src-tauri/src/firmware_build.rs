@@ -715,6 +715,44 @@ fn copy_file_to_artifacts(src: &Path, dest_dir: &Path) -> Result<PathBuf, String
         .file_name()
         .ok_or_else(|| format!("Brak nazwy pliku: {}", src.display()))?;
     let dest = dest_dir.join(name);
+    if dest.exists() {
+        return Err(format!(
+            "Kolizja nazwy artefaktu: {} już istnieje (źródło {})",
+            dest.display(),
+            src.display()
+        ));
+    }
+    fs::copy(src, &dest).map_err(|e| format!("Kopiowanie {} → {}: {e}", src.display(), dest.display()))?;
+    Ok(dest)
+}
+
+/// Copy a flash segment into artifacts using a unique offset-prefixed name so two
+/// distinct sources that share a basename (e.g. `primary/firmware.bin` vs
+/// `recovery/firmware.bin`) cannot overwrite each other.
+fn copy_segment_to_artifacts(
+    src: &Path,
+    dest_dir: &Path,
+    offset: &str,
+    used_names: &mut std::collections::HashSet<String>,
+) -> Result<PathBuf, String> {
+    fs::create_dir_all(dest_dir).map_err(|e| e.to_string())?;
+    let base = src
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or_else(|| format!("Brak nazwy pliku: {}", src.display()))?;
+    let off_tag = offset
+        .trim()
+        .trim_start_matches("0x")
+        .trim_start_matches("0X")
+        .to_ascii_lowercase();
+    let candidate = format!("0x{off_tag}_{base}");
+    if !used_names.insert(candidate.clone()) || dest_dir.join(&candidate).exists() {
+        return Err(format!(
+            "Kolizja artefaktu dla offsetu {offset} / pliku {base} (źródło {})",
+            src.display()
+        ));
+    }
+    let dest = dest_dir.join(&candidate);
     fs::copy(src, &dest).map_err(|e| format!("Kopiowanie {} → {}: {e}", src.display(), dest.display()))?;
     Ok(dest)
 }
@@ -741,8 +779,9 @@ pub fn materialize_build_artifacts(
 
         let mut segments = Vec::new();
         let mut ota_path = None;
+        let mut used_names = std::collections::HashSet::new();
         for (offset, path, role) in &parsed {
-            let dest = copy_file_to_artifacts(path, artifact_dir)?;
+            let dest = copy_segment_to_artifacts(path, artifact_dir, offset, &mut used_names)?;
             if role == "app" {
                 ota_path = Some(dest.display().to_string());
             }
@@ -1216,8 +1255,17 @@ pub fn current_auto_flash_plan() -> Option<FlashPlan> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{Arc, Barrier};
+    use std::sync::{Arc, Barrier, Mutex as StdMutex};
     use std::thread;
+
+    /// Serializes every test that mutates `BuildSession::global()` so parallel
+    /// `cargo test` cannot clear/steal the singleton mid-assertion.
+    fn session_test_lock() -> std::sync::MutexGuard<'static, ()> {
+        static LOCK: OnceLock<StdMutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| StdMutex::new(()))
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
 
     fn write(path: &Path, contents: &str) {
         if let Some(parent) = path.parent() {
@@ -1382,13 +1430,83 @@ mod tests {
         assert_eq!(plan.image_kind, "usbFullSet");
         assert!(plan.metadata_trusted);
         assert_eq!(plan.segments.len(), 4);
-        assert!(plan.ota_path.as_ref().unwrap().contains("firmware.bin"));
+        assert!(
+            plan.ota_path
+                .as_ref()
+                .unwrap()
+                .contains("0x10000_firmware.bin"),
+            "app artifact should be offset-prefixed: {:?}",
+            plan.ota_path
+        );
+        // Distinct destinations for every segment (no basename overwrite).
+        let mut paths = std::collections::HashSet::new();
+        for seg in &plan.segments {
+            assert!(paths.insert(seg.path.clone()), "duplicate dest {}", seg.path);
+            assert!(PathBuf::from(&seg.path).is_file());
+        }
+        let _guard = session_test_lock();
         reset_build_session_for_tests();
         let session = BuildSession::global();
         session.try_begin().unwrap();
         session.end_success(Some(plan.clone()));
         assert_plan_flashable(&plan, Some("b1")).unwrap();
         reset_build_session_for_tests();
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn basename_collision_uses_offset_prefix() {
+        let tmp = std::env::temp_dir().join(format!(
+            "esp32-studio-collision-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = fs::remove_dir_all(&tmp);
+        let primary = tmp.join("primary");
+        let recovery = tmp.join("recovery");
+        write(&primary.join("firmware.bin"), "PRIMARY");
+        write(&recovery.join("firmware.bin"), "RECOVERY");
+        write(&tmp.join("bootloader.bin"), "BL");
+        write(&tmp.join("partitions.bin"), "PT");
+        // Two apps with the same basename at different offsets (hypothetical dual-slot).
+        let json = r#"{
+  "flash_files": {
+    "0x1000": "bootloader.bin",
+    "0x8000": "partitions.bin",
+    "0x10000": "primary/firmware.bin",
+    "0x20000": "recovery/firmware.bin"
+  }
+}"#;
+        write(&tmp.join("flasher_args.json"), json);
+
+        let art = tmp.join("artifacts/b1");
+        let plan = materialize_build_artifacts(
+            &art,
+            "b1",
+            "esp32",
+            "platformio",
+            Some(&tmp.join("flasher_args.json")),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(plan.segments.len(), 4);
+        let app_paths: Vec<_> = plan
+            .segments
+            .iter()
+            .filter(|s| s.role == "app")
+            .map(|s| s.path.clone())
+            .collect();
+        assert_eq!(app_paths.len(), 2);
+        assert_ne!(app_paths[0], app_paths[1]);
+        let c0 = fs::read_to_string(&app_paths[0]).unwrap();
+        let c1 = fs::read_to_string(&app_paths[1]).unwrap();
+        assert!(
+            (c0 == "PRIMARY" && c1 == "RECOVERY") || (c0 == "RECOVERY" && c1 == "PRIMARY"),
+            "both distinct binaries must survive: {c0:?} {c1:?}"
+        );
         let _ = fs::remove_dir_all(&tmp);
     }
 
@@ -1410,6 +1528,7 @@ mod tests {
 
     #[test]
     fn second_build_failure_invalidates_previous_auto() {
+        let _guard = session_test_lock();
         reset_build_session_for_tests();
         let session = BuildSession::global();
         session.try_begin().unwrap();
@@ -1436,6 +1555,7 @@ mod tests {
 
     #[test]
     fn concurrent_builds_rejected() {
+        let _guard = session_test_lock();
         reset_build_session_for_tests();
         let session = BuildSession::global();
         session.try_begin().unwrap();
@@ -1459,6 +1579,9 @@ mod tests {
 
     #[test]
     fn ota_only_plan_blocks_usb_assert() {
+        // Does not mutate session last_auto, but assert_plan_flashable reads it for
+        // usbFullSet; keep serialized with other session tests for safety.
+        let _guard = session_test_lock();
         let plan = FlashPlan {
             build_id: "b-ota".into(),
             image_kind: "otaApp".into(),
