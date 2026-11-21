@@ -1,6 +1,6 @@
 # Desktop polish — tray, autostart, i18n, kanały
 
-Wprowadzone w **Fazie 6**; nadal aktualne w linii **0.2.12**.  
+Wprowadzone w **Fazie 6**; nadal aktualne w linii **0.2.13**.  
 Ustawienia: **Ustawienia → Desktop**. Indeks: [README.md](./README.md).
 
 ## Tray
@@ -25,6 +25,20 @@ Wymaga zainstalowanego / zbudowanego `esp32-pc-agent.exe` (albo `.py` w PATH prz
 ## Język UI
 
 PL / EN — chrome nawigacji, update banner, panel Desktop. Preferencja w `localStorage` (`esp32_locale`).
+
+## Brak migających okien CMD (0.2.13+)
+
+Na Windows przełączenie na **Wykryj ESP32 (USB)** lub **Ustawienia** uruchamia w tle detekcję toolchainu (`where`, `py -m esptool`, PlatformIO, …). Te procesy mają podsystem konsoli — bez flagi Windows pokazywałby krótkie okna CMD.
+
+Od **0.2.13** shell stosuje `CREATE_NO_WINDOW` (`src-tauri/src/process_util.rs` → `hide_console`) dla:
+
+- probe’ów `where` / wersji narzędzi (USB Flash Helper + Desktop Settings),
+- build / flash / OTA / `taskkill` / agent PC,
+- wrappera `cmd /C start` przy otwieraniu URL (przeglądarka nadal się otwiera, bez mignięcia konsoli).
+
+Świadomie widoczne zostają tylko prawdziwe GUI (Explorer, Arduino IDE, przeglądarka). Logi build/flash nadal płyną do UI przez eventy `build-log` / `flash-log` / `ota-log` — nie przez okno terminala.
+
+Szczegóły: [esp32-tooling-integrations.md](./esp32-tooling-integrations.md), [windows-build-flash.md](./windows-build-flash.md), [architecture.md](./architecture.md).
 
 ## Kanały aktualizacji
 

@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.12** (Faza 17 + multi-OS CI + UX/pinout/peripherals #34–#43). Następna: [Faza 18 ops / human](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.13** (Faza 17 + multi-OS CI + UX/pinout/peripherals #34–#43 + Windows `CREATE_NO_WINDOW`). Następna: [Faza 18 ops / human](./roadmap-next.md).
 
 Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketplace mają treść **PL** z krótkim streszczeniem **EN** na górze.
 
@@ -43,7 +43,7 @@ Oficjalne zrzuty (locale **PL**, web Vite, ~1440×900) — także w [README gł�
 
 | Dokument | Temat |
 |----------|--------|
-| [windows-desktop.md](./windows-desktop.md) | Tray, autostart, i18n PL/EN, kanały update |
+| [windows-desktop.md](./windows-desktop.md) | Tray, autostart, i18n PL/EN, kanały update, brak migających CMD |
 | [windows-installer.md](./windows-installer.md) | NSIS / MSI, WebView2 |
 | [windows-drivers.md](./windows-drivers.md) | CH340 / CP210x / Espressif USB |
 | [windows-signing.md](./windows-signing.md) | Authenticode OV/EV (sekrety człowieka) |

@@ -4,7 +4,7 @@
 
 Short EN summary: Studio detects optional free host tools (PlatformIO, Arduino CLI/IDE, esptool, ESP-IDF, Wokwi), lets you override binary paths in Desktop Settings, pick a build tool in Flash Helper, and launch Arduino IDE / Wokwi without requiring every tool to be installed.
 
-Linia: **0.2.12**. Indeks: [README.md](./README.md).
+Linia: **0.2.13**. Indeks: [README.md](./README.md).
 
 ## Resolve order
 
@@ -12,7 +12,11 @@ For PlatformIO / arduino-cli / esptool:
 
 1. Path override from Desktop Settings (`tool-paths.json` in app local data)
 2. Env / sidecar (`ESP32_STUDIO_PIO`, bundled penv)
-3. PATH (`which` / `where`)
+3. PATH (`which` / `where`) via shared `process_util::which`
+
+## Windows: no flashing CMD (0.2.13+)
+
+Opening **USB** (Flash Helper refresh) or **Settings → Desktop tools** runs many short probes. On Windows those used to flash CMD windows. All background probes and build/flash/OTA children now call `hide_console` (`CREATE_NO_WINDOW`) in `src-tauri/src/process_util.rs`. GUI launches (Explorer, Arduino IDE, browser) still open normally.
 
 ## UI surfaces
 

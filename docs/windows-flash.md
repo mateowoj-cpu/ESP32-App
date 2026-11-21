@@ -25,6 +25,10 @@ esptool --chip auto --port COMx --baud 460800 write_flash -z 0x1000 firmware.bin
 
 Offset domyślny `0x1000` (klasyczny ESP32). Dla niektórych chipów / bootloaderów zmień offset w UI (np. `0x0`).
 
+## Konsola Windows
+
+Wykrywanie `esptool` (`where` / `py -m esptool`) oraz sam `write_flash` działają **bez widocznego okna CMD** od **0.2.13** — logi tylko w UI (`flash-log`). Zob. [windows-desktop.md](./windows-desktop.md).
+
 ## Ograniczenia
 
 - Helper **nie kompiluje** `.ino` — tylko `write_flash`.

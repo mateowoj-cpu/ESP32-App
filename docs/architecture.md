@@ -1,6 +1,6 @@
 # Architektura — ESP32 Display Studio
 
-Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danych w linii **0.2.12** (Fazy 0–17 + multi-OS CI + tooling/marketplace UX + board pinout / peripheral catalog). Indeks: [README.md](./README.md).
+Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danych w linii **0.2.13** (Fazy 0–17 + multi-OS CI + tooling/marketplace UX + board pinout / peripheral catalog). Indeks: [README.md](./README.md).
 
 ## Stack
 
@@ -10,7 +10,7 @@ Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danyc
 | i18n | `src/i18n` — PL/EN (`LocaleContext`, `locales.ts`) |
 | Platform adapters | `src/platform/*` — jedyna ścieżka UI → host |
 | Desktop shell | Tauri 2 (`src-tauri/`) — Windows NSIS/MSI; Linux AppImage/deb; macOS dmg |
-| Native I/O | `serialport`, `mdns-sd`, child processes (`esptool`, `pio`, `espota`, `curl`) |
+| Native I/O | `serialport`, `mdns-sd`, child processes (`esptool`, `pio`, `espota`, `curl`) — na Windows z `CREATE_NO_WINDOW` (`process_util`) |
 | Firmware | Generator C++ (Arduino / PlatformIO) + Build/Flash/OTA w shellu |
 
 ## Diagram (logiczny)
@@ -109,6 +109,17 @@ Domyślny baud: **115200**. Native open pomija chooser gdy podano `portId`.
 | `serial-disconnected` | Rust → JS | `{ path, reason }` |
 
 Implementacja: `src-tauri/src/serial.rs` (`SerialManager` w `manage(...)`).
+
+## Procesy potomne (Windows)
+
+`src-tauri/src/process_util.rs`:
+
+| API | Rola |
+|-----|------|
+| `hide_console(&mut Command)` | Ustawia `CREATE_NO_WINDOW` (no-op poza Windows) |
+| `which(bin)` | Wspólny `where` / `which` bez mignięcia konsoli |
+
+Używane przez `tools`, `flash`, `firmware_build`, `ota`, `pc_agent`, `diagnostics`. Dzięki temu wejście w **USB** / **Ustawienia** (wiele probe’ów) nie spawnuje migających okien CMD. Logi user-facing idą eventami IPC, nie stdout konsoli systemowej.
 
 ## IPC Tauri — pełna lista komend
 

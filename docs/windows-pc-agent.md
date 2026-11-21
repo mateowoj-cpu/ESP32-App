@@ -33,6 +33,8 @@ Wynik:
 
 W aplikacji desktop (Tauri): **Integracje → Monitor PC → Start** (jeśli `.exe` jest w zasobach).
 
+Start agenta z shellem Tauri od **0.2.13** używa `CREATE_NO_WINDOW` — bez migającego konsoli w tle ([windows-desktop.md](./windows-desktop.md)).
+
 ## GPU
 
 Domyślnie agent próbuje odczytać NVIDIA GPU przez `nvidia-smi`.  

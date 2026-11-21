@@ -33,42 +33,7 @@ pub struct BuildResult {
     pub message: String,
 }
 
-fn which(bin: &str) -> Option<PathBuf> {
-    let candidates = if cfg!(windows) {
-        vec![
-            format!("{bin}.exe"),
-            format!("{bin}.cmd"),
-            format!("{bin}.bat"),
-            bin.to_string(),
-        ]
-    } else {
-        vec![bin.to_string()]
-    };
-
-    for name in candidates {
-        let mut cmd = if cfg!(windows) {
-            let mut c = Command::new("where");
-            c.arg(&name);
-            c
-        } else {
-            let mut c = Command::new("which");
-            c.arg(&name);
-            c
-        };
-        if let Ok(output) = cmd.output() {
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                if let Some(line) = stdout.lines().next() {
-                    let trimmed = line.trim();
-                    if !trimmed.is_empty() {
-                        return Some(PathBuf::from(trimmed));
-                    }
-                }
-            }
-        }
-    }
-    None
-}
+use crate::process_util::{hide_console, which};
 
 fn path_is_executable_candidate(p: &Path) -> bool {
     p.is_file()
@@ -141,7 +106,10 @@ fn emit_log(app: &AppHandle, line: impl Into<String>) {
 }
 
 fn version_of(bin: &Path) -> Option<String> {
-    let output = Command::new(bin).arg("--version").output().ok()?;
+    let mut cmd = Command::new(bin);
+    cmd.arg("--version");
+    hide_console(&mut cmd);
+    let output = cmd.output().ok()?;
     let text = format!(
         "{}{}",
         String::from_utf8_lossy(&output.stdout),
@@ -263,12 +231,15 @@ fn run_streaming(app: &AppHandle, bin: &Path, args: &[String], cwd: &Path) -> Re
         format!("$ {} {}  (cwd={})", bin.display(), args.join(" "), cwd.display()),
     );
 
-    let mut child = Command::new(bin)
+    let mut build_cmd = Command::new(bin);
+    build_cmd
         .args(args)
         .current_dir(cwd)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::piped());
+    hide_console(&mut build_cmd);
+    let mut child = build_cmd
         .spawn()
         .map_err(|e| format!("Nie uruchomiono {}: {e}", bin.display()))?;
 

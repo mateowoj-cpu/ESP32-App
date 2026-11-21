@@ -1,13 +1,13 @@
 # ESP32 Display Studio
 
 [![Smoke](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml/badge.svg)](https://github.com/mateowoj-cpu/ESP32-App/actions/workflows/smoke.yml)
-[![Version](https://img.shields.io/badge/version-0.2.12-blue)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.2.13-blue)](./package.json)
 [![Tauri](https://img.shields.io/badge/desktop-Tauri%202-24C8DB)](./src-tauri/)
 [![i18n](https://img.shields.io/badge/i18n-PL%20%7C%20EN-informational)](./src/i18n/)
 
 **Wizualne studio UI OLED/LCD dla ESP32** — React/Vite frontend + shell **Tauri 2** (Rust): symulator sprzętu, edytor ekranów, automatyzacje, serial USB (Web Serial / natywny COM), Build → Flash → OTA (esptool / espota / mDNS), marketplace JSON (sandbox), agent PC i generator C++ (Arduino / PlatformIO).
 
-Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.12** (Fazy 0–17 + multi-OS CI + UX/pinout/peripherals #34–#43) · Następna: [Faza 18 ops](./docs/roadmap-next.md)
+Repozytorium: [mateowoj-cpu/ESP32-App](https://github.com/mateowoj-cpu/ESP32-App) · Linia **0.2.13** (Fazy 0–17 + multi-OS CI + UX/pinout/peripherals + Windows bez migających CMD) · Następna: [Faza 18 ops](./docs/roadmap-next.md)
 
 > **EN:** Design ESP32 OLED/LCD UIs visually, preview hardware, generate Arduino/PlatformIO firmware, and on desktop flash over USB or OTA Wi‑Fi through a Tauri 2 shell with platform adapters in `src/platform/`.
 
@@ -160,7 +160,7 @@ Bez sterownika USB-UART ani przeglądarka, ani Tauri nie zobaczą urządzenia �
 
 ## Desktop (Tauri) — skrót techniczny
 
-- Scaffold: `src-tauri/` (productName **ESP32 Display Studio**, id `studio.esp32.display`, v`0.2.12`).
+- Scaffold: `src-tauri/` (productName **ESP32 Display Studio**, id `studio.esp32.display`, v`0.2.13`).
 - Bootstrap UI: `src/main.tsx` — jeśli `isTauri()`, dynamiczny import `nativeSerial` i `setSerialAdapter(...)` (web bundle nie ciągnie `@tauri-apps/api` eagerly).
 - Warstwa JS: `src/platform/` — UI **nie** woła `navigator.serial` ani `invoke` poza adapterami.
 - Komendy Rust (skrót): serial (`list/open/write/close_serial_port`), flash (`get_esptool_info`, `flash_write_firmware`, `read_open_file`), build (`get_firmware_toolchain_info`, `build_firmware_from_sketch`), OTA (`get_ota_tool_info`, `flash_ota_firmware`, `cancel_ota_firmware`, `discover_ota_hosts`), desktop/updater/diagnostics/pc-agent — pełna tabela w [architecture.md](./docs/architecture.md).
@@ -223,7 +223,8 @@ Sekrety Authenticode / updater / winget / telemetry — wyłącznie GitHub Secre
 | **—** | Board catalog community PR flow + offset↔chip + bundled parity (po 0.2.10) |
 | **closure** | `compile:full` / `scripts/full-compile.sh` + checklist w developer-setup |
 | **0.2.11** | Multi-OS release CI (#34), winget draft harden (#35), USB detect UX (#36), marketplace board/GitHub (#37), free tooling (#38), right-side menu (#39), docs/screenshots (#40) |
-| **0.2.12** | Shell clipping fix (#41), USB pinout + A3144 (#42), peripheral catalog (#43), version/CI/i18n gap closure |
+| **0.2.12** | Shell clipping fix (#41), USB pinout + A3144 (#42), peripheral catalog (#43), version/CI/i18n gap closure (#44) |
+| **0.2.13** | Windows: hide CMD flash on USB/Settings toolchain probes (`CREATE_NO_WINDOW`) |
 | **18+** | Ops live winget/telemetry, EV/Apple secrets (human), live publishers |
 
 Szczegóły: [docs/roadmap-next.md](./docs/roadmap-next.md).
@@ -246,7 +247,7 @@ Projekt bez wskazanej licencji w repozytorium — sprawdź ustawienia właścici
 
 ## Screenshots
 
-Oficjalne zrzuty UI (web, locale **PL**, motyw dark cyan/slate, ~1440×900, UI **0.2.12**) w [`docs/media/`](./docs/media/):
+Oficjalne zrzuty UI (web, locale **PL**, motyw dark cyan/slate, ~1440×900, UI **0.2.13**) w [`docs/media/`](./docs/media/):
 
 | Widok | Plik |
 |-------|------|

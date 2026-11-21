@@ -4,7 +4,7 @@ import { buildTelemetryPayload } from './telemetry';
 const payload = buildTelemetryPayload({ name: 'build_result', ok: true });
 assert.equal(payload.event, 'build_result');
 assert.equal(payload.ok, true);
-assert.equal(payload.v, '0.2.12');
+assert.equal(payload.v, '0.2.13');
 assert.ok(typeof payload.os === 'string' && payload.os.length > 0);
 assert.ok(typeof payload.ts === 'number');
 

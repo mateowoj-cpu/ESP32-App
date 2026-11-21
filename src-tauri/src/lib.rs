@@ -4,6 +4,7 @@ mod firmware_build;
 mod flash;
 mod ota;
 mod pc_agent;
+mod process_util;
 mod serial;
 mod tools;
 mod update_channel;
