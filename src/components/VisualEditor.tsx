@@ -645,10 +645,15 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
   // Pointer Drag Handlers
   const handlePointerDown = (e: React.PointerEvent, widget: UIWidget, isResize = false) => {
     e.stopPropagation();
-    setContextMenu(null);
     setSelectedWidgetId(widget.id);
     focusCanvasStage();
 
+    // Right/middle click: select only (context menu handles delete); do not start a drag.
+    if (e.button !== 0) {
+      return;
+    }
+
+    setContextMenu(null);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     setDragState({
@@ -774,12 +779,18 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
       }
     };
 
-    const dismissContextMenu = () => setContextMenu(null);
+    const dismissContextMenu = (e: MouseEvent) => {
+      // Ignore right-clicks so the contextmenu handler can open the menu.
+      if (e.button !== 0) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[role="menu"]')) return;
+      setContextMenu(null);
+    };
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('click', dismissContextMenu);
+    window.addEventListener('pointerdown', dismissContextMenu);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('click', dismissContextMenu);
+      window.removeEventListener('pointerdown', dismissContextMenu);
     };
   }, []);
 
@@ -1249,7 +1260,9 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   height: display.height * scale,
                   maxWidth: '100%',
                 }}
-                onClick={() => {
+                onClick={(e) => {
+                  // Only clear when the empty canvas is clicked — widget clicks bubble here.
+                  if (e.target !== e.currentTarget) return;
                   setSelectedWidgetId(null);
                   setContextMenu(null);
                   focusCanvasStage();
@@ -1297,6 +1310,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                     <div
                       key={w.id}
                       onPointerDown={(e) => handlePointerDown(e, w, false)}
+                      onClick={(e) => e.stopPropagation()}
                       onContextMenu={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
