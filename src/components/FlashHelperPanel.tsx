@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ConnectedEsp32Info } from '../types';
 import { getSerialAdapter, type SerialPortInfo } from '../platform';
 import type { EsptoolInfo } from '../platform/flash';
-import type { BuildResult, ToolchainInfo } from '../platform/firmwareBuild';
+import type { BuildResult, FlashPlan, ToolchainInfo } from '../platform/firmwareBuild';
 import type { DiscoveredOtaHost, OtaMethod, OtaToolInfo } from '../platform/ota';
 import {
   loadRecentOtaHosts,
@@ -78,8 +78,12 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const [portId, setPortId] = useState('');
   const [baud, setBaud] = useState(460800);
   const [chip, setChip] = useState('auto');
-  const [offset, setOffset] = useState('0x1000');
+  /** Manual flash offset only — auto USB flash uses the verified plan. */
+  const [offset, setOffset] = useState('0x10000');
   const [firmwarePath, setFirmwarePath] = useState('');
+  /** `auto` = last build plan; `manual` = user-picked file. */
+  const [firmwareSource, setFirmwareSource] = useState<'auto' | 'manual'>('auto');
+  const [activePlan, setActivePlan] = useState<FlashPlan | null>(null);
   const [otaHost, setOtaHost] = useState('');
   const [otaPort, setOtaPort] = useState(3232);
   const [otaPassword, setOtaPassword] = useState('esp32ota');
@@ -99,6 +103,14 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     loadPreferredBuildToolLocal(),
   );
   const logEndRef = useRef<HTMLDivElement | null>(null);
+
+  const clearAutoFlashResult = () => {
+    setActivePlan(null);
+    setLastBuild(null);
+    if (firmwareSource === 'auto') {
+      setFirmwarePath('');
+    }
+  };
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -183,19 +195,26 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     try {
       const { pickFirmwareFile } = await import('../platform/flash');
       const path = await pickFirmwareFile();
-      if (path) setFirmwarePath(path);
+      if (path) {
+        setFirmwarePath(path);
+        setFirmwareSource('manual');
+        setActivePlan(null);
+      }
     } catch (err) {
       setStatus(err instanceof Error ? err.message : String(err));
     }
   };
 
-  const handleBuild = async (): Promise<string | null> => {
+  const handleBuild = async (): Promise<BuildResult | null> => {
     if (!buildSources) {
       setStatus(t('flash.err.noSketch'));
       return null;
     }
     setBusy(true);
     setStatus(null);
+    // New build invalidates previous auto result immediately in UI.
+    clearAutoFlashResult();
+    setFirmwareSource('auto');
     setLogs(prev => [...prev, t('flash.log.startBuild')]);
     try {
       const sources = buildSources();
@@ -213,20 +232,37 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       void import('../platform/telemetry').then(m =>
         m.trackTelemetry({ name: 'build_result', ok: !!result.ok }),
       );
-      if (result.ok && result.firmwarePath) {
-        setFirmwarePath(result.firmwarePath);
+      if (result.ok) {
+        if (result.flashPlan) {
+          setActivePlan(result.flashPlan);
+        } else {
+          setActivePlan(null);
+        }
+        if (result.firmwarePath) {
+          setFirmwarePath(result.firmwarePath);
+          setFirmwareSource('auto');
+        }
+        if (result.chipFamily && result.chipFamily !== 'auto') {
+          setChip(result.chipFamily);
+        }
+        const appSeg = result.flashPlan?.segments.find(s => s.role === 'app');
+        if (appSeg?.offset) {
+          setOffset(appSeg.offset);
+        }
         saveBoardPreset(detectedChip?.usbVendorId, detectedChip?.usbProductId, portId, {
-          chip,
-          offset,
+          chip: result.chipFamily || chip,
+          offset: appSeg?.offset || offset,
           baud,
           boardProfile: sources.boardProfile || chip,
         });
-        return result.firmwarePath;
+        return result;
       }
+      setActivePlan(null);
       return null;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setStatus(msg);
+      setActivePlan(null);
       void appendDiagnosticsLog(msg, 'build');
       void import('../platform/telemetry').then(m =>
         m.trackTelemetry({ name: 'build_result', ok: false }),
@@ -237,10 +273,20 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     }
   };
 
-  const handleFlash = async (pathOverride?: string) => {
-    const path = pathOverride || firmwarePath;
-    if (!portId || !path) {
+  const handleFlash = async (planOverride?: FlashPlan | null) => {
+    const plan = planOverride ?? (firmwareSource === 'auto' ? activePlan : null);
+    const usePlan = plan && plan.imageKind === 'usbFullSet' && plan.metadataTrusted;
+    const path = firmwarePath;
+    if (!portId || (!usePlan && !path)) {
       setStatus(t('flash.err.needPortBin'));
+      return;
+    }
+    if (!usePlan && firmwareSource === 'manual' && !offset.trim()) {
+      setStatus(t('flash.err.needOffset'));
+      return;
+    }
+    if (firmwareSource === 'auto' && lastBuild && !lastBuild.autoFlashAllowed && !usePlan) {
+      setStatus(t('flash.err.noTrustedPlan'));
       return;
     }
     setBusy(true);
@@ -248,16 +294,29 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
     setLogs(prev => [...prev, t('flash.log.startFlash')]);
     try {
       const { flashWriteFirmware } = await import('../platform/flash');
-      const result = await flashWriteFirmware({
-        port: portId,
-        baud,
-        chip,
-        firmwarePath: path,
-        flashOffset: offset,
-      });
+      const result = await flashWriteFirmware(
+        usePlan
+          ? {
+              port: portId,
+              baud,
+              chip: plan!.chipFamily || chip,
+              flashPlan: plan!,
+              buildId: plan!.buildId,
+            }
+          : {
+              port: portId,
+              baud,
+              chip,
+              firmwarePath: path,
+              flashOffset: offset,
+            },
+      );
       setStatus(result.message);
+      const offsetNote = usePlan
+        ? plan!.segments.map(s => `${s.offset}:${s.role}`).join(' ')
+        : offset;
       void appendDiagnosticsLog(
-        `${result.message} port=${portId} chip=${chip} offset=${offset}`,
+        `${result.message} port=${portId} chip=${chip} ${offsetNote}`,
         'flash',
       );
       void import('../platform/telemetry').then(m =>
@@ -266,7 +325,9 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
       if (result.ok) {
         saveBoardPreset(detectedChip?.usbVendorId, detectedChip?.usbProductId, portId, {
           chip,
-          offset,
+          offset: usePlan
+            ? plan!.segments.find(s => s.role === 'app')?.offset || offset
+            : offset,
           baud,
           boardProfile: chip,
         });
@@ -285,8 +346,10 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
 
   const handleBuildAndFlash = async () => {
     const built = await handleBuild();
-    if (built) {
-      await handleFlash(built);
+    if (built?.ok && built.autoFlashAllowed && built.flashPlan) {
+      await handleFlash(built.flashPlan);
+    } else if (built?.ok && !built.autoFlashAllowed) {
+      setStatus(t('flash.err.noTrustedPlan'));
     }
   };
 
@@ -597,11 +660,16 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-slate-400">{t('flash.offset')}</span>
+          <span className="text-slate-400">
+            {firmwareSource === 'auto' && activePlan?.imageKind === 'usbFullSet'
+              ? t('flash.offsetFromPlan')
+              : t('flash.offset')}
+          </span>
           <input
             value={offset}
             onChange={e => setOffset(e.target.value)}
-            className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono"
+            disabled={firmwareSource === 'auto' && activePlan?.imageKind === 'usbFullSet'}
+            className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100 font-mono disabled:opacity-60"
           />
         </label>
       </div>
@@ -611,7 +679,11 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         <div className="flex gap-2">
           <input
             value={firmwarePath}
-            onChange={e => setFirmwarePath(e.target.value)}
+            onChange={e => {
+              setFirmwarePath(e.target.value);
+              setFirmwareSource('manual');
+              setActivePlan(null);
+            }}
             placeholder=".bin"
             className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-mono"
           />
@@ -624,6 +696,16 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
             {t('flash.pick')}
           </button>
         </div>
+        {activePlan && (
+          <p className="ui-type-micro text-slate-400 font-mono" title={activePlan.artifactDir}>
+            {t('flash.planSummary')}: {activePlan.imageKind} · {activePlan.buildId} ·{' '}
+            {activePlan.chipFamily} · seg={activePlan.segments.length} · trusted=
+            {activePlan.metadataTrusted ? 'yes' : 'no'}
+          </p>
+        )}
+        {lastBuild && !lastBuild.autoFlashAllowed && lastBuild.ok && (
+          <p className="ui-type-micro text-amber-300/90">{t('flash.autoFlashBlocked')}</p>
+        )}
         {lastBuild?.projectDir && (
           <p className="ui-type-micro text-slate-500 font-mono truncate" title={lastBuild.projectDir}>
             Projekt: {lastBuild.projectDir}
@@ -643,7 +725,13 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
         </button>
         <button
           type="button"
-          disabled={busy || !esptool?.available}
+          disabled={
+            busy ||
+            !esptool?.available ||
+            (firmwareSource === 'auto'
+              ? !(activePlan?.imageKind === 'usbFullSet' && activePlan.metadataTrusted)
+              : !firmwarePath)
+          }
           onClick={() => void handleFlash()}
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-40 text-amber-200 border border-amber-500/40 font-semibold rounded-xl text-xs transition-colors"
         >

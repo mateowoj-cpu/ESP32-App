@@ -33,12 +33,21 @@ Profil płytki (esp32 / s3 / c3 / …) bierze się z wykrytego chipa.
 
 Wejście w zakładkę USB odświeża info o esptool / PlatformIO / arduino-cli **w tle**. Od **0.2.13** te probe’y i same procesy build/flash na Windows **nie otwierają okien CMD** (`CREATE_NO_WINDOW` — [windows-desktop.md](./windows-desktop.md) § „Brak migających okien CMD”). Postęp widać w panelu logów UI (`build-log` / `flash-log`).
 
-## Artefakty
+## Artefakty i plan flash (P0)
 
-- PlatformIO: `.pio/build/<env>/firmware.bin`
-- arduino-cli: `build/*.ino.bin`
+Każdy build dostaje izolowany katalog `firmware-build/artifacts/<build_id>/` (osobno od cache `.pio` / wyjścia arduino-cli). Wynik IPC zawiera:
 
-Cache toolchainu PIO zostaje między buildami (szybsze kolejne kompilacje).
+| Pole | Znaczenie |
+|------|-----------|
+| `buildId` | Identyfikator tej kompilacji |
+| `imageKind` | `usbFullSet` · `otaApp` · `manual` |
+| `chipFamily` | np. `esp32` / `esp32c3` / `esp32s3` |
+| `flashPlan` | Segmenty `offset + path + role` z `flasher_args.json` |
+| `autoFlashAllowed` | `true` tylko przy zaufanym planie USB |
+
+**Build + Flash** używa wyłącznie zweryfikowanego planu (wiele segmentów: bootloader / partycje / app). Brak `flasher_args.json` blokuje auto USB flash (nadal można OTA albo ręczny plik z jawnym offsetem). Nowy build unieważnia poprzedni wynik auto. Ręczny flash **nie** domyśla już `0x1000`.
+
+Cache toolchainu PIO w `workspace/.pio` zostaje między buildami (szybsze kolejne kompilacje); źródłem flash są wyłącznie skopiowane artefakty.
 
 ## Sidecar (Faza 9)
 

@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import type { FlashPlan } from './firmwareBuild';
 
 export interface EsptoolInfo {
   available: boolean;
@@ -25,19 +26,27 @@ export async function getEsptoolInfo(): Promise<EsptoolInfo> {
   return invoke<EsptoolInfo>('get_esptool_info');
 }
 
+/**
+ * Flash via a trusted multi-segment plan (auto) or a single manual path+offset.
+ * Manual flash requires an explicit offset — there is no silent 0x1000 default.
+ */
 export async function flashWriteFirmware(opts: {
   port: string;
   baud: number;
   chip: string;
-  firmwarePath: string;
+  firmwarePath?: string;
   flashOffset?: string;
+  flashPlan?: FlashPlan | null;
+  buildId?: string | null;
 }): Promise<FlashResult> {
   return invoke<FlashResult>('flash_write_firmware', {
     port: opts.port,
     baud: opts.baud,
     chip: opts.chip,
-    firmwarePath: opts.firmwarePath,
-    flashOffset: opts.flashOffset ?? '0x1000',
+    firmwarePath: opts.firmwarePath ?? null,
+    flashOffset: opts.flashOffset ?? null,
+    flashPlan: opts.flashPlan ?? null,
+    buildId: opts.buildId ?? null,
   });
 }
 

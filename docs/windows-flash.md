@@ -20,7 +20,9 @@ Sterownik COM: [windows-drivers.md](./windows-drivers.md).
 Komenda (odpowiednik CLI):
 
 ```text
-esptool --chip auto --port COMx --baud 460800 write_flash -z 0x1000 firmware.bin
+# Auto Build+Flash uses a multi-segment plan from flasher_args.json (bootloader/partitions/app).
+# Manual single-file flash requires an explicit offset (no silent 0x1000 default).
+esptool --chip auto --port COMx --baud 460800 write_flash -z 0x10000 firmware.bin
 ```
 
 Offset domyślny `0x1000` (klasyczny ESP32). Dla niektórych chipów / bootloaderów zmień offset w UI (np. `0x0`).
