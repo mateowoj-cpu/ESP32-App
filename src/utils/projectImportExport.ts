@@ -25,6 +25,7 @@ import {
   DEFAULT_API_CONFIG,
   DEFAULT_DISPLAY_CONFIG,
   DEFAULT_SYSTEM_CONFIG,
+  normalizeOtaFields,
 } from './presets';
 
 export const PROJECT_FORMAT = 'esp32studio' as const;
@@ -523,7 +524,8 @@ function mergeSystemConfig(raw: Record<string, unknown>): SystemConfig {
       ...(DEFAULT_SYSTEM_CONFIG.customPinFunctions || {}),
     };
   }
-  return merged;
+  // OTA is opt-in: omitted/undefined otaEnabled must not enable ArduinoOTA.
+  return normalizeOtaFields(merged);
 }
 
 function mergeApiConfig(raw: Record<string, unknown>): ApiIntegrationsConfig {

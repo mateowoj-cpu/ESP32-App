@@ -32,8 +32,9 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   wifiSsid: 'Mój_Dom_WiFi',
   wifiPassword: 'tajne_haslo_123',
-  otaEnabled: true,
-  otaPassword: 'esp32ota',
+  // New projects opt in to OTA and set their own password — no shared default secret.
+  otaEnabled: false,
+  otaPassword: '',
   otaPort: 3232,
   autoReconnect: true,
   mdnsName: 'esp32-display',
@@ -83,6 +84,19 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   blePairingPin: '123456',
   bleTxPower: 3,
 };
+
+/**
+ * OTA is opt-in. Missing/undefined `otaEnabled` must not enable ArduinoOTA
+ * with an empty password (import / partial payloads). Shared with a future
+ * projectImportExport merge path (PR #50).
+ */
+export function normalizeOtaFields(system: SystemConfig): SystemConfig {
+  return {
+    ...system,
+    otaEnabled: system.otaEnabled === true,
+    otaPassword: typeof system.otaPassword === 'string' ? system.otaPassword : '',
+  };
+}
 
 export const DEFAULT_API_CONFIG: ApiIntegrationsConfig = {
   weather: {

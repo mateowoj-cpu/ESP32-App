@@ -13,7 +13,8 @@ import {
   DEFAULT_SYSTEM_CONFIG, 
   DEFAULT_API_CONFIG, 
   PRESET_CYBER_PET_SCREENS, 
-  PRESET_AUTOMATION_RULES 
+  PRESET_AUTOMATION_RULES,
+  normalizeOtaFields,
 } from './utils/presets';
 import { HardwareSimulator } from './components/HardwareSimulator';
 import { VisualEditor } from './components/VisualEditor';
@@ -184,7 +185,8 @@ export default function App() {
     sourceLabel: string
   ) => {
     setDisplayConfig(project.displayConfig);
-    setSystemConfig(project.systemConfig);
+    // Opt-in OTA: normalize missing/undefined otaEnabled after parser merge.
+    setSystemConfig(normalizeOtaFields(project.systemConfig));
     setApiConfig(project.apiConfig);
     setScreens(project.screens);
     setAutomations(project.automations);
