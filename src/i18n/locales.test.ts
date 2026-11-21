@@ -47,6 +47,12 @@ assert(translate('en', 'desktop.toolsTitle').toLowerCase().includes('tool'), 'en
 assert(translate('pl', 'flash.preferredTool').toLowerCase().includes('narzęd'), 'pl preferred tool');
 assert(translate('en', 'code.openWokwi').toLowerCase().includes('wokwi'), 'en wokwi');
 assert(translate('pl', 'code.openArduinoIde').toLowerCase().includes('arduino'), 'pl open arduino');
+assert(translate('en', 'desktop.idesTitle').toLowerCase().includes('ide'), 'en host ides title');
+assert(translate('pl', 'desktop.idesSafety').toLowerCase().includes('winget'), 'pl ides safety');
+assert(translate('en', 'desktop.ides.vscodePio').toLowerCase().includes('platformio'), 'en vscode pio');
+assert(translate('pl', 'desktop.ides.sloeber').toLowerCase().includes('sloeber'), 'pl sloeber');
+assert(translate('en', 'desktop.ides.b4r').toLowerCase().includes('b4r'), 'en b4r');
+assert(translate('pl', 'desktop.ides.winget').toLowerCase().includes('winget'), 'pl winget install');
 assert(translate('en', 'market.defaultWidgetPack').toLowerCase().includes('widget'), 'en default widget pack');
 assert(translate('pl', 'market.defaultRulePack').toLowerCase().includes('reguł'), 'pl default rule pack');
 assert(translate('pl', 'import.parseError').toLowerCase().includes('parsow'), 'pl import parse');

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useLocale } from '../i18n/LocaleContext';
 import type { AppLocale, UpdateChannel } from '../i18n/locales';
 import type { DesktopStatus } from '../platform/desktop';
+import { HOST_IDE_CATALOG, wingetInstallCommand } from '../platform/hostIdes';
 import type { ExternalToolsStatus, ToolPathOverrides, ToolProbe } from '../platform/tools';
-import { MonitorSmartphone, RefreshCw, Wrench, ExternalLink } from 'lucide-react';
+import { Download, MonitorSmartphone, RefreshCw, Wrench, ExternalLink } from 'lucide-react';
 
 export const DesktopSettingsPanel: React.FC = () => {
   const {
@@ -75,6 +76,49 @@ export const DesktopSettingsPanel: React.FC = () => {
       await openExternalUrl(tool.homepage);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const openIdeDownload = async (ideId: string) => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { openHostIdeDownload } = await import('../platform/tools');
+      const result = await openHostIdeDownload(ideId);
+      setMessage(result.message);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startWinget = async (packageId: string) => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { startWingetInstall } = await import('../platform/tools');
+      const result = await startWingetInstall(packageId);
+      setMessage(result.message);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const installPioExtension = async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { installPlatformioVscodeExtension } = await import('../platform/tools');
+      const result = await installPlatformioVscodeExtension();
+      setMessage(result.message);
+      await refreshTools();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -316,6 +360,9 @@ export const DesktopSettingsPanel: React.FC = () => {
                   ['arduinoCli', 'desktop.tools.arduinoCli'],
                   ['esptool', 'desktop.tools.esptool'],
                   ['arduinoIde', 'desktop.tools.arduinoIde'],
+                  ['vscode', 'desktop.tools.vscode'],
+                  ['sloeber', 'desktop.tools.sloeber'],
+                  ['b4r', 'desktop.tools.b4r'],
                   ['idf', 'desktop.tools.idf'],
                   ['wokwiCli', 'desktop.tools.wokwiCli'],
                 ] as const
@@ -384,6 +431,103 @@ export const DesktopSettingsPanel: React.FC = () => {
                 ))}
               </div>
             )}
+
+            <div className="flex flex-col gap-2 pt-2 border-t border-slate-800/80">
+              <h5 className="text-xs font-semibold text-slate-200">{t('desktop.idesTitle')}</h5>
+              <p className="ui-type-micro text-slate-500 leading-relaxed">
+                {t('desktop.idesHint')}
+              </p>
+              <p className="ui-type-micro text-amber-200/80 leading-relaxed">
+                {t('desktop.idesSafety')}
+              </p>
+              <div className="flex flex-col gap-2">
+                {HOST_IDE_CATALOG.map(ide => {
+                  const probe = toolsStatus?.tools.find(t => t.id === ide.probeId);
+                  const missing = !probe?.available;
+                  return (
+                    <div
+                      key={ide.id}
+                      className="flex flex-col gap-1.5 p-2.5 rounded-lg bg-slate-900/80 border border-slate-800"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-xs font-medium text-slate-100">
+                            {t(ide.labelKey)}
+                          </div>
+                          <div className="ui-type-micro text-slate-500 leading-relaxed">
+                            {t(ide.hintKey)}
+                          </div>
+                          <div
+                            className={`ui-type-micro font-mono mt-0.5 ${
+                              missing ? 'text-amber-200' : 'text-emerald-300'
+                            }`}
+                          >
+                            {missing
+                              ? t('desktop.tools.missing')
+                              : t('desktop.tools.available')}
+                            {probe?.source ? ` [${probe.source}]` : ''}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void openIdeDownload(ide.id)}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md ui-type-micro bg-slate-800 border border-slate-700 text-cyan-200 disabled:opacity-50"
+                        >
+                          <Download className="ui-icon-sm" aria-hidden="true" />
+                          {t('desktop.ides.openDownload')}
+                        </button>
+                        {ide.wingetId && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void startWinget(ide.wingetId!)}
+                            title={wingetInstallCommand(ide.wingetId)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md ui-type-micro bg-slate-800 border border-slate-700 text-slate-200 disabled:opacity-50"
+                          >
+                            {t('desktop.ides.winget')}
+                          </button>
+                        )}
+                        {ide.id === 'vscode-platformio' && (
+                          <>
+                            {ide.extensionUrl && (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => void openIdeDownload('vscode-platformio-ext')}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md ui-type-micro bg-slate-800 border border-slate-700 text-slate-200 disabled:opacity-50"
+                              >
+                                {t('desktop.ides.pioMarketplace')}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void installPioExtension()}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md ui-type-micro bg-slate-800 border border-slate-700 text-slate-200 disabled:opacity-50"
+                            >
+                              {t('desktop.ides.installPioExt')}
+                            </button>
+                          </>
+                        )}
+                        {!ide.wingetId && (
+                          <span className="ui-type-micro text-slate-500 self-center">
+                            {t('desktop.ides.downloadOnly')}
+                          </span>
+                        )}
+                      </div>
+                      {ide.wingetId && (
+                        <code className="ui-type-micro font-mono text-slate-500 truncate">
+                          {wingetInstallCommand(ide.wingetId)}
+                        </code>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <button

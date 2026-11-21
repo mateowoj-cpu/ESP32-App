@@ -2,6 +2,7 @@ mod desktop;
 mod diagnostics;
 mod firmware_build;
 mod flash;
+mod host_ides;
 mod ota;
 mod pc_agent;
 mod process_util;
@@ -19,6 +20,9 @@ use diagnostics::{
 };
 use firmware_build::{build_firmware_from_sketch, get_firmware_toolchain_info};
 use flash::{flash_write_firmware, get_esptool_info, read_open_file};
+use host_ides::{
+    install_platformio_vscode_extension, open_host_ide_download, start_winget_install,
+};
 use tools::{
     export_and_open_arduino_ide, get_external_tools_status, get_tool_path_overrides,
     open_external_url, open_path_in_os, open_wokwi_simulator, set_tool_path_overrides,
@@ -85,6 +89,9 @@ pub fn run() {
             open_external_url,
             export_and_open_arduino_ide,
             open_wokwi_simulator,
+            start_winget_install,
+            open_host_ide_download,
+            install_platformio_vscode_extension,
             get_ota_tool_info,
             flash_ota_firmware,
             cancel_ota_firmware,

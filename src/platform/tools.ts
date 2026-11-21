@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { isWingetAllowlisted } from './hostIdes';
 
 export type PreferredBuildTool = 'auto' | 'platformio' | 'arduino-cli';
 
@@ -9,6 +10,9 @@ export interface ToolPathOverrides {
   arduinoIde?: string | null;
   idf?: string | null;
   wokwiCli?: string | null;
+  vscode?: string | null;
+  sloeber?: string | null;
+  b4r?: string | null;
 }
 
 export interface ToolProbe {
@@ -21,6 +25,10 @@ export interface ToolProbe {
   free: boolean;
   hint: string;
   homepage?: string | null;
+  /** `cli` | `ide` */
+  kind?: string;
+  wingetId?: string | null;
+  installUrl?: string | null;
 }
 
 export interface ExternalToolsStatus {
@@ -71,6 +79,9 @@ export async function setToolPathOverrides(
     arduinoIde: overrides.arduinoIde ?? null,
     idf: overrides.idf ?? null,
     wokwiCli: overrides.wokwiCli ?? null,
+    vscode: overrides.vscode ?? null,
+    sloeber: overrides.sloeber ?? null,
+    b4r: overrides.b4r ?? null,
   });
 }
 
@@ -94,4 +105,20 @@ export async function exportAndOpenArduinoIde(opts: {
 
 export async function openWokwiSimulator(): Promise<OpenResult> {
   return invoke<OpenResult>('open_wokwi_simulator');
+}
+
+/** Visible winget install for allowlisted packages only (no silent malware path). */
+export async function startWingetInstall(packageId: string): Promise<OpenResult> {
+  if (!isWingetAllowlisted(packageId)) {
+    throw new Error(`Winget package not allowlisted: ${packageId}`);
+  }
+  return invoke<OpenResult>('start_winget_install', { packageId });
+}
+
+export async function openHostIdeDownload(ideId: string): Promise<OpenResult> {
+  return invoke<OpenResult>('open_host_ide_download', { ideId });
+}
+
+export async function installPlatformioVscodeExtension(): Promise<OpenResult> {
+  return invoke<OpenResult>('install_platformio_vscode_extension');
 }

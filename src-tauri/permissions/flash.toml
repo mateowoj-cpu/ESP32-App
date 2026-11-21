@@ -13,5 +13,8 @@ commands.allow = [
   "open_path_in_os",
   "open_external_url",
   "export_and_open_arduino_ide",
-  "open_wokwi_simulator"
+  "open_wokwi_simulator",
+  "start_winget_install",
+  "open_host_ide_download",
+  "install_platformio_vscode_extension"
 ]
