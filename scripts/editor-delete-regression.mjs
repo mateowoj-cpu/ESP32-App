@@ -8,8 +8,12 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const require = createRequire(import.meta.url);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(__dirname, '..');
 const baseUrl = process.argv[2] || 'http://127.0.0.1:3010/';
-const outDir = '/opt/cursor/artifacts';
+/** Prefer env override, else repo-local dir (writable for any developer). */
+const outDir =
+  process.env.EDITOR_DELETE_ARTIFACTS_DIR || join(repoRoot, '.tmp', 'editor-delete-artifacts');
 mkdirSync(outDir, { recursive: true });
 
 async function loadPuppeteer() {
@@ -19,7 +23,7 @@ async function loadPuppeteer() {
     const { execSync } = await import('child_process');
     execSync('npm install --no-save --no-package-lock puppeteer@24', {
       stdio: 'inherit',
-      cwd: join(dirname(fileURLToPath(import.meta.url)), '..'),
+      cwd: repoRoot,
     });
     return require('puppeteer');
   }
@@ -113,12 +117,16 @@ async function runCase(name, fn) {
 }
 
 const puppeteer = await loadPuppeteer();
-const browser = await puppeteer.launch({
+const launchOpts = {
   headless: true,
-  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1400,900'],
   defaultViewport: { width: 1400, height: 900 },
-});
+};
+// Only override when explicitly set — otherwise use Puppeteer's bundled browser.
+if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+  launchOpts.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+}
+const browser = await puppeteer.launch(launchOpts);
 const page = await browser.newPage();
 
 try {
