@@ -13,7 +13,6 @@ import {
 } from '../platform/otaRecent';
 import { useLocale } from '../i18n/LocaleContext';
 import { loadBoardPreset, saveBoardPreset } from '../platform/boardCache';
-import { appendDiagnosticsLog } from '../platform/diagnostics';
 import {
   Zap,
   RefreshCw,
@@ -27,6 +26,13 @@ import {
   Radar,
   ExternalLink,
 } from 'lucide-react';
+
+/** Dynamic import — avoids static+dynamic double-import with App/LocaleContext/Settings. */
+function appendDiagnosticsLog(line: string, category: string): void {
+  void import('../platform/diagnostics')
+    .then(m => m.appendDiagnosticsLog(line, category))
+    .catch(() => undefined);
+}
 
 type PreferredBuildTool = 'auto' | 'platformio' | 'arduino-cli';
 

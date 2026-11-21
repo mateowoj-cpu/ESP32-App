@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { 
   DisplayConfig, 
   SystemConfig, 
@@ -15,14 +15,8 @@ import {
   PRESET_CYBER_PET_SCREENS, 
   PRESET_AUTOMATION_RULES 
 } from './utils/presets';
+/** Default landing tab — keep eager for first paint. */
 import { HardwareSimulator } from './components/HardwareSimulator';
-import { VisualEditor } from './components/VisualEditor';
-import { AutomationStudio } from './components/AutomationStudio';
-import { IntegrationsView } from './components/IntegrationsView';
-import { MarketplaceView } from './components/MarketplaceView';
-import { SettingsView } from './components/SettingsView';
-import { CodeView } from './components/CodeView';
-import { UsbDetectorView } from './components/UsbDetectorView';
 import { ConnectedEsp32Info } from './types';
 import {
   generateArduinoCppCode,
@@ -32,6 +26,28 @@ import {
 import type { UpdateCheckResult } from './platform/updater';
 import type { OpenFilePayload } from './platform/flash';
 import { useLocale } from './i18n/LocaleContext';
+
+const VisualEditor = lazy(() =>
+  import('./components/VisualEditor').then(m => ({ default: m.VisualEditor }))
+);
+const AutomationStudio = lazy(() =>
+  import('./components/AutomationStudio').then(m => ({ default: m.AutomationStudio }))
+);
+const IntegrationsView = lazy(() =>
+  import('./components/IntegrationsView').then(m => ({ default: m.IntegrationsView }))
+);
+const MarketplaceView = lazy(() =>
+  import('./components/MarketplaceView').then(m => ({ default: m.MarketplaceView }))
+);
+const SettingsView = lazy(() =>
+  import('./components/SettingsView').then(m => ({ default: m.SettingsView }))
+);
+const CodeView = lazy(() =>
+  import('./components/CodeView').then(m => ({ default: m.CodeView }))
+);
+const UsbDetectorView = lazy(() =>
+  import('./components/UsbDetectorView').then(m => ({ default: m.UsbDetectorView }))
+);
 import { 
   Tv, 
   Layers, 
@@ -878,93 +894,110 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'editor' && (
-              <VisualEditor
-                screens={screens}
-                setScreens={setScreens}
-                display={displayConfig}
-                activeScreenIndex={activeScreenIndex}
-                setActiveScreenIndex={setActiveScreenIndex}
-                simState={simState}
-                setSimState={setSimState}
-              />
-            )}
+            {activeTab !== 'simulator' && (
+              <Suspense
+                fallback={
+                  <div
+                    className="flex items-center justify-center min-h-[12rem] ui-type-micro text-slate-400 font-mono"
+                    role="status"
+                  >
+                    …
+                  </div>
+                }
+              >
+                {activeTab === 'editor' && (
+                  <VisualEditor
+                    screens={screens}
+                    setScreens={setScreens}
+                    display={displayConfig}
+                    activeScreenIndex={activeScreenIndex}
+                    setActiveScreenIndex={setActiveScreenIndex}
+                    simState={simState}
+                    setSimState={setSimState}
+                  />
+                )}
 
-            {activeTab === 'usb' && (
-              <UsbDetectorView
-                detectedChip={detectedChip}
-                setDetectedChip={setDetectedChip}
-                display={displayConfig}
-                setDisplay={setDisplayConfig}
-                system={systemConfig}
-                setSystem={setSystemConfig}
-                buildSources={() => {
-                  const boardProfile = resolvePioBoardProfile(
-                    detectedChip?.chipFamily || detectedChip?.chipModel,
-                  );
-                  return {
-                    sketchSource: generateArduinoCppCode(
-                      displayConfig,
-                      systemConfig,
-                      apiConfig,
-                      screens,
-                      automations,
-                    ),
-                    platformioIni: generatePlatformIoIni(displayConfig, boardProfile, systemConfig),
-                    boardProfile,
-                    sketchName: 'esp32_display_studio',
-                  };
-                }}
-              />
-            )}
+                {activeTab === 'usb' && (
+                  <UsbDetectorView
+                    detectedChip={detectedChip}
+                    setDetectedChip={setDetectedChip}
+                    display={displayConfig}
+                    setDisplay={setDisplayConfig}
+                    system={systemConfig}
+                    setSystem={setSystemConfig}
+                    buildSources={() => {
+                      const boardProfile = resolvePioBoardProfile(
+                        detectedChip?.chipFamily || detectedChip?.chipModel,
+                      );
+                      return {
+                        sketchSource: generateArduinoCppCode(
+                          displayConfig,
+                          systemConfig,
+                          apiConfig,
+                          screens,
+                          automations,
+                        ),
+                        platformioIni: generatePlatformIoIni(
+                          displayConfig,
+                          boardProfile,
+                          systemConfig,
+                        ),
+                        boardProfile,
+                        sketchName: 'esp32_display_studio',
+                      };
+                    }}
+                  />
+                )}
 
-            {activeTab === 'automations' && (
-              <AutomationStudio
-                automations={automations}
-                setAutomations={setAutomations}
-                screens={screens}
-                simState={simState}
-                setSimState={setSimState}
-              />
-            )}
+                {activeTab === 'automations' && (
+                  <AutomationStudio
+                    automations={automations}
+                    setAutomations={setAutomations}
+                    screens={screens}
+                    simState={simState}
+                    setSimState={setSimState}
+                  />
+                )}
 
-            {activeTab === 'marketplace' && (
-              <MarketplaceView
-                screens={screens}
-                setScreens={setScreens}
-                activeScreenIndex={activeScreenIndex}
-                automations={automations}
-                setAutomations={setAutomations}
-              />
-            )}
+                {activeTab === 'marketplace' && (
+                  <MarketplaceView
+                    screens={screens}
+                    setScreens={setScreens}
+                    activeScreenIndex={activeScreenIndex}
+                    automations={automations}
+                    setAutomations={setAutomations}
+                  />
+                )}
 
-            {activeTab === 'integrations' && (
-              <IntegrationsView
-                apiConfig={apiConfig}
-                setApiConfig={setApiConfig}
-                simState={simState}
-                setSimState={setSimState}
-              />
-            )}
+                {activeTab === 'integrations' && (
+                  <IntegrationsView
+                    apiConfig={apiConfig}
+                    setApiConfig={setApiConfig}
+                    simState={simState}
+                    setSimState={setSimState}
+                  />
+                )}
 
-            {activeTab === 'code' && (
-              <CodeView
-                display={displayConfig}
-                system={systemConfig}
-                api={apiConfig}
-                screens={screens}
-                automations={automations}
-              />
-            )}
+                {activeTab === 'code' && (
+                  <CodeView
+                    display={displayConfig}
+                    system={systemConfig}
+                    api={apiConfig}
+                    screens={screens}
+                    automations={automations}
+                  />
+                )}
 
-            {activeTab === 'settings' && (
-              <SettingsView
-                display={displayConfig}
-                setDisplay={setDisplayConfig}
-                system={systemConfig}
-                setSystem={setSystemConfig}
-                screens={screens}
-              />
+                {activeTab === 'settings' && (
+                  <SettingsView
+                    display={displayConfig}
+                    setDisplay={setDisplayConfig}
+                    system={systemConfig}
+                    setSystem={setSystemConfig}
+                    screens={screens}
+                  />
+                )}
+              </Suspense>
             )}
           </main>
 
