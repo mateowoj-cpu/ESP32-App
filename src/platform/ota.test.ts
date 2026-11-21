@@ -8,6 +8,7 @@ import {
   DEFAULT_DISPLAY_CONFIG,
   DEFAULT_SYSTEM_CONFIG,
   PRESET_CYBER_PET_SCREENS,
+  normalizeOtaFields,
 } from '../utils/presets';
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -92,6 +93,26 @@ const defaultSketch = generateArduinoCppCode(
 assert(defaultSketch.includes('#define OTA_ENABLED   0'), 'default sketch OTA off');
 assert(defaultSketch.includes('#define OTA_PASSWORD  ""'), 'default sketch empty OTA password');
 assert(!defaultSketch.includes('esp32ota'), 'no shared default OTA password in sketch');
+
+// Imported / partial configs without otaEnabled must not enable OTA with an empty password.
+const omittedOta = { ...DEFAULT_SYSTEM_CONFIG };
+delete (omittedOta as { otaEnabled?: boolean }).otaEnabled;
+const omittedSketch = generateArduinoCppCode(
+  DEFAULT_DISPLAY_CONFIG,
+  omittedOta,
+  DEFAULT_API_CONFIG,
+  PRESET_CYBER_PET_SCREENS,
+  [],
+);
+assert(omittedSketch.includes('#define OTA_ENABLED   0'), 'missing otaEnabled => OTA off');
+
+const normalizedOmit = normalizeOtaFields(omittedOta);
+assert(normalizedOmit.otaEnabled === false, 'normalizeOtaFields: omitted => false');
+assert(normalizeOtaFields({ ...DEFAULT_SYSTEM_CONFIG, otaEnabled: true }).otaEnabled === true, 'normalize keeps true');
+assert(
+  normalizeOtaFields({ ...DEFAULT_SYSTEM_CONFIG, otaPassword: undefined as unknown as string }).otaPassword === '',
+  'normalizeOtaFields: missing password => empty',
+);
 
 /** Simulate UI/diagnostics export lines built from OtaResult (password must never appear). */
 function diagnosticsLineFromResult(result: Pick<OtaResult, 'message' | 'errorCode' | 'ok'>, host: string): string {

@@ -7,6 +7,8 @@ import {
 } from './presets';
 import {
   MAX_PROJECT_BYTES,
+  PROJECT_FORMAT,
+  PROJECT_FORMAT_VERSION,
   buildProjectExport,
   clampUsbSwitchScreenIndex,
   normalizeProjectRelations,
@@ -388,6 +390,38 @@ function legalV1Payload() {
   });
   assert(normalized.systemConfig.usbSwitchScreenIndex === 1, 'normalize clamps usb');
   assert(normalized.activeScreenIndex === 0, 'normalize clamps active screen');
+}
+
+{
+  // Omitted OTA fields must not leave OTA enabled with an empty password.
+  const { otaEnabled: _e, otaPassword: _p, ...systemWithoutOta } = DEFAULT_SYSTEM_CONFIG;
+  const omitted = parseProject({
+    format: PROJECT_FORMAT,
+    version: PROJECT_FORMAT_VERSION,
+    displayConfig: DEFAULT_DISPLAY_CONFIG,
+    systemConfig: systemWithoutOta,
+    apiConfig: DEFAULT_API_CONFIG,
+    screens: PRESET_CYBER_PET_SCREENS.slice(0, 1),
+    automations: [],
+    activeScreenIndex: 0,
+  });
+  assert(omitted.ok, 'project without OTA keys parses');
+  if (omitted.ok) {
+    assert(omitted.project.systemConfig.otaEnabled === false, 'omitted otaEnabled => false');
+    assert(omitted.project.systemConfig.otaPassword === '', 'omitted otaPassword => empty');
+  }
+  const enabled = parseProject({
+    format: PROJECT_FORMAT,
+    version: PROJECT_FORMAT_VERSION,
+    displayConfig: DEFAULT_DISPLAY_CONFIG,
+    systemConfig: { ...DEFAULT_SYSTEM_CONFIG, otaEnabled: true, otaPassword: 'mine' },
+    apiConfig: DEFAULT_API_CONFIG,
+    screens: PRESET_CYBER_PET_SCREENS.slice(0, 1),
+    automations: [],
+    activeScreenIndex: 0,
+  });
+  assert(enabled.ok && enabled.project.systemConfig.otaEnabled === true, 'explicit otaEnabled kept');
+  assert(enabled.ok && enabled.project.systemConfig.otaPassword === 'mine', 'explicit otaPassword kept');
 }
 
 console.log('projectImportExport.test.ts: ok');

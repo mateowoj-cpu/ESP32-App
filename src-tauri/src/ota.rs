@@ -853,6 +853,44 @@ mod tests {
         result
     }
 
+    /// Cross-platform stub that exits successfully (Unix `true` / Windows `cmd /C exit 0`).
+    fn spawn_stub_success() -> std::process::Child {
+        if cfg!(windows) {
+            Command::new("cmd")
+                .args(["/C", "exit", "0"])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("spawn stub success")
+        } else {
+            Command::new("true")
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("spawn stub success")
+        }
+    }
+
+    /// Cross-platform stub that hangs long enough for cancel/timeout tests.
+    fn spawn_stub_hang() -> std::process::Child {
+        if cfg!(windows) {
+            // ping -n N waits ~N seconds on Windows without needing sleep.exe.
+            Command::new("ping")
+                .args(["-n", "60", "127.0.0.1"])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("spawn stub hang")
+        } else {
+            Command::new("sleep")
+                .arg("30")
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("spawn stub hang")
+        }
+    }
+
     #[test]
     fn mask_args_hides_password_after_dash_a() {
         let args = vec![
@@ -932,20 +970,11 @@ mod tests {
     #[test]
     fn stub_process_success_and_restart() {
         with_ota_slot(|| {
-            let child = Command::new("true")
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("spawn true");
-            let outcome = run_stub_ota(child, Duration::from_secs(5)).expect("wait");
+            let outcome = run_stub_ota(spawn_stub_success(), Duration::from_secs(5)).expect("wait");
             assert!(matches!(outcome, WaitOutcome::Exited(s) if s.success()));
 
-            let child2 = Command::new("true")
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("spawn true again");
-            let outcome2 = run_stub_ota(child2, Duration::from_secs(5)).expect("wait2");
+            let outcome2 =
+                run_stub_ota(spawn_stub_success(), Duration::from_secs(5)).expect("wait2");
             assert!(matches!(outcome2, WaitOutcome::Exited(s) if s.success()));
         });
     }
@@ -953,13 +982,8 @@ mod tests {
     #[test]
     fn stub_process_timeout() {
         with_ota_slot(|| {
-            let child = Command::new("sleep")
-                .arg("30")
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("spawn sleep");
-            let outcome = run_stub_ota(child, Duration::from_millis(400)).expect("wait");
+            let outcome =
+                run_stub_ota(spawn_stub_hang(), Duration::from_millis(400)).expect("wait");
             assert_eq!(outcome, WaitOutcome::TimedOut);
             begin_ota(1).expect("begin after timeout");
             release_ota();
@@ -969,12 +993,7 @@ mod tests {
     #[test]
     fn stub_process_cancel() {
         with_ota_slot(|| {
-            let child = Command::new("sleep")
-                .arg("30")
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("spawn sleep");
+            let child = spawn_stub_hang();
             let pid = child.id();
             begin_ota(pid).expect("begin");
 
@@ -999,12 +1018,7 @@ mod tests {
     #[test]
     fn stub_double_start_with_live_process() {
         with_ota_slot(|| {
-            let child = Command::new("sleep")
-                .arg("30")
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("spawn sleep");
+            let child = spawn_stub_hang();
             begin_ota(child.id()).expect("first");
             let err = begin_ota(999).expect_err("busy");
             assert!(err.contains("już trwa"));

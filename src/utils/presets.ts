@@ -85,6 +85,19 @@ export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   bleTxPower: 3,
 };
 
+/**
+ * OTA is opt-in. Missing/undefined `otaEnabled` must not enable ArduinoOTA
+ * with an empty password (import / partial payloads). Shared with a future
+ * projectImportExport merge path (PR #50).
+ */
+export function normalizeOtaFields(system: SystemConfig): SystemConfig {
+  return {
+    ...system,
+    otaEnabled: system.otaEnabled === true,
+    otaPassword: typeof system.otaPassword === 'string' ? system.otaPassword : '',
+  };
+}
+
 export const DEFAULT_API_CONFIG: ApiIntegrationsConfig = {
   weather: {
     enabled: true,

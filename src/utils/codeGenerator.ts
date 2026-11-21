@@ -118,7 +118,7 @@ export function generateArduinoCppCode(
  *  WYMAGANE BIBLIOTEKI W ARDUINO IDE (Zainstaluj przez Library Manager):
 ${libList}
  *  4. "WiFi", "HTTPClient", "WebServer" (wbudowane w pakiet ESP32)
- *  5. "ArduinoOTA", "Update" (wbudowane — OTA Wi‑Fi ze Studio)${system.otaEnabled === false ? ' [WYŁĄCZONE]' : ''}
+ *  5. "ArduinoOTA", "Update" (wbudowane — OTA Wi‑Fi ze Studio)${system.otaEnabled === true ? '' : ' [WYŁĄCZONE]'}
  * ==============================================================================
  */
 
@@ -168,7 +168,7 @@ const char* NTP_SERVER    = "${system.ntpServer}";
 const char* TIMEZONE      = "${system.timezone}";
 
 // --- OTA (ArduinoOTA / espota + opcjonalny HTTP POST /update) ---
-#define OTA_ENABLED   ${system.otaEnabled === false ? 0 : 1}
+#define OTA_ENABLED   ${system.otaEnabled === true ? 1 : 0}
 #define OTA_HOSTNAME  "${system.mdnsName || 'esp32-display'}"
 #define OTA_PASSWORD  "${(system.otaPassword ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"
 #define OTA_PORT      ${system.otaPort ?? 3232}

@@ -519,7 +519,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={system.otaEnabled !== false}
+                  checked={system.otaEnabled === true}
                   onChange={e => setSystem(prev => ({ ...prev, otaEnabled: e.target.checked }))}
                   className="accent-cyan-400"
                 />
@@ -532,7 +532,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     type="password"
                     value={system.otaPassword ?? ''}
                     onChange={e => setSystem(prev => ({ ...prev, otaPassword: e.target.value }))}
-                    disabled={system.otaEnabled === false}
+                    disabled={system.otaEnabled !== true}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono disabled:opacity-40"
                   />
                 </div>
@@ -544,7 +544,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onChange={e =>
                       setSystem(prev => ({ ...prev, otaPort: Number(e.target.value) || 3232 }))
                     }
-                    disabled={system.otaEnabled === false}
+                    disabled={system.otaEnabled !== true}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono disabled:opacity-40"
                   />
                 </div>
