@@ -12,7 +12,7 @@
   Override with env ESP32_STUDIO_PIO / ESP32_STUDIO_ESPOTA.
 
 .NOTES
-  Tauri identifier: studio.esp32.display → app local data folder name.
+  Tauri identifier: studio.esp32.display -> app local data folder name.
 #>
 
 [CmdletBinding()]
@@ -68,7 +68,7 @@ if (-not (Test-Path $pip)) {
   throw "venv pip missing at $pip"
 }
 
-Write-Host "==> Installing platformio into sidecar venv (this may take several minutes)…"
+Write-Host "==> Installing platformio into sidecar venv (this may take several minutes)..."
 & $pip install --upgrade pip
 & $pip install "platformio"
 
@@ -81,7 +81,7 @@ Write-Host "==> PlatformIO OK: $(& $pioExe --version)"
 if (-not $SkipEspota) {
   $espota = Join-Path $otaRoot "espota.py"
   $url = "https://raw.githubusercontent.com/espressif/arduino-esp32/master/tools/espota.py"
-  Write-Host "==> Downloading espota.py → $espota"
+  Write-Host "==> Downloading espota.py -> $espota"
   try {
     Invoke-WebRequest -Uri $url -OutFile $espota -UseBasicParsing
   } catch {
@@ -94,7 +94,8 @@ if (-not $SkipEspota) {
 }
 
 Write-Host ""
-Write-Host "Done. Restart ESP32 Display Studio — Build should show PlatformIO (sidecar)."
+Write-Host "Done. Restart ESP32 Display Studio - Build should show PlatformIO (sidecar)."
 Write-Host "Optional env overrides:"
 Write-Host "  ESP32_STUDIO_PIO=$pioExe"
-Write-Host "  ESP32_STUDIO_ESPOTA=$(Join-Path $otaRoot 'espota.py')"
+$espotaHint = Join-Path $otaRoot "espota.py"
+Write-Host "  ESP32_STUDIO_ESPOTA=$espotaHint"
