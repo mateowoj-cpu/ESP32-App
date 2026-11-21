@@ -11,6 +11,9 @@ function isColorTftModel(model: DisplayConfig['model']): boolean {
 /**
  * Single encoder for embedding user-controlled text in C++ double-quoted string literals
  * (SSID, passwords, labels, city names, API keys, etc.).
+ *
+ * Control bytes use fixed-width octal escapes (`\ooo`, exactly three digits) so a following
+ * hex digit cannot be swallowed the way `\xHH` would (`"\x01A"` → one byte 0x1A).
  */
 export function escapeCppStringLiteral(value: string): string {
   let out = '';
@@ -34,7 +37,7 @@ export function escapeCppStringLiteral(value: string): string {
       default: {
         const code = ch.codePointAt(0)!;
         if (code < 0x20 || code === 0x7f) {
-          out += `\\x${code.toString(16).padStart(2, '0')}`;
+          out += `\\${code.toString(8).padStart(3, '0')}`;
         } else {
           out += ch;
         }
@@ -385,6 +388,7 @@ bool isBlinking = false;
 // Timery dla nieblokującej pętli loop()
 unsigned long lastWeatherFetchMillis = 0;
 const unsigned long WEATHER_INTERVAL_MS = ${api.weather.refreshIntervalMin * 60 * 1000};
+const unsigned long WEATHER_RETRY_MS = 5000; // short retry when NTP/TLS not ready yet
 unsigned long lastSensorReadMillis = 0;
 
 // ==============================================================================
@@ -392,7 +396,7 @@ unsigned long lastSensorReadMillis = 0;
 // ==============================================================================
 void drawCyberPetEyes(int x, int y, int w, int h, PetMood mood);
 void renderActiveScreen();
-void fetchWeatherData();
+bool fetchWeatherData();
 void setupWebServer();
 void setupOta();
 void checkAutomations();
@@ -528,7 +532,21 @@ ${displayInit}
 
     // Konfiguracja czasu NTP
     configTzTime(TIMEZONE, NTP_SERVER);
-    
+${useOpenWeatherMap ? `    // Verified TLS needs a valid wall clock for certificate validity checks
+    {
+      struct tm ntpWait = {};
+      int ntpTries = 0;
+      while (!getLocalTime(&ntpWait, 0) && ntpTries < 20) {
+        delay(250);
+        ntpTries++;
+      }
+      if (getLocalTime(&ntpWait, 0)) {
+        Serial.println(F("[NTP] Czas zsynchronizowany przed HTTPS OpenWeatherMap"));
+      } else {
+        Serial.println(F("[NTP] Brak synchronizacji — pierwsza pogoda OWM poczeka / ponowi"));
+      }
+    }
+` : ''}
     // Inicjalizacja serwera WWW dla powiadomień i agenta PC
     setupWebServer();
 
@@ -539,8 +557,12 @@ ${displayInit}
     Serial.println(F("[OTA] HTTP Update: POST /update (port WebServer)"));
 #endif
     
-    // Pobranie pierwszej pogody
-    fetchWeatherData();
+    // Pobranie pierwszej pogody (false → short retry in loop, not full interval)
+    if (!fetchWeatherData()) {
+      lastWeatherFetchMillis = millis() - WEATHER_INTERVAL_MS + WEATHER_RETRY_MS;
+    } else {
+      lastWeatherFetchMillis = millis();
+    }
   } else {
     Serial.println(F("\\nNie udało się połączyć z WiFi - praca w trybie offline"));
   }
@@ -598,10 +620,13 @@ void loop() {
     checkAutomations();
   }
 
-  // Pobieranie pogody co zadany interwał
+  // Pobieranie pogody co zadany interwał (krótki retry gdy NTP/TLS niegotowe)
   if (WiFi.status() == WL_CONNECTED && (currentMillis - lastWeatherFetchMillis > WEATHER_INTERVAL_MS)) {
-    lastWeatherFetchMillis = currentMillis;
-    fetchWeatherData();
+    if (fetchWeatherData()) {
+      lastWeatherFetchMillis = currentMillis;
+    } else {
+      lastWeatherFetchMillis = currentMillis - WEATHER_INTERVAL_MS + WEATHER_RETRY_MS;
+    }
   }
 
   // Animacje oczu zwierzaka (mruganie co ~3.5 sekundy)
@@ -990,10 +1015,11 @@ void checkAutomations() {
 // ==============================================================================
 //  POBIERANIE POGODY W CZASIE RZECZYWISTYM (${(api.weather.provider || 'open-meteo').toUpperCase()})
 // ==============================================================================
-void fetchWeatherData() {
-  if (WiFi.status() != WL_CONNECTED) return;
+bool fetchWeatherData() {
+  if (WiFi.status() != WL_CONNECTED) return false;
 
   HTTPClient http;
+  bool ok = false;
 ${(() => {
   const provider = api.weather.provider || 'open-meteo';
   const cityLit = cppStringLiteral(api.weather.city);
@@ -1011,18 +1037,32 @@ ${(() => {
       currentTemperature = doc["current_condition"][0]["temp_C"].as<float>();
       currentHumidity = doc["current_condition"][0]["humidity"].as<int>();
       Serial.printf("Pobrano pogodę wttr.in dla %s: %.1f C, Wilg: %d%%\\n", ${cityLit}, currentTemperature, currentHumidity);
+      ok = true;
     }
   }`;
   } else if (provider === 'openweathermap') {
     const apiKey = api.weather.apiKey || 'TWOJ_KLUCZ_API';
     const owmUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(api.weather.city)}&units=metric&appid=${apiKey}`;
     return `  // OpenWeatherMap HTTPS with verified TLS (Sectigo R46 root CA)
+  // Certificate validity checks require a synchronized wall clock
+  struct tm timeinfo = {};
+  if (!getLocalTime(&timeinfo, 0)) {
+    for (int i = 0; i < 20 && !getLocalTime(&timeinfo, 0); i++) {
+      delay(250);
+    }
+  }
+  if (!getLocalTime(&timeinfo, 0)) {
+    Serial.println(F("[OWM] Brak synchronizacji NTP — odkładam HTTPS (krótki retry)"));
+    http.end();
+    return false;
+  }
   WiFiClientSecure secureClient;
   secureClient.setCACert(OWM_ROOT_CA);
   String url = ${cppStringLiteral(owmUrl)};
   if (!http.begin(secureClient, url)) {
     Serial.println(F("[OWM] Nie udało się rozpocząć HTTPS"));
-    return;
+    http.end();
+    return false;
   }
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
@@ -1033,6 +1073,7 @@ ${(() => {
       currentTemperature = doc["main"]["temp"].as<float>();
       currentHumidity = doc["main"]["humidity"].as<int>();
       Serial.printf("Pobrano pogodę OpenWeatherMap dla %s: %.1f C, Wilg: %d%%\\n", ${cityLit}, currentTemperature, currentHumidity);
+      ok = true;
     }
   } else {
     Serial.printf("[OWM] HTTP %d (TLS zweryfikowany)\\n", httpCode);
@@ -1053,6 +1094,7 @@ ${(() => {
       if (doc.containsKey("temperature")) currentTemperature = doc["temperature"];
       else if (doc.containsKey("current_weather")) currentTemperature = doc["current_weather"]["temperature"];
       Serial.printf("Pobrano pogodę z własnego API: %.1f C\\n", currentTemperature);
+      ok = true;
     }
   }`;
   } else {
@@ -1068,11 +1110,13 @@ ${(() => {
     if (!error) {
       currentTemperature = doc["current_weather"]["temperature"];
       Serial.printf("Pobrano pogodę Open-Meteo dla %s: %.1f C\\n", ${cityLit}, currentTemperature);
+      ok = true;
     }
   }`;
   }
 })()}
   http.end();
+  return ok;
 }
 
 // ==============================================================================
