@@ -1,6 +1,6 @@
 # Desktop polish — tray, autostart, i18n, kanały
 
-Wprowadzone w **Fazie 6**; nadal aktualne w linii **0.2.11**.  
+Wprowadzone w **Fazie 6**; nadal aktualne w linii **0.2.12**.  
 Ustawienia: **Ustawienia → Desktop**. Indeks: [README.md](./README.md).
 
 ## Tray

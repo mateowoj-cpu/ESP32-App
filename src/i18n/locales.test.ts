@@ -101,6 +101,9 @@ assert(translate('pl', 'sim.distance').toLowerCase().includes('hc-sr04'), 'pl si
 assert(translate('en', 'auto.triggerType.ultrasonic_below').toLowerCase().includes('hc-sr04'), 'en ultra trigger');
 assert(translate('en', 'auto.actionType.toggle_relay').toLowerCase().includes('relay'), 'en relay action');
 assert(translate('pl', 'pinout.opt.bme280').toLowerCase().includes('bme'), 'pl bme280');
+assert(translate('en', 'sim.disconnected').toLowerCase().includes('disconnect'), 'en sim disconnected');
+assert(translate('pl', 'auto.eventTypeLabel').toLowerCase().includes('zdarzenia'), 'pl auto event type');
+assert(translate('en', 'gpio.legend.adc').toLowerCase().includes('adc'), 'en gpio adc legend');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

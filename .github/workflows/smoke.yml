@@ -32,6 +32,12 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Assert app version sync
+        run: npm run assert:app-version
+
+      - name: Assert updater key format helpers
+        run: npm run assert:updater-key-format
+
       - name: Typecheck
         run: npm run lint
 
@@ -64,6 +70,12 @@ jobs:
 
       - name: Marketplace sandbox tests
         run: npm run test:marketplace
+
+      - name: Free tooling detection tests
+        run: npm run test:tools
+
+      - name: Pin programming / peripheral tests
+        run: npm run test:pin-programming
 
       - name: Community board catalog validate
         run: npm run validate:board-catalog

@@ -1,6 +1,6 @@
 # Dokumentacja — ESP32 Display Studio
 
-Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.11** (Faza 17 + multi-OS CI + UX/tooling/marketplace #34–#39). Następna: [Faza 18 ops / human](./roadmap-next.md).
+Indeks dokumentów w `docs/`. Wersja aplikacji: **0.2.12** (Faza 17 + multi-OS CI + UX/pinout/peripherals #34–#43). Następna: [Faza 18 ops / human](./roadmap-next.md).
 
 Język: głównie **PL** (jak README główne). Dokumenty telemetrii i marketplace mają treść **PL** z krótkim streszczeniem **EN** na górze.
 

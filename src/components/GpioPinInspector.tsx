@@ -379,11 +379,11 @@ export const GpioPinInspector: React.FC<GpioPinInspectorProps> = ({
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-            <strong className="text-amber-300">ADC / Sygnał Analogowy</strong>
+            <strong className="text-amber-300">{t('gpio.legend.adc')}</strong>
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
-            <strong className="text-rose-300">Ekran Dotykowy</strong>
+            <strong className="text-rose-300">{t('gpio.legend.touch')}</strong>
           </span>
         </div>
 

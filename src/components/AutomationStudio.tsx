@@ -967,7 +967,7 @@ void updatePetTimeline() {
                     1. {t('auto.trigger')}
                   </span>
                   <div>
-                    <label className="ui-type-micro text-slate-400">Typ zdarzenia:</label>
+                    <label className="ui-type-micro text-slate-400">{t('auto.eventTypeLabel')}</label>
                     <select
                       value={newTriggerType}
                       onChange={e => setNewTriggerType(e.target.value as TriggerType)}
@@ -983,7 +983,7 @@ void updatePetTimeline() {
 
                   {newTriggerType === 'time_is' && (
                     <div className="flex flex-col gap-2">
-                      <label className="ui-type-micro text-slate-400">Ustaw godzinę (HH:MM):</label>
+                      <label className="ui-type-micro text-slate-400">{t('auto.setTimeLabel')}</label>
                       <input
                         type="time"
                         value={newTriggerTime}
@@ -1012,7 +1012,7 @@ void updatePetTimeline() {
                   {newTriggerType === 'light_lux_below' && (
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between ui-type-micro">
-                        <span className="text-slate-400">Próg jasności (lux):</span>
+                        <span className="text-slate-400">{t('auto.luxThresholdLabel')}</span>
                         <span className="font-mono text-cyan-400 font-bold">{newTriggerThreshold} lx</span>
                       </div>
                       <input
@@ -1046,7 +1046,7 @@ void updatePetTimeline() {
                   {newTriggerType === 'temp_above' && (
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between ui-type-micro">
-                        <span className="text-slate-400">Próg temperatury:</span>
+                        <span className="text-slate-400">{t('auto.tempThresholdLabel')}</span>
                         <span className="font-mono text-rose-400 font-bold">{newTriggerThreshold} °C</span>
                       </div>
                       <input
@@ -1078,7 +1078,7 @@ void updatePetTimeline() {
 
                   {newTriggerType === 'pir_motion' && (
                     <div className="flex flex-col gap-1.5">
-                      <label className="ui-type-micro text-slate-400">Pin wejściowy PIR:</label>
+                      <label className="ui-type-micro text-slate-400">{t('auto.pirPinLabel')}</label>
                       <div className="flex flex-wrap gap-1.5">
                         {[14, 13, 12, 27, 4].map(pin => (
                           <button
@@ -1127,7 +1127,7 @@ void updatePetTimeline() {
                     2. {t('auto.action')}
                   </span>
                   <div>
-                    <label className="ui-type-micro text-slate-400">Typ akcji:</label>
+                    <label className="ui-type-micro text-slate-400">{t('auto.actionTypeLabel')}</label>
                     <select
                       value={newActionType}
                       onChange={e => setNewActionType(e.target.value as ActionType)}
@@ -1144,7 +1144,7 @@ void updatePetTimeline() {
                   {newActionType === 'set_brightness' && (
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between ui-type-micro">
-                        <span className="text-slate-400">Poziom jasności ekranu:</span>
+                        <span className="text-slate-400">{t('auto.brightnessLevelLabel')}</span>
                         <span className="font-mono text-cyan-400 font-bold">{newActionBrightness}%</span>
                       </div>
                       <input
@@ -1177,7 +1177,7 @@ void updatePetTimeline() {
 
                   {newActionType === 'set_pet_mood' && (
                     <div>
-                      <label className="ui-type-micro text-slate-400 block mb-1">Nastrój / Zachowanie zwierzaka:</label>
+                      <label className="ui-type-micro text-slate-400 block mb-1">{t('auto.petMoodLabel')}</label>
                       <select
                         value={newActionMood}
                         onChange={e => setNewActionMood(e.target.value as PetMood)}
@@ -1194,7 +1194,7 @@ void updatePetTimeline() {
 
                   {newActionType === 'switch_screen' && (
                     <div>
-                      <label className="ui-type-micro text-slate-400 block mb-1">Docelowy ekran:</label>
+                      <label className="ui-type-micro text-slate-400 block mb-1">{t('auto.targetScreenLabel')}</label>
                       <select
                         value={newActionScreenId}
                         onChange={e => setNewActionScreenId(e.target.value)}
@@ -1274,16 +1274,16 @@ void updatePetTimeline() {
                       <button
                         onClick={() => handleTestRule(rule)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors"
-                        title="Uruchom regułę w symulatorze"
+                        title={t('auto.testRuleTitle')}
                       >
                         <Play className="ui-icon-sm text-cyan-400" aria-hidden="true" />
-                        <span>Testuj</span>
+                        <span>{t('auto.testRule')}</span>
                       </button>
 
                       <button
                         onClick={() => handleDuplicateRule(rule)}
                         className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors"
-                        title="Duplikuj regułę"
+                        title={t('auto.duplicateRuleTitle')}
                       >
                         <Copy className="ui-icon-sm" aria-hidden="true" />
                       </button>
@@ -1291,7 +1291,7 @@ void updatePetTimeline() {
                       <button
                         onClick={() => setExpandedRuleId(isExpanded ? null : rule.id)}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors"
-                        title="Rozwiń szybką edycję parametrów"
+                        title={t('auto.expandRuleTitle')}
                       >
                         <Sliders className="ui-icon-sm text-cyan-400" aria-hidden="true" />
                         {isExpanded ? <ChevronUp className="ui-icon-sm" aria-hidden="true" /> : <ChevronDown className="ui-icon-sm" aria-hidden="true" />}
@@ -1300,7 +1300,7 @@ void updatePetTimeline() {
                       <button
                         onClick={() => handleDeleteRule(rule.id)}
                         className="p-2 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 rounded-lg transition-colors"
-                        title="Usuń"
+                        title={t('auto.deleteRuleTitle')}
                       >
                         <Trash2 className="ui-icon-sm" aria-hidden="true" />
                       </button>
@@ -1337,7 +1337,7 @@ void updatePetTimeline() {
                         {rule.trigger.type === 'time_is' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="ui-type-micro text-slate-400">Ustaw godzinę:</span>
+                              <span className="ui-type-micro text-slate-400">{t('auto.setTimeShortLabel')}</span>
                               <input
                                 type="time"
                                 value={rule.trigger.time || '22:00'}
@@ -1373,7 +1373,7 @@ void updatePetTimeline() {
                         {rule.trigger.type === 'light_lux_below' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="ui-type-micro text-slate-400">Próg światła (lux):</span>
+                              <span className="ui-type-micro text-slate-400">{t('auto.lightThresholdLabel')}</span>
                               <span className="font-mono text-cyan-300 font-bold">{rule.trigger.threshold ?? 20} lx</span>
                             </div>
                             <input
@@ -1412,7 +1412,7 @@ void updatePetTimeline() {
 
                         {rule.trigger.type === 'pir_motion' && (
                           <div className="flex items-center justify-between">
-                            <span className="ui-type-micro text-slate-400">Pin czujnika ruchu:</span>
+                            <span className="ui-type-micro text-slate-400">{t('auto.motionPinLabel')}</span>
                             <div className="flex gap-1">
                               {[14, 13, 12, 27, 4].map(pin => (
                                 <button
@@ -1463,7 +1463,7 @@ void updatePetTimeline() {
                         {rule.trigger.type === 'temp_above' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="ui-type-micro text-slate-400">Próg temperatury:</span>
+                              <span className="ui-type-micro text-slate-400">{t('auto.tempThresholdLabel')}</span>
                               <span className="font-mono text-rose-400 font-bold">{rule.trigger.threshold ?? 30} °C</span>
                             </div>
                             <input
@@ -1541,7 +1541,7 @@ void updatePetTimeline() {
                         {rule.action.type === 'set_brightness' && (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
-                              <span className="ui-type-micro text-slate-400">Jasność ekranu:</span>
+                              <span className="ui-type-micro text-slate-400">{t('auto.editBrightnessLabel')}</span>
                               <span className="font-mono text-cyan-300 font-bold">{rule.action.brightness ?? 20}%</span>
                             </div>
                             <input
@@ -1580,7 +1580,7 @@ void updatePetTimeline() {
 
                         {rule.action.type === 'set_pet_mood' && (
                           <div className="flex flex-col gap-1.5">
-                            <label className="ui-type-micro text-slate-400">Wybierz nastrój zwierzaka:</label>
+                            <label className="ui-type-micro text-slate-400">{t('auto.editMoodLabel')}</label>
                             <select
                               value={rule.action.petMood || 'neutral'}
                               onChange={e => handleUpdateRule(rule.id, r => ({
@@ -1600,7 +1600,7 @@ void updatePetTimeline() {
 
                         {rule.action.type === 'switch_screen' && (
                           <div className="flex flex-col gap-1.5">
-                            <label className="ui-type-micro text-slate-400">Wybierz docelowy ekran:</label>
+                            <label className="ui-type-micro text-slate-400">{t('auto.editScreenLabel')}</label>
                             <select
                               value={rule.action.targetScreenId || screens[0]?.id}
                               onChange={e => handleUpdateRule(rule.id, r => ({
@@ -1806,9 +1806,9 @@ void updatePetTimeline() {
               {/* Informacja o aktualnym zachowaniu */}
               <div className="w-full flex items-center justify-between text-xs px-1">
                 <div className="flex flex-col">
-                  <span className="text-slate-400 ui-type-micro">Aktualne zachowanie:</span>
+                  <span className="text-slate-400 ui-type-micro">{t('auto.currentBehavior')}</span>
                   <span className="text-slate-100 font-bold truncate max-w-[140px]">
-                    {currentActiveStep?.name || 'Czuwanie'}
+                    {currentActiveStep?.name || t('auto.idleBehavior')}
                   </span>
                 </div>
 
@@ -1819,7 +1819,7 @@ void updatePetTimeline() {
                     onChange={e => setSyncWithSimulator(e.target.checked)}
                     className="rounded text-cyan-500 focus:ring-0 focus:outline-none ui-focus-ring"
                   />
-                  <span>Sync z ESP32</span>
+                  <span>{t('auto.syncEsp32')}</span>
                 </label>
               </div>
             </div>
@@ -1837,10 +1837,10 @@ void updatePetTimeline() {
                       ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' 
                       : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'
                   }`}
-                  title={isPlaying ? 'Pauza' : 'Odtwarzaj'}
+                  title={isPlaying ? t('auto.pause') : t('auto.play')}
                 >
                   {isPlaying ? <Pause className="ui-icon-sm fill-current" aria-hidden="true" /> : <Play className="ui-icon-sm fill-current" aria-hidden="true" />}
-                  <span>{isPlaying ? 'Pauza' : 'Odtwarzaj'}</span>
+                  <span>{isPlaying ? t('auto.pause') : t('auto.play')}</span>
                 </button>
 
                 <button
@@ -1849,7 +1849,7 @@ void updatePetTimeline() {
                   title="Przewiń do 00:00"
                 >
                   <RotateCcw className="ui-icon-sm" aria-hidden="true" />
-                  <span className="hidden sm:inline">Od początku</span>
+                  <span className="hidden sm:inline">{t('auto.fromStart')}</span>
                 </button>
 
                 <button
@@ -1891,7 +1891,7 @@ void updatePetTimeline() {
                 </div>
 
                 <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs">
-                  <span className="ui-type-micro text-slate-500 uppercase px-2 font-mono">Prędkość:</span>
+                  <span className="ui-type-micro text-slate-500 uppercase px-2 font-mono">{t('auto.speedLabel')}</span>
                   {[1, 2, 5, 10].map(speed => (
                     <button
                       key={speed}
@@ -2005,7 +2005,7 @@ void updatePetTimeline() {
                       {/* Zmiana czasu trwania i zachowania */}
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="ui-type-micro text-slate-400">Trwanie:</span>
+                          <span className="ui-type-micro text-slate-400">{t('auto.durationLabel')}</span>
                           <input
                             type="number"
                             min={2}
@@ -2051,7 +2051,7 @@ void updatePetTimeline() {
                             onClick={() => handleDeleteStep(step.id)}
                             disabled={timelineSteps.length <= 1}
                             className="p-1.5 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-400 disabled:opacity-30 rounded-lg transition-colors"
-                            title="Usuń krok"
+                            title={t('auto.deleteStepTitle')}
                           >
                             <Trash2 className="ui-icon-sm" aria-hidden="true" />
                           </button>

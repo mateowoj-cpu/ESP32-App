@@ -31,6 +31,18 @@ function cargoPackageVersion() {
   return m[1];
 }
 
+/** Version of the workspace package entry in Cargo.lock (not transitive deps). */
+function cargoLockPackageVersion() {
+  const lock = readFileSync(join(root, "src-tauri/Cargo.lock"), "utf8");
+  const m = lock.match(
+    /\[\[package\]\]\s*\nname\s*=\s*"esp32-display-studio"\s*\nversion\s*=\s*"([^"]+)"/,
+  );
+  if (!m) {
+    throw new Error('Cargo.lock missing [[package]] name = "esp32-display-studio"');
+  }
+  return m[1];
+}
+
 function normalizeTagInput(raw) {
   const tag = (raw || "").trim();
   // GitHub expressions sometimes stringify false → "false".
@@ -81,6 +93,13 @@ export function resolveAppVersion({ tag = "" } = {}) {
   }
   if (cargo !== version) {
     throw new Error(`Version drift: package.json=${version} Cargo.toml=${cargo}`);
+  }
+
+  const cargoLock = cargoLockPackageVersion();
+  if (cargoLock !== version) {
+    throw new Error(
+      `Version drift: package.json=${version} Cargo.lock esp32-display-studio=${cargoLock}`,
+    );
   }
 
   // package-lock root versions should match when present

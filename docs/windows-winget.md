@@ -19,8 +19,8 @@ Lokalnie (gdy masz plik `.exe`):
 
 ```bash
 ./scripts/winget/prepare-draft-manifest.sh \
-  --version 0.2.11 \
-  --installer ./ESP32.Display.Studio_0.2.11_x64-setup.exe
+  --version 0.2.12 \
+  --installer ./ESP32.Display.Studio_0.2.12_x64-setup.exe
 ```
 
 ## Live winget-pkgs (Faza 15 — human)
@@ -30,20 +30,20 @@ Merge do [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) jest 
 ### Checklista po pierwszym signed release
 
 1. Sekrety CI (tylko w GitHub Actions / lokalnym sejfie — **nie w git**): `TAURI_SIGNING_PRIVATE_KEY`, opcjonalnie `WINDOWS_CERTIFICATE*`, opcjonalnie `WINGET_GITHUB_TOKEN`
-2. Tag signed `v0.2.7` lub nowszy (`v0.2.11`) → workflow `windows-release.yml`
+2. Tag signed `v0.2.7` lub nowszy (`v0.2.12`) → workflow `windows-release.yml`
 3. Opcjonalnie: workflow `windows-penv-artifact.yml` → artifact penv → `Stage-PlatformIoPenv.ps1` przed bundlem
 4. Uruchom `winget-draft.yml` (lub poczekaj na `release: published`) — sprawdź artefakt SHA (**nie wymyślaj**)
-5. Szablon referencyjny w repo: `packaging/winget/.../0.2.11/Studio.ESP32DisplayStudio.yaml` (placeholder SHA do czasu releasu)
+5. Szablon referencyjny w repo: `packaging/winget/.../0.2.12/Studio.ESP32DisplayStudio.yaml` (placeholder SHA do czasu releasu)
 6. PR do [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs):
 
 ```text
-manifests/s/Studio/ESP32DisplayStudio/0.2.11/
+manifests/s/Studio/ESP32DisplayStudio/0.2.12/
 ```
 
 Lokalny test:
 
 ```powershell
-winget install --manifest packaging\winget\ESP32DisplayStudio\manifests\s\Studio\ESP32DisplayStudio\0.2.11
+winget install --manifest packaging\winget\ESP32DisplayStudio\manifests\s\Studio\ESP32DisplayStudio\0.2.12
 ```
 
 7. Po instalacji: monitoring SmartScreen — [windows-smartscreen.md](./windows-smartscreen.md).

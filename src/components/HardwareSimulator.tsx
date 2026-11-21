@@ -1056,17 +1056,17 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                     ? 'bg-cyan-500 border-cyan-300 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
                     : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-slate-600'
                 }`}
-                title="Kliknij, aby symulować podłączenie kabla USB-C do komputera (automatyczne przełączenie na monitor PC)"
-               aria-label="Kliknij, aby symulować podłączenie kabla USB-C do komputera (automatyczne przełączenie na monitor PC)">
+                title={t('sim.usbCable.toggleTitle')}
+               aria-label={t('sim.usbCable.toggleTitle')}>
                 <Usb className="ui-icon-sm stroke-[2.3] shrink-0" aria-hidden="true" />
                 <div className="flex flex-col text-left">
                   <span className="text-xs font-bold leading-tight">{t('sim.usbCable.title')}</span>
                   <span className={`ui-type-micro font-semibold mt-0.5 tracking-wider uppercase ${simState.usbConnected ? 'text-slate-950' : 'text-slate-400'}`}>
-                    {simState.usbConnected ? t('sim.connected') : 'ODŁĄCZONY'}
+                    {simState.usbConnected ? t('sim.connected') : t('sim.disconnected')}
                   </span>
                 </div>
               </button>
-              <span className="text-xs font-medium text-slate-400">Podłącz do PC</span>
+              <span className="text-xs font-medium text-slate-400">{t('sim.usbConnectToPc')}</span>
             </div>
 
             {/* Bluetooth BLE Connection Simulator */}
@@ -1079,17 +1079,17 @@ export const HardwareSimulator: React.FC<HardwareSimulatorProps> = ({
                       ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
                     : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-slate-600'
                   }`}
-                  title="Symuluj połączenie bezprzewodowe Bluetooth BLE z komputerem"
-                 aria-label="Symuluj połączenie bezprzewodowe Bluetooth BLE z komputerem">
+                  title={t('sim.ble.toggleTitle')}
+                 aria-label={t('sim.ble.toggleTitle')}>
                   <Bluetooth className="ui-icon-sm shrink-0" aria-hidden="true" />
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-bold leading-tight">{t('sim.ble.title')}</span>
                     <span className={`ui-type-micro font-semibold mt-0.5 tracking-wider uppercase ${simState.bluetoothConnected ? 'text-blue-100' : 'text-slate-400'}`}>
-                      {simState.bluetoothConnected ? t('sim.connected') : 'ROZŁĄCZONY'}
+                      {simState.bluetoothConnected ? t('sim.connected') : t('sim.bleDisconnected')}
                     </span>
                   </div>
                 </button>
-                <span className="text-xs font-medium text-slate-400">Łączność BLE</span>
+                <span className="text-xs font-medium text-slate-400">{t('sim.bleConnectivity')}</span>
               </div>
             )}
           </div>
