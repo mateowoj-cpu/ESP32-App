@@ -99,9 +99,28 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
   const animFrameRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number | null>(null);
+  const canvasStageRef = useRef<HTMLDivElement | null>(null);
+  const selectedWidgetIdRef = useRef<string | null>(selectedWidgetId);
+  const activeScreenIndexRef = useRef(activeScreenIndex);
+  const screensRef = useRef(screens);
+  const gridSnapRef = useRef(gridSnap);
+  const displayRef = useRef(display);
+
+  // Right-click context menu for canvas widgets
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    widgetId: string;
+  } | null>(null);
 
   // Selected widget
   const selectedWidget = currentScreen?.widgets.find(w => w.id === selectedWidgetId) || null;
+
+  selectedWidgetIdRef.current = selectedWidgetId;
+  activeScreenIndexRef.current = activeScreenIndex;
+  screensRef.current = screens;
+  gridSnapRef.current = gridSnap;
+  displayRef.current = display;
 
   // Max duration of current screen's animation sequence
   const maxSequenceDurationMs = Math.max(
@@ -447,35 +466,74 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
     setSelectedWidgetId(newWidget.id);
   };
 
-  // Update selected widget properties
+  // Update selected widget properties (immutable; uses refs so drag/keyboard stay fresh)
   const updateSelectedWidget = (patch: Partial<UIWidget>) => {
-    if (!selectedWidgetId) return;
+    const id = selectedWidgetIdRef.current;
+    if (!id) return;
+    const screenIndex = activeScreenIndexRef.current;
 
-    setScreens(prev => {
-      const updated = [...prev];
-      const screen = updated[activeScreenIndex];
-      if (screen) {
-        screen.widgets = screen.widgets.map(w => 
-          w.id === selectedWidgetId ? { ...w, ...patch } : w
-        );
-      }
-      return updated;
-    });
+    setScreens(prev =>
+      prev.map((screen, index) =>
+        index === screenIndex
+          ? {
+              ...screen,
+              widgets: screen.widgets.map(w =>
+                w.id === id ? { ...w, ...patch } : w,
+              ),
+            }
+          : screen,
+      ),
+    );
   };
 
-  // Delete selected widget
-  const handleDeleteWidget = () => {
-    if (!selectedWidgetId) return;
-    setScreens(prev => {
-      const updated = [...prev];
-      const screen = updated[activeScreenIndex];
-      if (screen) {
-        screen.widgets = screen.widgets.filter(w => w.id !== selectedWidgetId);
-      }
-      return updated;
-    });
-    setSelectedWidgetId(null);
+  // Delete a widget by id (defaults to current selection)
+  const handleDeleteWidget = (widgetId: string | null = selectedWidgetId) => {
+    const idToDelete = widgetId ?? selectedWidgetIdRef.current;
+    if (!idToDelete) return;
+
+    const screenIndex = activeScreenIndexRef.current;
+    setScreens(prev =>
+      prev.map((screen, index) =>
+        index === screenIndex
+          ? { ...screen, widgets: screen.widgets.filter(w => w.id !== idToDelete) }
+          : screen,
+      ),
+    );
+    setSelectedWidgetId(prev => (prev === idToDelete ? null : prev));
+    setContextMenu(null);
   };
+
+  const focusCanvasStage = () => {
+    // Move focus off property inputs so Delete/Backspace hit the editor shortcuts.
+    canvasStageRef.current?.focus({ preventScroll: true });
+  };
+
+  const isTextEditingTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    if (target.isContentEditable) return true;
+    const tag = target.tagName;
+    if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+    if (tag !== 'INPUT') return false;
+    const type = (target as HTMLInputElement).type || 'text';
+    // Allow Delete to remove the widget when focus is on number/range/etc.
+    // Keep Backspace/Delete for real text caret editing only.
+    return (
+      type === 'text' ||
+      type === 'search' ||
+      type === 'url' ||
+      type === 'email' ||
+      type === 'password' ||
+      type === 'tel' ||
+      type === ''
+    );
+  };
+
+  const deleteWidgetRef = useRef(handleDeleteWidget);
+  const updateSelectedWidgetRef = useRef(updateSelectedWidget);
+  const isTextEditingTargetRef = useRef(isTextEditingTarget);
+  deleteWidgetRef.current = handleDeleteWidget;
+  updateSelectedWidgetRef.current = updateSelectedWidget;
+  isTextEditingTargetRef.current = isTextEditingTarget;
 
   // Duplicate selected widget
   const handleDuplicateWidget = () => {
@@ -588,7 +646,14 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
   const handlePointerDown = (e: React.PointerEvent, widget: UIWidget, isResize = false) => {
     e.stopPropagation();
     setSelectedWidgetId(widget.id);
+    focusCanvasStage();
 
+    // Right/middle click: select only (context menu handles delete); do not start a drag.
+    if (e.button !== 0) {
+      return;
+    }
+
+    setContextMenu(null);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
     setDragState({
@@ -667,35 +732,67 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
     }
   };
 
-  // Keyboard nudge handling
+  // Keyboard nudge + delete handling (refs keep handlers fresh without stale selection)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedWidget) return;
-      if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      const widgetId = selectedWidgetIdRef.current;
+      if (!widgetId) return;
 
-      const step = e.shiftKey ? 1 : gridSnap;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const target = e.target as HTMLElement | null;
+        const tag = target?.tagName;
+        // Backspace must keep working inside any form control (e.g. number steppers).
+        if (e.key === 'Backspace' && (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable)) {
+          return;
+        }
+        // Delete removes the widget unless a text caret field is focused.
+        if (e.key === 'Delete' && isTextEditingTargetRef.current(e.target)) return;
+        e.preventDefault();
+        deleteWidgetRef.current(widgetId);
+        return;
+      }
+
+      // Arrow nudges need the live widget geometry; skip while editing any field.
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if ((e.target as HTMLElement)?.isContentEditable) return;
+
+      const screenList = screensRef.current;
+      const screen = screenList[activeScreenIndexRef.current] || screenList[0];
+      const widget = screen?.widgets.find(w => w.id === widgetId);
+      if (!widget) return;
+
+      const step = e.shiftKey ? 1 : gridSnapRef.current;
+      const { width, height } = displayRef.current;
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        updateSelectedWidget({ x: Math.max(0, selectedWidget.x - step) });
+        updateSelectedWidgetRef.current({ x: Math.max(0, widget.x - step) });
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        updateSelectedWidget({ x: Math.min(display.width - selectedWidget.width, selectedWidget.x + step) });
+        updateSelectedWidgetRef.current({ x: Math.min(width - widget.width, widget.x + step) });
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        updateSelectedWidget({ y: Math.max(0, selectedWidget.y - step) });
+        updateSelectedWidgetRef.current({ y: Math.max(0, widget.y - step) });
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        updateSelectedWidget({ y: Math.min(display.height - selectedWidget.height, selectedWidget.y + step) });
-      } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        handleDeleteWidget();
+        updateSelectedWidgetRef.current({ y: Math.min(height - widget.height, widget.y + step) });
       }
     };
 
+    const dismissContextMenu = (e: MouseEvent) => {
+      // Ignore right-clicks so the contextmenu handler can open the menu.
+      if (e.button !== 0) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[role="menu"]')) return;
+      setContextMenu(null);
+    };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedWidget, gridSnap, display.width, display.height]);
+    window.addEventListener('pointerdown', dismissContextMenu);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('pointerdown', dismissContextMenu);
+    };
+  }, []);
 
   // Compute live animation preview style for a widget
   const getWidgetAnimationStyle = (widget: UIWidget) => {
@@ -1094,7 +1191,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
               {/* Quick Actions & Snap */}
               <div className="flex items-center gap-3">
                 {selectedWidget && (
-                  <div className="hidden sm:flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                  <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
                     <button
                       onClick={() => handleAlign('centerX')}
                       className="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400 font-mono transition-colors"
@@ -1111,6 +1208,7 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                     </button>
                     <div className="w-px h-3 bg-slate-800 mx-0.5" />
                     <button
+                      type="button"
                       onClick={handleDuplicateWidget}
                       className="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
                       title="Duplikuj element"
@@ -1118,10 +1216,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                       <Copy className="ui-icon-sm" aria-hidden="true" />
                     </button>
                     <button
-                      onClick={handleDeleteWidget}
+                      type="button"
+                      onClick={() => handleDeleteWidget()}
                       className="p-1.5 hover:bg-rose-950/60 rounded text-slate-400 hover:text-rose-400 transition-colors"
-                      title="Usuń element"
-                     aria-label="Usuń element">
+                      title={t('editor.deleteWidget')}
+                     aria-label={t('editor.deleteWidget')}>
                       <Trash2 className="ui-icon-sm" aria-hidden="true" />
                     </button>
                   </div>
@@ -1146,7 +1245,9 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
 
             {/* Screen Canvas Container */}
             <div 
-              className="p-4 bg-slate-950 border-2 border-slate-800 rounded-xl shadow-2xl relative flex items-center justify-center select-none"
+              ref={canvasStageRef}
+              tabIndex={-1}
+              className="p-4 bg-slate-950 border-2 border-slate-800 rounded-xl shadow-2xl relative flex items-center justify-center select-none outline-none focus:ring-1 focus:ring-cyan-500/40"
               style={{ minHeight: display.height * scale + 48 }}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
@@ -1159,7 +1260,13 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                   height: display.height * scale,
                   maxWidth: '100%',
                 }}
-                onClick={() => setSelectedWidgetId(null)}
+                onClick={(e) => {
+                  // Only clear when the empty canvas is clicked — widget clicks bubble here.
+                  if (e.target !== e.currentTarget) return;
+                  setSelectedWidgetId(null);
+                  setContextMenu(null);
+                  focusCanvasStage();
+                }}
               >
                 {/* Background Grid Mesh */}
                 <div 
@@ -1203,6 +1310,18 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
                     <div
                       key={w.id}
                       onPointerDown={(e) => handlePointerDown(e, w, false)}
+                      onClick={(e) => e.stopPropagation()}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedWidgetId(w.id);
+                        focusCanvasStage();
+                        setContextMenu({
+                          x: e.clientX,
+                          y: e.clientY,
+                          widgetId: w.id,
+                        });
+                      }}
                       style={{
                         left: w.x * scale,
                         top: w.y * scale,
@@ -1552,10 +1671,11 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
             </h3>
             {selectedWidget && (
               <button
-                onClick={handleDeleteWidget}
+                type="button"
+                onClick={() => handleDeleteWidget()}
                 className="p-1.5 hover:bg-rose-950/60 rounded text-rose-400 hover:text-rose-200 transition-colors"
-                title="Usuń ten element"
-               aria-label="Usuń ten element">
+                title={t('editor.deleteWidget')}
+               aria-label={t('editor.deleteWidget')}>
                 <Trash2 className="ui-icon-sm" aria-hidden="true" />
               </button>
             )}
@@ -2011,6 +2131,26 @@ export const VisualEditor: React.FC<VisualEditorProps> = ({
           )}
         </div>
       </div>
+
+      {contextMenu && (
+        <div
+          className="fixed z-[100] min-w-[160px] rounded-lg border border-slate-700 bg-slate-900 shadow-xl py-1"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          role="menu"
+          onClick={e => e.stopPropagation()}
+          onContextMenu={e => e.preventDefault()}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-rose-300 hover:bg-rose-950/50 hover:text-rose-200"
+            onClick={() => handleDeleteWidget(contextMenu.widgetId)}
+          >
+            <Trash2 className="ui-icon-sm" aria-hidden="true" />
+            <span>{t('editor.deleteWidget')}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
