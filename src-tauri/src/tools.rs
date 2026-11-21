@@ -604,24 +604,82 @@ fn probe_wokwi(app: &AppHandle) -> ToolProbe {
     }
 }
 
+/// Launch an http(s) URL with the OS default handler — no shell (`cmd` / `sh`) intermediary.
+#[cfg(windows)]
+fn shell_execute_open(target: &str) -> Result<(), String> {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    use std::ptr;
+
+    fn wide(s: &str) -> Vec<u16> {
+        OsStr::new(s).encode_wide().chain(Some(0)).collect()
+    }
+
+    #[link(name = "shell32")]
+    extern "system" {
+        fn ShellExecuteW(
+            hwnd: *mut core::ffi::c_void,
+            lp_operation: *const u16,
+            lp_file: *const u16,
+            lp_parameters: *const u16,
+            lp_directory: *const u16,
+            n_show_cmd: i32,
+        ) -> isize;
+    }
+
+    // > 32 means success per ShellExecuteW contract.
+    const SW_SHOWNORMAL: i32 = 1;
+    let operation = wide("open");
+    let file = wide(target);
+    let rc = unsafe {
+        ShellExecuteW(
+            ptr::null_mut(),
+            operation.as_ptr(),
+            file.as_ptr(),
+            ptr::null(),
+            ptr::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+    if (rc as usize) <= 32 {
+        Err(format!("ShellExecuteW failed (code {rc}) for {target}"))
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn xdg_open(target: &str) -> Result<(), String> {
+    use std::process::Stdio;
+    Command::new("xdg-open")
+        .arg(target)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Nie udało się uruchomić xdg-open: {e}"))?;
+    Ok(())
+}
+
 pub fn open_path_os(path: &Path) -> Result<(), String> {
     #[cfg(windows)]
     {
         let mut cmd = Command::new("explorer");
         cmd.arg(path);
         hide_console(&mut cmd);
-        cmd.spawn().map_err(|e| e.to_string())?;
+        cmd.spawn()
+            .map_err(|e| format!("Nie udało się otworzyć ścieżki w Explorer: {e}"))?;
     }
     #[cfg(target_os = "macos")]
     {
         Command::new("open")
             .arg(path)
             .spawn()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| format!("Nie udało się uruchomić open: {e}"))?;
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
-        let _ = Command::new("xdg-open").arg(path).spawn();
+        xdg_open(&path.display().to_string())?;
     }
     Ok(())
 }
@@ -631,24 +689,22 @@ pub fn open_url_os(url: &str) -> Result<(), String> {
     if parsed.scheme() != "http" && parsed.scheme() != "https" {
         return Err("Dozwolone tylko http(s)".into());
     }
+    // Prefer the parsed string so we open a normalized http(s) URL only.
+    let safe = parsed.as_str();
     #[cfg(windows)]
     {
-        // Hide the cmd.exe console; `start` still opens the default browser UI.
-        let mut cmd = Command::new("cmd");
-        cmd.args(["/C", "start", "", url]);
-        hide_console(&mut cmd);
-        cmd.spawn().map_err(|e| e.to_string())?;
+        shell_execute_open(safe)?;
     }
     #[cfg(target_os = "macos")]
     {
         Command::new("open")
-            .arg(url)
+            .arg(safe)
             .spawn()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| format!("Nie udało się uruchomić open: {e}"))?;
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     {
-        let _ = Command::new("xdg-open").arg(url).spawn();
+        xdg_open(safe)?;
     }
     Ok(())
 }
@@ -812,4 +868,30 @@ pub fn open_wokwi_simulator() -> Result<OpenResult, String> {
         message: "Otwarto darmowy symulator Wokwi (ESP32).".into(),
         path: None,
     })
+}
+
+#[cfg(test)]
+mod open_url_tests {
+    use super::open_url_os;
+
+    #[test]
+    fn rejects_non_http_schemes() {
+        assert!(open_url_os("file:///etc/passwd").is_err());
+        assert!(open_url_os("javascript:alert(1)").is_err());
+        assert!(open_url_os("cmd:///C").is_err());
+        assert!(open_url_os("not a url").is_err());
+    }
+
+    #[test]
+    fn accepts_https_shape_before_os_launch() {
+        // Parse/scheme gate only — OS launch may still fail in headless CI without a handler.
+        let err = open_url_os("https://example.com/").err();
+        if let Some(msg) = err {
+            // Must not be the scheme/parse rejection.
+            assert!(
+                !msg.contains("Dozwolone tylko") && !msg.contains("Nieprawidłowy URL"),
+                "unexpected validation error: {msg}"
+            );
+        }
+    }
 }

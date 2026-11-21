@@ -4,7 +4,6 @@
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -89,25 +88,7 @@ pub fn get_diagnostics_log_path(app: AppHandle) -> Result<String, String> {
 #[tauri::command]
 pub fn open_diagnostics_folder(app: AppHandle) -> Result<(), String> {
     let dir = logs_dir(&app)?;
-    #[cfg(windows)]
-    {
-        let mut cmd = Command::new("explorer");
-        cmd.arg(dir);
-        crate::process_util::hide_console(&mut cmd);
-        cmd.spawn().map_err(|e| e.to_string())?;
-    }
-    #[cfg(target_os = "macos")]
-    {
-        Command::new("open")
-            .arg(dir)
-            .spawn()
-            .map_err(|e| e.to_string())?;
-    }
-    #[cfg(all(unix, not(target_os = "macos")))]
-    {
-        let _ = Command::new("xdg-open").arg(&dir).spawn();
-    }
-    Ok(())
+    crate::tools::open_path_os(&dir)
 }
 
 #[tauri::command]

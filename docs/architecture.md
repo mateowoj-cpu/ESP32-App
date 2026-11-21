@@ -11,6 +11,7 @@ Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danyc
 | Platform adapters | `src/platform/*` — jedyna ścieżka UI → host |
 | Desktop shell | Tauri 2 (`src-tauri/`) — Windows NSIS/MSI; Linux AppImage/deb; macOS dmg |
 | Native I/O | `serialport`, `mdns-sd`, child processes (`esptool`, `pio`, `espota`, `curl`) — na Windows z `CREATE_NO_WINDOW` (`process_util`) |
+| WebView boundary | Produkcyjny CSP w `tauri.conf.json`; URL http(s) przez `ShellExecuteW` / `open` / `xdg-open` (bez `cmd /C start`) |
 | Firmware | Generator C++ (Arduino / PlatformIO) + Build/Flash/OTA w shellu |
 
 ## Diagram (logiczny)

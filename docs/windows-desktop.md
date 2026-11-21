@@ -33,8 +33,9 @@ Na Windows przełączenie na **Wykryj ESP32 (USB)** lub **Ustawienia** uruchamia
 Od **0.2.13** shell stosuje `CREATE_NO_WINDOW` (`src-tauri/src/process_util.rs` → `hide_console`) dla:
 
 - probe’ów `where` / wersji narzędzi (USB Flash Helper + Desktop Settings),
-- build / flash / OTA / `taskkill` / agent PC,
-- wrappera `cmd /C start` przy otwieraniu URL (przeglądarka nadal się otwiera, bez mignięcia konsoli).
+- build / flash / OTA / `taskkill` / agent PC.
+
+Otwieranie zewnętrznych URL na Windows idzie przez `ShellExecuteW` (bez `cmd /C start`). Na Linuxie błąd startu `xdg-open` jest propagowany do UI. Produkcyjny CSP WebView ogranicza fonty, katalogi, integracje pogodowe i opt-in telemetrię HTTPS — zob. `src-tauri/tauri.conf.json` → `app.security.csp`.
 
 Świadomie widoczne zostają tylko prawdziwe GUI (Explorer, Arduino IDE, przeglądarka). Logi build/flash nadal płyną do UI przez eventy `build-log` / `flash-log` / `ota-log` — nie przez okno terminala.
 
