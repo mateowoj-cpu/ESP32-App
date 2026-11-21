@@ -31,6 +31,10 @@ interface Esp32PinoutMapProps {
   system: SystemConfig;
   setSystem: React.Dispatch<React.SetStateAction<SystemConfig>>;
   onPinAssigned?: (pin: number, func: PinFunction) => void;
+  /** Optional board / chip label shown in the header (e.g. after USB detect). */
+  boardLabel?: string;
+  /** When true, show a compact wiring cheat-sheet for the last assignment. */
+  showWiringHints?: boolean;
 }
 
 export interface PhysicalPinInfo {
@@ -88,12 +92,15 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
   system,
   setSystem,
   onPinAssigned,
+  boardLabel,
+  showWiringHints = false,
 }) => {
   const { t } = useLocale();
   const [selectedPin, setSelectedPin] = useState<PhysicalPinInfo | null>(null);
   const [filterPeripheral, setFilterPeripheral] = useState<'all' | 'i2c' | 'spi' | 'pwm' | 'adc' | 'touch'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastAssignedMsg, setLastAssignedMsg] = useState<string | null>(null);
+  const [lastWiringHint, setLastWiringHint] = useState<{ pin: number; func: PinFunction } | null>(null);
 
   // Determine current active function assigned to a pin
   const getPinCurrentFunction = (pin: number): { func: PinFunction; label: string; color: string; badge: string } => {
@@ -115,7 +122,10 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
       if (pin === display.touchRstPin) return { func: 'TOUCH_RST', label: t('pinout.fn.touchRst'), color: 'border-rose-500 bg-rose-950/60 text-rose-300', badge: 'TOUCH RST' };
     }
 
-    // 3. Check System Config assignments
+    // 3. Check System Config assignments (explicit hall before defaulted PIR/etc.)
+    if (system.hallPin != null && pin === system.hallPin) {
+      return { func: 'INPUT_HALL', label: t('pinout.fn.hall'), color: 'border-fuchsia-500 bg-fuchsia-950/60 text-fuchsia-300', badge: 'A3144 HALL' };
+    }
     if (pin === (system.pirPin ?? 14)) return { func: 'INPUT_PIR', label: t('pinout.fn.pir'), color: 'border-emerald-500 bg-emerald-950/60 text-emerald-300', badge: 'PIR MOTION' };
     if (pin === (system.ldrPin ?? 36)) return { func: 'ADC_LDR', label: t('pinout.fn.ldr'), color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC LDR' };
     if (pin === (system.potPin ?? 34)) return { func: 'ADC_POT', label: t('pinout.fn.pot'), color: 'border-yellow-500 bg-yellow-950/60 text-yellow-300', badge: 'ADC POT' };
@@ -158,9 +168,12 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
         nextCustom[pin] = func;
       }
 
+      const nextPir =
+        func === 'INPUT_PIR' ? pin : prev.pirPin === pin ? (pin === 14 ? 27 : 14) : prev.pirPin;
       return {
         ...prev,
-        pirPin: func === 'INPUT_PIR' ? pin : prev.pirPin === pin ? 14 : prev.pirPin,
+        pirPin: nextPir,
+        hallPin: func === 'INPUT_HALL' ? pin : prev.hallPin === pin ? undefined : prev.hallPin,
         ldrPin: func === 'ADC_LDR' ? pin : prev.ldrPin === pin ? 36 : prev.ldrPin,
         potPin: func === 'ADC_POT' ? pin : prev.potPin === pin ? 34 : prev.potPin,
         buzzerPin: func === 'PWM_BUZZER' ? pin : prev.buzzerPin === pin ? 18 : prev.buzzerPin,
@@ -173,9 +186,29 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
     const msg = t('pinout.assigned').replace('{pin}', String(pin)).replace('{func}', func);
     setLastAssignedMsg(msg);
     setTimeout(() => setLastAssignedMsg(null), 4000);
+    if (showWiringHints && func !== 'GPIO_FREE') {
+      setLastWiringHint({ pin, func });
+    }
 
     if (onPinAssigned) {
       onPinAssigned(pin, func);
+    }
+  };
+
+  const wiringHintText = (pin: number, func: PinFunction): string => {
+    switch (func) {
+      case 'INPUT_HALL':
+        return t('pinout.wiring.hall').replace('{pin}', String(pin));
+      case 'INPUT_PIR':
+        return t('pinout.wiring.pir').replace('{pin}', String(pin));
+      case 'ADC_LDR':
+        return t('pinout.wiring.ldr').replace('{pin}', String(pin));
+      case 'ADC_POT':
+        return t('pinout.wiring.pot').replace('{pin}', String(pin));
+      case 'PWM_BUZZER':
+        return t('pinout.wiring.buzzer').replace('{pin}', String(pin));
+      default:
+        return t('pinout.wiring.generic').replace('{pin}', String(pin)).replace('{func}', func);
     }
   };
 
@@ -211,8 +244,13 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
             <Cpu className="ui-icon-md" aria-hidden="true" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
               <span>{t('pinout.title')}</span>
+              {boardLabel && (
+                <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  {boardLabel}
+                </span>
+              )}
               <span className="px-2 py-0.5 rounded ui-type-micro font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 Live Code Sync
               </span>
@@ -299,6 +337,16 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
           <span className="ui-type-micro text-emerald-400/80 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
             {t('pinout.cppReady')}
           </span>
+        </div>
+      )}
+
+      {showWiringHints && lastWiringHint && (
+        <div className="px-4 py-3 bg-slate-900 border border-fuchsia-500/30 rounded-xl text-xs text-slate-300 flex items-start gap-3">
+          <Info className="ui-icon-sm text-fuchsia-400 shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="leading-relaxed">
+            <strong className="text-fuchsia-300 font-mono block mb-1">{t('pinout.wiring.title')}</strong>
+            <span>{wiringHintText(lastWiringHint.pin, lastWiringHint.func)}</span>
+          </div>
         </div>
       )}
 
@@ -598,6 +646,24 @@ export const Esp32PinoutMap: React.FC<Esp32PinoutMapProps> = ({
                       <div className="ui-type-micro text-slate-400">{t('pinout.opt.pirHint')}</div>
                     </div>
                     {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_PIR' && <Check className="ui-icon-sm text-emerald-400" aria-hidden="true" />}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleAssignFunction(selectedPin.pin, 'INPUT_HALL');
+                      setSelectedPin(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs transition-colors flex items-center justify-between ${
+                      getPinCurrentFunction(selectedPin.pin).func === 'INPUT_HALL'
+                        ? 'bg-fuchsia-950 border-fuchsia-400 text-fuchsia-300'
+                        : 'bg-slate-950 border-slate-800 hover:border-fuchsia-500/60 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold">{t('pinout.opt.hall')}</div>
+                      <div className="ui-type-micro text-slate-400">{t('pinout.opt.hallHint')}</div>
+                    </div>
+                    {getPinCurrentFunction(selectedPin.pin).func === 'INPUT_HALL' && <Check className="ui-icon-sm text-fuchsia-400" aria-hidden="true" />}
                   </button>
 
                   <button

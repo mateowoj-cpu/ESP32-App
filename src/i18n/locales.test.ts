@@ -87,6 +87,13 @@ assert(translate('pl', 'sim.emulatorTitle').toLowerCase().includes('oled'), 'pl 
 assert(translate('en', 'gpio.title').toLowerCase().includes('gpio'), 'en gpio title');
 assert(translate('pl', 'auto.saveRule').toLowerCase().includes('zapisz'), 'pl auto save rule');
 assert(translate('en', 'auto.tpl.blurb.pir').toLowerCase().includes('pir'), 'en auto tpl blurb');
+assert(translate('en', 'pinout.fn.hall').toLowerCase().includes('a3144'), 'en pinout hall');
+assert(translate('pl', 'pinout.opt.hall').toLowerCase().includes('a3144'), 'pl pinout hall opt');
+assert(translate('en', 'usb.pinout.title').toLowerCase().includes('pinout'), 'en usb pinout');
+assert(translate('pl', 'usb.pinout.hint').toLowerCase().includes('a3144'), 'pl usb pinout hint');
+assert(translate('en', 'auto.triggerType.hall_magnetic').toLowerCase().includes('hall'), 'en hall trigger');
+assert(translate('en', 'pinout.wiring.hall').includes('{pin}'), 'en hall wiring placeholder');
+assert(translate('pl', 'code.wiring.module.hall').toLowerCase().includes('a3144'), 'pl hall wiring module');
 assert(UPDATE_ENDPOINTS.stable[0].includes('latest.json'), 'stable endpoint');
 assert(UPDATE_ENDPOINTS.beta[0].includes('latest-beta.json'), 'beta endpoint');
 

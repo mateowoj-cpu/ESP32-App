@@ -76,6 +76,8 @@ const char* TIMEZONE      = "${system.timezone}";
 // --- PINY SPRZĘTOWE SENSORÓW I PERYFERIÓW (MAPA PINÓW) ---
 #define PIN_BOOT_BTN   0     // Fabryczny przycisk BOOT
 #define PIN_PIR_SENSOR ${system.pirPin ?? 14}    // Czujnik ruchu PIR (cyfrowy)
+#define PIN_HALL_ENABLED ${system.hallPin != null ? 1 : 0}
+#define PIN_HALL_SENSOR ${system.hallPin ?? 13}  // A3144 hall (cyfrowy, aktywny LOW + pull-up)
 #define PIN_LDR_SENSOR ${system.ldrPin ?? 36}    // Fotorezystor (ADC1_CH0)
 #define PIN_USER_BTN1  ${system.userBtn1Pin ?? 35}    // Opcjonalny przycisk dodatkowy
 #define PIN_POT_ADC    ${system.potPin ?? 34}    // Potencjometr (ADC1_CH6)
@@ -190,6 +192,10 @@ void setup() {
   // Konfiguracja pinów GPIO
   pinMode(PIN_BOOT_BTN, INPUT_PULLUP);
   pinMode(PIN_PIR_SENSOR, INPUT);
+  #if PIN_HALL_ENABLED
+  // A3144: wyjście open-collector — INPUT_PULLUP, aktywny LOW przy magnesie
+  pinMode(PIN_HALL_SENSOR, INPUT_PULLUP);
+  #endif
   pinMode(PIN_USER_BTN1, INPUT_PULLUP);
   pinMode(PIN_STATUS_LED, OUTPUT);
   digitalWrite(PIN_STATUS_LED, HIGH);
@@ -635,6 +641,19 @@ void checkAutomations() {
   } else if (currentPetMood == MOOD_HAPPY && (millis() - lastActivityMillis > 5000)) {
     currentPetMood = MOOD_NEUTRAL;
   }
+
+  #if PIN_HALL_ENABLED
+  // A3144 hall: aktywny LOW (magnes blisko) — wybudź / loguj
+  static bool lastHallActive = false;
+  bool hallActive = digitalRead(PIN_HALL_SENSOR) == LOW;
+  if (hallActive && !lastHallActive) {
+    lastActivityMillis = millis();
+    isDisplayAwake = true;
+    currentPetMood = MOOD_SURPRISED;
+    Serial.printf("[A3144] Magnes wykryty na GPIO %d\\n", PIN_HALL_SENSOR);
+  }
+  lastHallActive = hallActive;
+  #endif
 
   // Sprawdzenie godziny dla ziewania i snu (np. 23:00)
   struct tm timeinfo;

@@ -114,6 +114,7 @@ export default function App() {
   // Hardware Simulation State
   const [simState, setSimState] = useState<HardwareSimState>({
     pirActive: false,
+    hallActive: false,
     ambientLux: 450,
     temperature: 21.5,
     humidity: 52,

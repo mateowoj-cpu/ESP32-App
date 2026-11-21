@@ -27,6 +27,7 @@ import {
   looksLikeWindowsHost,
 } from '../platform/windowsDrivers';
 import { FlashHelperPanel, type SketchBuildSources } from './FlashHelperPanel';
+import { Esp32PinoutMap } from './Esp32PinoutMap';
 import { useLocale } from '../i18n/LocaleContext';
 import { 
   Usb, 
@@ -41,6 +42,7 @@ import {
   ExternalLink,
   BookOpen,
   X,
+  CircuitBoard,
 } from 'lucide-react';
 
 interface UsbDetectorViewProps {
@@ -898,6 +900,45 @@ export const UsbDetectorView: React.FC<UsbDetectorViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Graphical pinout + pin-level programming after board detection */}
+      {detectedChip && (
+        <div className="p-5 bg-slate-900 border border-cyan-500/25 rounded-2xl flex flex-col gap-4">
+          <div className="flex items-start gap-3 pb-3 border-b border-slate-800">
+            <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shrink-0">
+              <CircuitBoard className="ui-icon-sm" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-slate-100">{t('usb.pinout.title')}</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                {t('usb.pinout.hint')}
+              </p>
+            </div>
+          </div>
+          <Esp32PinoutMap
+            display={display}
+            setDisplay={setDisplay}
+            system={system}
+            setSystem={setSystem}
+            boardLabel={localizeChipModel(detectedChip)}
+            showWiringHints
+            onPinAssigned={(pin, func) => {
+              const timeStr = formatClockTimestamp();
+              setSerialLogs(prev => [
+                ...prev,
+                {
+                  id: `log-${Date.now()}`,
+                  timestamp: timeStr,
+                  text: t('usb.pinout.assignedLog')
+                    .replace('{pin}', String(pin))
+                    .replace('{func}', func),
+                  direction: 'system',
+                },
+              ]);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -142,6 +142,7 @@ const WIDGET_TYPES = new Set<WidgetType>([
 
 const TRIGGER_TYPES = new Set<TriggerType>([
   'pir_motion',
+  'hall_magnetic',
   'light_lux_below',
   'temp_above',
   'boot_button_pressed',

@@ -246,6 +246,7 @@ export type PinFunction =
   | 'ADC_LDR'
   | 'ADC_POT'
   | 'INPUT_PIR'
+  | 'INPUT_HALL'
   | 'INPUT_BOOT'
   | 'INPUT_BUTTON'
   | 'OUTPUT_LED'
@@ -274,6 +275,8 @@ export interface SystemConfig {
   cpuFrequencyMhz: 80 | 160 | 240;
   // Hardware Sensor & Peripheral Pin Assignments
   pirPin?: number;
+  /** A3144 (or compatible) hall-effect digital sensor data pin. Opt-in via pinout. */
+  hallPin?: number;
   ldrPin?: number;
   potPin?: number;
   userBtn1Pin?: number;
@@ -356,6 +359,7 @@ export interface ApiIntegrationsConfig {
 
 export type TriggerType = 
   | 'pir_motion'
+  | 'hall_magnetic'
   | 'light_lux_below'
   | 'temp_above'
   | 'boot_button_pressed'
@@ -416,6 +420,8 @@ export interface GpioPinState {
 
 export interface HardwareSimState {
   pirActive: boolean;
+  /** A3144 hall sensor: magnet near sensor (active LOW with pull-up). */
+  hallActive: boolean;
   ambientLux: number; // 0 - 1000
   temperature: number; // °C
   humidity: number; // %
