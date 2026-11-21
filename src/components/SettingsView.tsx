@@ -530,7 +530,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <label className="text-xs text-slate-400 block mb-1">{t('settings.otaPassword')}</label>
                   <input
                     type="password"
-                    value={system.otaPassword ?? 'esp32ota'}
+                    value={system.otaPassword ?? ''}
                     onChange={e => setSystem(prev => ({ ...prev, otaPassword: e.target.value }))}
                     disabled={system.otaEnabled === false}
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono disabled:opacity-40"

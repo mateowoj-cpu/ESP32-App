@@ -32,8 +32,9 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
 export const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   wifiSsid: 'Mój_Dom_WiFi',
   wifiPassword: 'tajne_haslo_123',
-  otaEnabled: true,
-  otaPassword: 'esp32ota',
+  // New projects opt in to OTA and set their own password — no shared default secret.
+  otaEnabled: false,
+  otaPassword: '',
   otaPort: 3232,
   autoReconnect: true,
   mdnsName: 'esp32-display',

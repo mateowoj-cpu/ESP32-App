@@ -82,7 +82,7 @@ export const FlashHelperPanel: React.FC<FlashHelperPanelProps> = ({
   const [firmwarePath, setFirmwarePath] = useState('');
   const [otaHost, setOtaHost] = useState('');
   const [otaPort, setOtaPort] = useState(3232);
-  const [otaPassword, setOtaPassword] = useState('esp32ota');
+  const [otaPassword, setOtaPassword] = useState('');
   const [otaMethod, setOtaMethod] = useState<OtaMethod>('espota');
   const [otaHosts, setOtaHosts] = useState<DiscoveredOtaHost[]>([]);
   const [recentOtaHosts, setRecentOtaHosts] = useState<RecentOtaHost[]>(() => loadRecentOtaHosts());

@@ -83,6 +83,8 @@ export function mapOtaErrorMessage(
       return t('ota.timedOut');
     case 'cancelled':
       return t('ota.cancelled');
+    case 'busy':
+      return result.message || t('ota.err.generic');
     case 'generic':
       return t('ota.err.generic');
     default: {
