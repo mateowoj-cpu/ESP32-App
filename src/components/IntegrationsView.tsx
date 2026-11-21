@@ -217,13 +217,26 @@ export const IntegrationsView: React.FC<IntegrationsViewProps> = ({
         else icon = 'sun';
       } else if (provider === 'custom') {
         const targetUrl = customUrl || apiConfig.weather.customEndpoint || `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-        const res = await fetch(targetUrl);
-        if (!res.ok) throw new Error(t('integ.err.custom'));
-        const data = await res.json();
-        if (data.current_weather) {
-          temperature = data.current_weather.temperature;
-          windSpeed = data.current_weather.windspeed;
-        } else if (data.temperature !== undefined) {
+        // Plain HTTP (e.g. homeassistant.local) bypasses WebView CSP via native GET on Tauri.
+        const { fetchTextUrl } = await import('../platform/netFetch');
+        let data: Record<string, unknown>;
+        try {
+          const body = await fetchTextUrl(targetUrl);
+          data = JSON.parse(body) as Record<string, unknown>;
+        } catch {
+          throw new Error(t('integ.err.custom'));
+        }
+        const currentWeather = data.current_weather as
+          | { temperature?: number; windspeed?: number }
+          | undefined;
+        if (currentWeather) {
+          if (typeof currentWeather.temperature === 'number') {
+            temperature = currentWeather.temperature;
+          }
+          if (typeof currentWeather.windspeed === 'number') {
+            windSpeed = currentWeather.windspeed;
+          }
+        } else if (typeof data.temperature === 'number') {
           temperature = data.temperature;
         }
       } else {

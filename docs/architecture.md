@@ -11,7 +11,7 @@ Przegląd warstw, modułów platformowych, komend IPC Tauri i przepływów danyc
 | Platform adapters | `src/platform/*` — jedyna ścieżka UI → host |
 | Desktop shell | Tauri 2 (`src-tauri/`) — Windows NSIS/MSI; Linux AppImage/deb; macOS dmg |
 | Native I/O | `serialport`, `mdns-sd`, child processes (`esptool`, `pio`, `espota`, `curl`) — na Windows z `CREATE_NO_WINDOW` (`process_util`) |
-| WebView boundary | Produkcyjny CSP w `tauri.conf.json`; URL http(s) przez `ShellExecuteW` / `open` / `xdg-open` (bez `cmd /C start`) |
+| WebView boundary | Produkcyjny CSP w `tauri.conf.json`; URL http(s) przez `ShellExecuteW` / `open` / `xdg-open` (bez `cmd /C start`); custom `http://` weather → native `fetch_url_text` |
 | Firmware | Generator C++ (Arduino / PlatformIO) + Build/Flash/OTA w shellu |
 
 ## Diagram (logiczny)
@@ -132,7 +132,7 @@ Zarejestrowane w `src-tauri/src/lib.rs` (`generate_handler!`):
 | **PC agent** | `get_pc_agent_info`, `start_pc_agent`, `stop_pc_agent` |
 | **Flash** | `get_esptool_info`, `flash_write_firmware`, `read_open_file` |
 | **Build** | `get_firmware_toolchain_info`, `build_firmware_from_sketch` |
-| **External tools** | `get_external_tools_status`, `get_tool_path_overrides`, `set_tool_path_overrides`, `open_path_in_os`, `open_external_url`, `export_and_open_arduino_ide`, `open_wokwi_simulator`, `start_winget_install`, `open_host_ide_download`, `install_platformio_vscode_extension` |
+| **External tools** | `get_external_tools_status`, `get_tool_path_overrides`, `set_tool_path_overrides`, `open_path_in_os`, `open_external_url`, `fetch_url_text`, `export_and_open_arduino_ide`, `open_wokwi_simulator`, `start_winget_install`, `open_host_ide_download`, `install_platformio_vscode_extension` |
 | **OTA** | `get_ota_tool_info`, `flash_ota_firmware`, `cancel_ota_firmware`, `discover_ota_hosts` |
 | **Desktop** | `get_desktop_status`, `set_app_autostart`, `set_pc_agent_autostart`, `set_close_to_tray`, `show_main_window` |
 | **Updater** | `check_update_channel`, `download_and_install_channel` |
